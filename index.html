@@ -1,0 +1,4869 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM EN</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #F5F6F8;
+    --surface: #FFFFFF;
+    --surface-2: #ECEEF2;
+    --ink: #1A2130;
+    --ink-soft: #5B6474;
+    --ink-faint: #8A93A0;
+    --line: #DFE2E8;
+    --line-strong: #C7CCD4;
+    --accent: #2F5D8A;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E4ECF3;
+    --danger: #C1443D;
+    --danger-soft: #F6E4E3;
+
+    /* Validated against the dataviz skill's categorical-palette checker —
+       the old set (a muted red/amber/blue/gray) failed its chroma floor
+       (gray unreadable as a real color) and its normal-vision floor (red
+       vs amber only ΔE 14.6, below the 15 floor — hard to tell apart even
+       with full color vision, which is exactly what was reported). This
+       set passes every check in both light and dark. */
+    --u-ui: #E34948;
+    --u-un: #EDA100;
+    --u-ni: #2A78D6;
+    --u-nn: #008300;
+    --u-ui-soft: #FBEAEA;
+    --u-un-soft: #FCEFD4;
+    --u-ni-soft: #E3EEFA;
+    --u-nn-soft: #E2F0DE;
+
+    --s-inbox: #8B909B;
+    --s-week: #3E7CA6;
+    --s-progress: #C2861F;
+    --s-waiting: #7C6FA6;
+    --s-done: #4F8F63;
+    --s-done-soft: #E3F0E6;
+
+    --shadow-1: 0 1px 2px rgba(26,33,48,.06), 0 1px 1px rgba(26,33,48,.04);
+    --shadow-2: 0 4px 16px rgba(26,33,48,.09), 0 1px 2px rgba(26,33,48,.06);
+    --radius-s: 8px;
+    --radius-m: 12px;
+    --radius-l: 18px;
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Golos Text', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151C;
+      --surface: #1B212B;
+      --surface-2: #222834;
+      --ink: #E9ECF2;
+      --ink-soft: #9BA4B2;
+      --ink-faint: #6E7684;
+      --line: #2B3240;
+      --line-strong: #384051;
+      --accent: #6FA3D8;
+      --accent-ink: #0E1520;
+      --accent-soft: #1E2C3B;
+      --danger: #E1746E;
+      --danger-soft: #33201F;
+
+      --u-ui: #E34948;
+      --u-un: #C98500;
+      --u-ni: #3987E5;
+      --u-nn: #008300;
+      --u-ui-soft: #3A2323;
+      --u-un-soft: #332912;
+      --u-ni-soft: #1E2C3B;
+      --u-nn-soft: #1B2A1B;
+
+      --s-inbox: #9199A6;
+      --s-week: #6FA8CC;
+      --s-progress: #D9A64E;
+      --s-waiting: #A395CC;
+      --s-done: #6FB483;
+      --s-done-soft: #1E2E22;
+
+      --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+      --shadow-2: 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151C;
+    --surface: #1B212B;
+    --surface-2: #222834;
+    --ink: #E9ECF2;
+    --ink-soft: #9BA4B2;
+    --ink-faint: #6E7684;
+    --line: #2B3240;
+    --line-strong: #384051;
+    --accent: #6FA3D8;
+    --accent-ink: #0E1520;
+    --accent-soft: #1E2C3B;
+    --danger: #E1746E;
+    --danger-soft: #33201F;
+
+    --u-ui: #E1746E;
+    --u-un: #DDA455;
+    --u-ni: #6FA3D8;
+    --u-nn: #838C99;
+    --u-ui-soft: #33201F;
+    --u-un-soft: #332A18;
+    --u-ni-soft: #1E2C3B;
+    --u-nn-soft: #232833;
+
+    --s-inbox: #9199A6;
+    --s-week: #6FA8CC;
+    --s-progress: #D9A64E;
+    --s-waiting: #A395CC;
+    --s-done: #6FB483;
+
+    --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+    --shadow-2: 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  .hidden { display: none !important; }
+  /* The page should only ever scroll/pan vertically — no side-to-side drift,
+     even when a flex row briefly can't fit on a narrow phone. overflow-x
+     clips any such overflow at the viewport edge instead of letting it
+     scroll, and touch-action tells mobile browsers to only honour vertical
+     swipes (pinch-zoom still works) so a stray horizontal drag never pans
+     the page sideways. */
+  html, body { height: 100%; overflow-x: hidden; width: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: none;
+  }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; }
+  ::selection { background: var(--accent-soft); }
+
+  #app { display: flex; flex-direction: column; min-height: 100vh; max-width: 100vw; overflow-x: hidden; }
+
+  /* ---------- Topbar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 20px; min-width: 0; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .who-select {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-s);
+    padding: 8px 10px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
+  }
+  .brand {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    margin: 0;
+    white-space: nowrap;
+  }
+  .brand-dot { color: var(--accent); }
+  .brand-date {
+    font-family: var(--font-body); font-weight: 600; font-size: 13px;
+    color: var(--ink-faint); letter-spacing: 0; margin-left: 2px;
+  }
+  .when-week-info {
+    font-size: 12.5px; color: var(--ink-soft); background: var(--surface-2);
+    border-radius: var(--radius-s); padding: 8px 10px; margin-top: 6px;
+  }
+  .when-week-info.hidden { display: none; }
+  .brand-week-tag {
+    font-family: var(--font-mono); font-weight: 600; font-size: 11px; color: var(--accent);
+    background: var(--accent-soft); border-radius: 999px; padding: 2px 9px; margin-left: 8px;
+    vertical-align: middle; letter-spacing: 0;
+  }
+  .tabs { display: flex; gap: 4px; background: var(--surface-2); border-radius: var(--radius-s); padding: 3px; }
+  .tab {
+    border: none; background: none; padding: 6px 14px; border-radius: 6px;
+    font-weight: 600; font-size: 13px; color: var(--ink-soft);
+    transition: background .15s, color .15s;
+  }
+  .tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
+  .tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  .btn-primary {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--accent); color: var(--accent-ink);
+    border: none; border-radius: var(--radius-s);
+    padding: 9px 16px; font-weight: 700; font-size: 13.5px;
+    box-shadow: var(--shadow-1);
+    white-space: nowrap;
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-secondary {
+    background: var(--surface-2); color: var(--ink); border: 1px solid var(--line);
+    border-radius: var(--radius-s); padding: 9px 14px; font-weight: 600; font-size: 13.5px;
+  }
+  .btn-danger {
+    background: var(--danger-soft); color: var(--danger); border: 1px solid transparent;
+    border-radius: var(--radius-s); padding: 9px 14px; font-weight: 700; font-size: 13.5px;
+  }
+  .btn-ghost {
+    background: none; border: none; color: var(--ink-soft); font-weight: 600; padding: 9px 10px;
+    border-radius: var(--radius-s);
+  }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  /* ---------- Filters ---------- */
+  .filters {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 20px; background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .filters select, .filters input[type="search"] {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s);
+    padding: 7px 10px; font-size: 13px; color: var(--ink);
+  }
+  .filters input[type="search"] { min-width: 160px; }
+  .chip-toggle {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 13px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chip-toggle.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .filters-spacer { flex: 1; }
+  .filters-count {
+    background: var(--accent); color: var(--accent-ink); border-radius: 999px;
+    font-size: 10.5px; font-weight: 800; min-width: 16px; height: 16px; line-height: 16px;
+    text-align: center; padding: 0 4px;
+  }
+  #filtersToggle.active .filters-count { background: var(--accent-ink); color: var(--accent); }
+  #filtersToggle { display: none; } /* only meaningful on the narrow layout below */
+  .filters-extra { display: flex; }
+  #taskCount { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+  .workload-bar { display: flex; gap: 6px; align-items: center; }
+  .workload-pill { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .done-collapsed { margin-top: 10px; }
+  .done-collapsed summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--ink-faint); padding: 6px 2px; list-style: none; }
+  .done-collapsed summary::-webkit-details-marker { display: none; }
+  .done-collapsed summary::before { content: "▸ "; }
+  .done-collapsed[open] summary::before { content: "▾ "; }
+  .done-collapsed .column-cards { margin-top: 8px; }
+
+  /* ---------- Quick-add ---------- */
+  .quick-add {
+    display: flex; align-items: center; gap: 8px; padding: 8px 20px;
+    background: var(--surface); border-bottom: 1px solid var(--line); color: var(--ink-faint);
+  }
+  .quick-add.hidden { display: none; }
+  .quick-add input {
+    flex: 1; border: none; background: none; padding: 4px 0; font-size: 13.5px; color: var(--ink);
+  }
+  .quick-add input::placeholder { color: var(--ink-faint); }
+
+  /* ---------- Board day navigator — lets the Board be narrowed to a single
+     day's tasks, the same way the Calendar view already pages by month. ---------- */
+  .board-date-nav {
+    display: flex; align-items: center; gap: 8px; padding: 8px 20px; flex-wrap: wrap;
+    background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  .board-date-nav.hidden { display: none; }
+  #bdnPrev, #bdnNext { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-s); width: 28px; height: 28px; flex: none; }
+  .board-date-nav .btn-ghost { white-space: nowrap; }
+  .bdn-label { font-family: var(--font-display); font-weight: 600; font-size: 13.5px; min-width: 130px; white-space: nowrap; }
+  .bdn-label.is-all { color: var(--ink-faint); font-weight: 500; }
+  /* Overrides the generic input[type="date"]{width:100%} rule below, which
+     is meant for the modal's stacked fields — here it would stretch the
+     picker to fill the whole bar. */
+  #bdnDate { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 5px 7px; font-size: 12.5px; width: auto; flex: none; }
+
+  /* ---------- Bulk actions ---------- */
+  .bulk-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 9px 20px; background: var(--accent-soft); border-bottom: 1px solid var(--line);
+  }
+  .bulk-bar.hidden { display: none; }
+  #bulkCount { font-weight: 700; font-size: 12.5px; color: var(--accent); white-space: nowrap; }
+  .bulk-sep { width: 1px; height: 18px; background: var(--line-strong); flex: none; }
+  .bulk-label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+  #bulkDue {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s);
+    padding: 6px 8px; font-size: 12.5px;
+  }
+  .pill-row-sm { display: flex; gap: 5px; flex-wrap: wrap; }
+  .pill-btn-sm {
+    border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+    padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--ink-soft);
+  }
+  .pill-btn-sm:hover { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+
+  /* ---------- Board — a vertical feed: sections stacked top to bottom,
+     the page itself scrolls down, never sideways. ---------- */
+  .board {
+    flex: 1; display: flex; flex-direction: column; gap: 4px;
+    padding: 6px 20px 40px; max-width: 1180px; width: 100%; margin: 0 auto;
+  }
+  .board.hidden, .calendar.hidden { display: none; }
+  .column {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 22px 0; border-top: 1px solid var(--line);
+  }
+  .column:first-child { border-top: none; padding-top: 6px; }
+  .column-head { display: flex; align-items: center; gap: 9px; position: sticky; top: 106px; z-index: 5; background: var(--bg); padding: 4px 0; }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .column-title { font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: -.005em; }
+  .column-count {
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint);
+    background: var(--surface-2); border-radius: 999px; padding: 1px 8px; margin-left: 2px;
+  }
+  .column-week-tag {
+    font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+    background: var(--accent-soft); border-radius: 999px; padding: 1px 8px;
+  }
+  .column-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+    gap: 10px; align-items: start;
+  }
+  .column-empty { font-size: 12.5px; color: var(--ink-faint); padding: 4px 2px; grid-column: 1 / -1; }
+
+  .card {
+    background: var(--surface); border-radius: var(--radius-m); padding: 10px 11px 11px 13px;
+    box-shadow: var(--shadow-1); border-left: 3px solid var(--u-nn);
+    display: flex; flex-direction: column; gap: 7px; text-align: left; position: relative;
+    border-top: 1px solid var(--line); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .card:hover { box-shadow: var(--shadow-2); }
+  .card.selected { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .card-select-dot {
+    width: 17px; height: 17px; border-radius: 50%;
+    border: 2px solid var(--line-strong); background: var(--surface); flex: none;
+  }
+  .card-select-dot.checked {
+    border-color: var(--accent); background: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8l3.5 3.5L13 5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: center;
+  }
+  .card-top { display: flex; align-items: center; gap: 7px; }
+  .type-chip {
+    display: flex; align-items: center; justify-content: center; flex: none;
+    width: 24px; height: 24px; border-radius: var(--radius-s); background: var(--surface-2);
+  }
+  .type-icon { width: 15px; height: 15px; color: var(--ink); flex: none; }
+  .type-label { font-size: 11px; color: var(--ink-soft); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .due-badge { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
+  .due-badge.overdue { color: var(--danger); font-weight: 700; }
+  .due-badge.today { color: var(--accent); font-weight: 700; }
+  .next-due-row {
+    font-size: 11px; color: var(--danger); background: var(--danger-soft, transparent);
+    border-radius: 5px; padding: 3px 7px; margin-top: -2px; width: fit-content;
+  }
+  .carried-over-row {
+    font-size: 11px; color: var(--u-un); background: var(--u-un-soft, transparent);
+    border-radius: 5px; padding: 3px 7px; margin-top: -2px; width: fit-content;
+  }
+  .next-due-row b { font-family: var(--font-mono); font-weight: 700; }
+  .card-title { font-weight: 600; font-size: 13.5px; line-height: 1.35; }
+  .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .meta-tag {
+    font-size: 11px; color: var(--ink-soft); background: var(--surface-2); border-radius: 5px;
+    padding: 2px 6px; font-weight: 600;
+  }
+  .meta-tag-entity { margin-left: auto; }
+  .card-parent-chip {
+    font-size: 10.5px; color: var(--ink-faint); font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: -3px;
+  }
+  .card-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .avatar-stack { display: flex; align-items: center; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13.5px; font-weight: 800; letter-spacing: .01em; color: #fff; flex: none;
+    box-shadow: 0 0 0 3px var(--surface), var(--shadow-1);
+  }
+  .urgency-pill { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 5px; }
+
+  /* ---------- Calendar ---------- */
+  .calendar { flex: 1; padding: 16px 20px 28px; }
+  .cal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .cal-header button { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); width: 30px; height: 30px; }
+  #calMonthLabel { font-family: var(--font-display); font-weight: 600; font-size: 15px; text-transform: capitalize; }
+  .cal-today-btn { margin-left: 4px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-dow { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding-bottom: 4px; }
+  .cal-cell {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s);
+    min-height: 92px; padding: 6px; display: flex; flex-direction: column; gap: 4px;
+    position: relative; min-width: 0; cursor: pointer;
+  }
+  .cal-cell:hover { border-color: var(--accent); }
+  .cal-cell.outside { opacity: .38; }
+  .cal-cell.is-today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .cal-daynum { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; justify-content: space-between; }
+  .cal-add {
+    border: none; background: none; color: var(--ink-faint); font-size: 15px; line-height: 1;
+    width: 16px; height: 16px; opacity: 0; transition: opacity .1s;
+  }
+  .cal-cell:hover .cal-add { opacity: 1; }
+  .cal-chip {
+    font-size: 10.5px; font-weight: 600; border-radius: 4px; padding: 2px 5px;
+    display: flex; align-items: center; gap: 4px; text-align: left; overflow: hidden;
+    min-width: 0; width: 100%;
+  }
+  .cal-chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .cal-chip-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .cal-more { font-size: 10.5px; color: var(--ink-faint); font-weight: 600; text-align: left; background: none; border: none; padding: 0; min-width: 0; }
+  /* Многодневные задачи (например, командировки) — цветная полоса на каждый
+     день диапазона, в одной и той же "дорожке" по всей неделе, чтобы её было
+     видно как единый растянутый отрезок, а не набор отдельных карточек.
+     min-width: 0 matters here: without it, a <button>'s own text keeps its
+     full unbroken width as the button's minimum size even with overflow:
+     hidden set, which silently blew up one calendar column to fit a long
+     trip title while the other six got squeezed to fit — min-width: 0 lets
+     the ellipsis actually take over instead. */
+  .cal-bar {
+    display: block; width: 100%; height: 14px; border: none; border-radius: 3px;
+    padding: 0 4px; font-size: 9.5px; font-weight: 700; line-height: 14px; text-align: left;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-bottom: 2px;
+    min-width: 0;
+  }
+  .cal-bar-empty { display: block; height: 14px; margin-bottom: 2px; }
+
+  /* ---------- Finance (draft) ---------- */
+  .finance { flex: 1; padding: 16px 20px 40px; max-width: 900px; width: 100%; margin: 0 auto; }
+  .fin-intro {
+    background: var(--accent-soft); color: var(--accent); border-radius: var(--radius-m);
+    padding: 12px 14px; font-size: 12.5px; line-height: 1.5; margin-bottom: 18px;
+  }
+  .fin-intro p { margin: 0; }
+  .fin-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .fin-header button { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); width: 30px; height: 30px; }
+  #finMonthLabel { font-family: var(--font-display); font-weight: 600; font-size: 15px; text-transform: capitalize; }
+  .fin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .fin-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 14px 15px; box-shadow: var(--shadow-1); }
+  .fin-card-title { font-weight: 700; font-size: 13px; margin-bottom: 10px; }
+  .fin-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .fin-row label { font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+  .fin-row input {
+    width: 132px; text-align: right; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 8px; font-family: var(--font-mono); font-size: 12.5px;
+  }
+  .fin-margin { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .fin-margin-label { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+  .fin-margin-value { font-family: var(--font-mono); font-weight: 700; font-size: 14px; }
+  .fin-margin-value.pos { color: var(--s-done); }
+  .fin-margin-value.neg { color: var(--u-ui); }
+  .fin-total {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    margin-top: 20px; padding: 16px 18px; background: var(--surface-2); border-radius: var(--radius-l);
+  }
+  .fin-total-label { font-family: var(--font-display); font-weight: 600; font-size: 14px; }
+  .fin-total-figures { display: flex; gap: 22px; font-family: var(--font-mono); font-size: 13px; }
+  .fin-total-figures b { font-family: var(--font-body); font-weight: 700; font-size: 11px; color: var(--ink-soft); display: block; margin-bottom: 2px; }
+
+  /* ---------- Analytics ---------- */
+  .analytics { flex: 1; padding: 16px 20px 40px; max-width: 900px; width: 100%; margin: 0 auto; }
+  .an-summary {
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
+    padding: 20px; box-shadow: var(--shadow-1); margin-bottom: 26px;
+  }
+  .an-donut-wrap { position: relative; width: 120px; height: 120px; flex: none; }
+  .an-donut { width: 120px; height: 120px; transform: rotate(-90deg); }
+  .an-donut circle { fill: none; stroke-width: 16; }
+  .an-donut-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .an-donut-total { font-family: var(--font-display); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
+  .an-donut-total-label { font-size: 10.5px; color: var(--ink-faint); font-weight: 600; margin-top: 2px; }
+  .an-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 160px; }
+  .an-legend-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; }
+  .an-legend-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex: none; }
+  .an-legend-label { flex: 1; color: var(--ink-soft); }
+  .an-legend-val { font-family: var(--font-mono); color: var(--ink); font-weight: 600; }
+  .an-breakdown-caption { font-size: 12px; color: var(--ink-faint); margin: -6px 0 20px; }
+  .an-section { margin-bottom: 26px; }
+  .an-section h3 { font-family: var(--font-display); font-weight: 600; font-size: 14px; margin: 0 0 10px; }
+  .an-rows { display: flex; flex-direction: column; gap: 11px; }
+  .an-row { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; align-items: center; }
+  .an-row-label { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .an-row-count { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); font-weight: 400; margin-left: 5px; }
+  .an-stackbar { display: flex; align-items: center; gap: 8px; }
+  .an-stackbar-track {
+    flex: 1; height: 10px; border-radius: 3px; background: var(--surface-2);
+    overflow: hidden; display: flex; gap: 2px;
+  }
+  .an-stackbar-seg { height: 100%; }
+  .an-stackbar-seg.good { background: var(--s-done); }
+  .an-stackbar-seg.bad { background: var(--u-ui); }
+  .an-stackbar-seg.rest { background: var(--ink-faint); opacity: .35; }
+  .an-stackbar-val { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); width: 64px; text-align: right; flex: none; }
+  .an-empty { font-size: 12.5px; color: var(--ink-faint); }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(16,20,28,.42); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px;
+    overflow: hidden; touch-action: pan-y pinch-zoom;
+  }
+  .modal-backdrop.hidden { display: none; }
+  .modal {
+    background: var(--surface); border-radius: var(--radius-l); width: 100%; max-width: 480px;
+    max-height: 92vh; overflow-y: auto; overflow-x: hidden; box-shadow: var(--shadow-2);
+    padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 14px;
+    touch-action: pan-y pinch-zoom; overscroll-behavior-x: none;
+  }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; }
+  .modal-head h2 { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin: 0; }
+  .field-label { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 6px; display: block; }
+  .field { display: flex; flex-direction: column; }
+  input[type="text"], input[type="date"], textarea, select.full {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-s);
+    padding: 9px 11px; width: 100%;
+  }
+  textarea { resize: vertical; min-height: 56px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill-btn {
+    border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px;
+    padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .pill-btn.selected { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .pill-btn svg { width: 13px; height: 13px; }
+  .pill-btn[data-id="__add__"] { border-style: dashed; color: var(--ink-faint); }
+  select.full option[value="__add__"] { color: var(--accent); }
+  .quad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .quad-btn {
+    border: 1px solid var(--line); border-radius: var(--radius-s); padding: 10px; text-align: left;
+    font-size: 12px; font-weight: 700; line-height: 1.3;
+  }
+  .quad-btn small { display: block; font-weight: 600; font-size: 10.5px; opacity: .75; margin-top: 2px; }
+  .gcal-check {
+    display: flex; align-items: center; gap: 7px; margin-top: 8px;
+    font-size: 12px; font-weight: 600; color: var(--ink-soft);
+  }
+  .gcal-check input { width: 15px; height: 15px; accent-color: var(--accent); }
+  .subtask-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+  .subtask-row { display: flex; align-items: center; gap: 8px; }
+  .subtask-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+  .subtask-row span { flex: 1; font-size: 13px; line-height: 1.3; }
+  .subtask-row span.done { text-decoration: line-through; color: var(--ink-faint); }
+  .subtask-row .subtask-del { background: none; border: none; color: var(--ink-faint); font-size: 14px; line-height: 1; padding: 3px 5px; flex: none; border-radius: 5px; }
+  .subtask-row .subtask-del:hover { color: var(--danger); background: var(--danger-soft); }
+  .subtask-add { display: flex; gap: 6px; }
+  .subtask-add input {
+    flex: 1; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-s);
+    padding: 7px 10px; font-size: 13px;
+  }
+  .subtask-empty { font-size: 12px; color: var(--ink-faint); }
+  .card-subtasks { display: flex; align-items: center; gap: 7px; }
+  .card-subtasks-track { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-2); overflow: hidden; }
+  .card-subtasks-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .card-subtasks-val { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); flex: none; }
+  /* A plain flex row with a flex:1 spacer + justify-content:flex-end looks
+     right until it doesn't fit: when the buttons overflow, flex-end spills
+     the overflow on the START side, which literally pushes the first child
+     (Удалить) off-screen to the left instead of wrapping it — that's the
+     bug where the delete button became unclickable. margin-left:auto on the
+     "real" right-hand group avoids that failure mode entirely: it pushes
+     the group right when there's room, and when there isn't, flex-wrap lets
+     it drop to its own line instead of shoving anything off-screen. */
+  .modal-actions { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; padding-top: 4px; border-top: 1px solid var(--line); margin-top: 4px; }
+  .modal-actions-right { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  /* .field's own `display: flex` (an author rule) otherwise beats the
+     browser's default [hidden]{display:none}, so this needs to be spelled
+     out explicitly for the hidden attribute to actually hide the field. */
+  #historyField[hidden] { display: none; }
+  .history-list { display: flex; flex-direction: column; gap: 5px; max-height: 130px; overflow-y: auto; overflow-x: hidden; padding: 8px 10px; background: var(--surface-2); border-radius: var(--radius-s); }
+  .history-row { font-size: 11.5px; color: var(--ink-soft); display: flex; gap: 7px; align-items: baseline; }
+  .history-row .history-who { font-weight: 700; color: var(--ink); flex: none; }
+  .history-row .history-when { color: var(--ink-faint); flex: none; font-family: var(--font-mono); font-size: 10.5px; }
+  .clarify-badge {
+    display: flex; align-items: center; justify-content: center; flex: none;
+    width: 17px; height: 17px; border-radius: 50%; background: var(--u-un-soft); color: var(--u-un);
+    font-size: 11px; font-weight: 800;
+  }
+
+  /* ---------- Task threads (linked sub-tasks) ---------- */
+  .thread-children { margin-top: 4px; }
+  .thread-child-row {
+    display: flex; align-items: center; gap: 7px; width: 100%; text-align: left;
+    background: none; border: none; padding: 5px 3px; font-size: 12px; color: var(--ink);
+    border-radius: 6px;
+  }
+  .thread-child-row:hover { background: var(--surface); }
+  .thread-child-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .thread-child-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- "+ Добавить" popup for new Проект / Юрлицо / Ответственный ---------- */
+  #addItemModal .modal { max-width: 360px; }
+
+  /* ---------- "Удалить из списка…" popup ---------- */
+  #manageListModal .modal { max-width: 380px; }
+  .manage-list-row { display: flex; align-items: center; gap: 8px; padding: 7px 3px; font-size: 13px; }
+  .manage-list-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .manage-list-del { background: none; border: none; color: var(--ink-faint); font-size: 14px; line-height: 1; padding: 4px 6px; border-radius: 6px; flex: none; }
+  .manage-list-del:hover { color: var(--danger); background: var(--danger-soft); }
+  .manage-list-empty { font-size: 12.5px; color: var(--ink-faint); padding: 6px 2px; }
+  .manage-list-row-confirm { gap: 7px; background: var(--danger-soft); border-radius: 6px; padding: 6px 8px; }
+  .manage-list-confirm-text { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--danger); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .manage-list-row-confirm .btn-secondary, .manage-list-row-confirm .btn-danger { padding: 5px 10px; font-size: 12px; flex: none; }
+
+  /* ---------- "Удалённые задачи" popup ---------- */
+  #deletedTasksModal .modal { max-width: 480px; }
+  #dayDetailModal .modal { max-width: 640px; }
+  #dayDetailList.column-cards { margin-top: 4px; }
+  #dayDetailList .deleted-tasks-empty { grid-column: 1 / -1; }
+  .deleted-task-row { display: flex; align-items: center; gap: 10px; padding: 9px 3px; border-bottom: 1px solid var(--line); }
+  .deleted-task-row:last-child { border-bottom: none; }
+  .deleted-task-info { flex: 1; min-width: 0; }
+  .deleted-task-title { font-weight: 600; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .deleted-task-meta { font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
+  .deleted-task-restore { flex: none; }
+  .deleted-tasks-empty { font-size: 12.5px; color: var(--ink-faint); padding: 6px 2px; }
+  #deletedTasksBtn.has-items { color: var(--danger); }
+
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  @media (max-width: 720px) {
+    /* Larger, easier-to-read type across the board on phones. */
+    body { font-size: 23.5px; }
+    .brand { font-size: 28.5px; }
+    .brand-date { font-size: 19.5px; }
+    .tab { font-size: 21px; padding: 12px 18px; }
+    .btn-primary, .btn-secondary, .btn-danger, .btn-ghost { font-size: 21px; padding: 14px 19px; }
+    .chip-toggle { font-size: 19.5px; padding: 12px 18px; }
+    .filters select, .filters input[type="search"] { font-size: 21px; padding: 13px 16px; }
+    #taskCount, .workload-pill { font-size: 17.5px; }
+    .card-title { font-size: 21.5px; }
+    .type-label { font-size: 16px; }
+    .meta-tag { font-size: 17px; }
+    .due-badge, .next-due-row, .carried-over-row { font-size: 17px; }
+    .urgency-pill { font-size: 15.5px; padding: 4px 10px; }
+    .card-subtasks-val { font-size: 16px; }
+    .cal-chip, .cal-bar { font-size: 16px; }
+    .cal-bar, .cal-bar-empty { height: 21px; line-height: 21px; margin-bottom: 3px; }
+    .cal-cell { min-height: 108px; }
+    .cal-daynum { font-size: 18px; }
+    .field-label { font-size: 17.5px; }
+    .modal-head h2 { font-size: 24.5px; }
+    .pill-btn { font-size: 19.5px; padding: 12px 18px; }
+    .quad-btn { font-size: 18px; }
+    .subtask-row span { font-size: 21px; }
+    .history-row { font-size: 17.5px; }
+    .manage-list-row { font-size: 19px; }
+    .manage-list-del { font-size: 21px; }
+    .deleted-task-title { font-size: 19px; }
+    .deleted-task-meta { font-size: 16px; }
+    /* iOS Safari zooms the whole page in on focus whenever a text field's
+       font is under 16px, and that zoom is what makes the screen feel like
+       it's sliding left/right afterwards — keeping every typed-in field at
+       16px+ stops that zoom from ever triggering (this is now comfortably
+       above that floor since everything else grew too). */
+    input[type="text"], input[type="date"], input[type="search"], input[type="number"],
+    textarea, select.full, .filters select, .filters input[type="search"] { font-size: 21px; }
+
+    .topbar { padding: 12px 14px; flex-wrap: wrap; }
+    .topbar-left { flex-wrap: wrap; min-width: 0; row-gap: 8px; }
+    .brand { white-space: normal; min-width: 0; }
+    .tabs { flex-wrap: wrap; }
+    .filters { padding: 8px 14px; }
+    /* The secondary filters (Проект/Юрлицо/Ответственный + the extra chips)
+       stay hidden behind "Фильтры" on a phone — with the bigger type each
+       one used to claim its own full-width row, turning the bar into a wall
+       of stacked controls before you ever reached a task. */
+    #filtersToggle { display: flex; }
+    .filters-extra { display: none; padding-top: 2px; }
+    .filters-extra.open { display: flex; }
+    .quick-add, .bulk-bar { padding: 8px 14px; }
+    .board, .calendar { padding: 6px 14px 32px; }
+    .column-head { position: static; } /* topbar height isn't fixed once it wraps on phones */
+    .column-cards { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .an-row { grid-template-columns: 1fr; gap: 4px; }
+    .an-stackbar-val { width: auto; font-size: 15px; }
+    .an-summary { flex-direction: column; align-items: flex-start; }
+    /* Nothing on the page should be allowed to force it wider than the
+       screen — any element that would (a long select, a wide date input)
+       shrinks to fit instead of pushing the page sideways. */
+    .board, .calendar, .finance, .analytics, .topbar, .filters, .quick-add,
+    .bulk-bar, .board-date-nav, .modal { max-width: 100%; }
+    img, svg { max-width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: var(--bg); font-size: 12.5px; font-weight: 600;
+    padding: 9px 16px; border-radius: 999px; box-shadow: var(--shadow-2);
+    opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+    z-index: 80; max-width: 86vw; text-align: center;
+  }
+  #toast.warn { background: var(--u-ui); color: #fff; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+
+</head>
+<body>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6Hv19DnDLQJwD1D_nFMNueFNtI9xHnJM",
+    authDomain: "crm-en-56646.firebaseapp.com",
+    projectId: "crm-en-56646",
+    storageBucket: "crm-en-56646.firebasestorage.app",
+    messagingSenderId: "487269026021",
+    appId: "1:487269026021:web:7a8ff174aca42c7ae96c0c"
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.__CRM_DB__ = firebase.firestore();
+  window.__CRM_SEED__ = {
+"tasks":{
+"4i21tjxrxhqrhj05jgl0":{
+"completedAt":null,
+"createdAt":1788819814442,
+"direction":"Какао ECT",
+"dueDate":"2026-09-08",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788819814442,
+"by":"nikita",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"title":"Звонок Сьюкс",
+"type":"call",
+"urgency":"ui"
+},
+"5etk8v05h0woucyc0vh7":{
+"completedAt":null,
+"createdAt":1788788772863,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788799391482,
+"by":"nikita",
+"summary":"Обновлено"
+},
+{
+"at":1788799419034,
+"by":"nikita",
+"summary":"Обновлено"
+}
+],
+"needsClarification":false,
+"notes":"",
+"repeat":"weekly",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[
+{
+"done":false,
+"id":"stmtrgyx5ca7d2",
+"title":"Звонок с Андреем"
+}
+],
+"syncCalendar":false,
+"title":"Таждикистан кофе",
+"type":"task",
+"urgency":"nn"
+},
+"8qhmdblncm7xct9myy9u":{
+"completedAt":null,
+"createdAt":1788799135134,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ИП Бабаян Н.Л.",
+"history":[
+{
+"at":1788799135133,
+"by":"nikita",
+"summary":"Создано"
+},
+{
+"at":1788799959171,
+"by":"nikita",
+"summary":"Ответственный изменён"
+},
+{
+"at":1788799959738,
+"by":"nikita",
+"summary":"Обновлено"
+},
+{
+"at":1788799961221,
+"by":"nikita",
+"summary":"Ответственный изменён"
+},
+{
+"at":1788799962104,
+"by":"nikita",
+"summary":"Ответственный изменён"
+},
+{
+"at":1788799963173,
+"by":"nikita",
+"summary":"Статус: «На неделю» → «В работе»"
+},
+{
+"at":1788799963805,
+"by":"nikita",
+"summary":"Статус: «В работе» → «На неделю»"
+}
+],
+"needsClarification":false,
+"notes":"",
+"repeat":"monthly",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"title":"Заплатить налоги по ИП Бабаян",
+"type":"task",
+"urgency":"ni"
+},
+"a6jiyugwf85svb3nazuj":{
+"completedAt":null,
+"createdAt":1788855361950,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788855361950,
+"by":"nikita",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Гранд Трейд Вадим работа с образцами",
+"type":"task",
+"urgency":"ni"
+},
+"imp-01":{
+"createdAt":1757260800000,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"notes":"По возвращению Светы",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Прайс Лист (Света)",
+"type":"document",
+"urgency":"ni"
+},
+"imp-02":{
+"createdAt":1757260800001,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Система хранения и учета образцов",
+"type":"task",
+"urgency":"ni"
+},
+"imp-03":{
+"completedAt":1788855116366,
+"createdAt":1757260800002,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788855116366,
+"by":"nikita",
+"summary":"Статус: «На неделю» → «Готово»"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"",
+"status":"done",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Юнифуд - Встреча в Спб по итогам оценки образцов",
+"type":"meeting",
+"urgency":"ni"
+},
+"imp-04":{
+"createdAt":1757260800003,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"notes":"Согласовать с Никитой перед отправкой",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Презентация Лакин кофе",
+"type":"document",
+"urgency":"ni"
+},
+"imp-05":{
+"completedAt":null,
+"createdAt":1757260800004,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788798180964,
+"by":"nikita",
+"summary":"Название изменено"
+}
+],
+"needsClarification":false,
+"notes":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"status":"week",
+"subtasks":[
+{
+"done":false,
+"id":"stmtrg8yetxz8a",
+"title":"Сделать Презентацию"
+}
+],
+"syncCalendar":false,
+"title":"Звонок с Ильей по Лакин Кофе",
+"type":"call",
+"urgency":"ni"
+},
+"imp-06":{
+"createdAt":1757260800005,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"notes":"",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"status":"week",
+"title":"Встреча с Кожиным по 4-ем контейнерам",
+"type":"meeting",
+"urgency":"ni"
+},
+"imp-07":{
+"createdAt":1757260800006,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Согласование с Нудиным и Севой по формату взаимодействия с Рубинтрейд и Мастерфуд (Ник) Реальный контейнер по Бразилии (Ник)",
+"type":"task",
+"urgency":"ni"
+},
+"imp-08":{
+"createdAt":1757260800007,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Операционные Дела  по группе (Рубинтрейд- СП Омни) сайт, почты, лого, презы, папка.",
+"type":"task",
+"urgency":"ni"
+},
+"imp-09":{
+"createdAt":1757260800008,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Вендекс",
+"type":"task",
+"urgency":"ni"
+},
+"imp-10":{
+"createdAt":1757260800009,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Иншаков запуск линейки",
+"type":"task",
+"urgency":"ni"
+},
+"imp-11":{
+"createdAt":1757260800010,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Сева - Чек Бразилии контейнера",
+"type":"task",
+"urgency":"ni"
+},
+"imp-12":{
+"completedAt":null,
+"createdAt":1757260800011,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-07",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788855151214,
+"by":"nikita",
+"summary":"Обновлено"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Чебокко - получить ОС по образцам",
+"type":"task",
+"urgency":"ni"
+},
+"imp-13":{
+"createdAt":1757260800012,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Получить деньги от Коровина",
+"type":"task",
+"urgency":"ni"
+},
+"imp-14":{
+"createdAt":1757260800013,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Коровин Эквадор",
+"type":"task",
+"urgency":"ni"
+},
+"imp-15":{
+"createdAt":1757260800014,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Венесуэла продать 15 т Сева",
+"type":"task",
+"urgency":"ni"
+},
+"imp-16":{
+"createdAt":1757260800015,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Агентский договор с Капсо",
+"type":"document",
+"urgency":"ni"
+},
+"imp-17":{
+"createdAt":1757260800016,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"ООО ЧБ",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Продажа акций Чак-Никита",
+"type":"document",
+"urgency":"ni"
+},
+"imp-18":{
+"createdAt":1757260800017,
+"direction":"Вкуснокофе",
+"dueDate":"2026-09-11",
+"entity":"ООО Вкуснокофе",
+"notes":"Согласовать название с Никитой",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Выбор названия и регистрация юр лица",
+"type":"document",
+"urgency":"ni"
+},
+"imp-19":{
+"completedAt":null,
+"createdAt":1757260800018,
+"direction":"Биржа33",
+"dueDate":"2026-09-07",
+"entity":"ООО Биржа 33",
+"history":[
+{
+"at":1788853031976,
+"by":"",
+"summary":"Статус: «Готово» → «В работе»"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"",
+"status":"progress",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"доделать и прислать презу по Бирже Сергею",
+"type":"task",
+"urgency":"ni"
+},
+"imp-20":{
+"createdAt":1757260800019,
+"direction":"Какао ECT",
+"dueDate":"2026-09-07",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"status":"week",
+"title":"Подготовка цифр с Людмилой по какао;",
+"type":"task",
+"urgency":"ni"
+},
+"imp-21":{
+"createdAt":1757260800020,
+"direction":"Какао ECT",
+"dueDate":"2026-09-07",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Заонок со Сьюкс Чаку",
+"type":"call",
+"urgency":"ni"
+},
+"imp-22":{
+"createdAt":1757260800021,
+"direction":"Скрипки",
+"dueDate":"2026-09-07",
+"entity":"LLC VIC",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Спиваковский",
+"type":"task",
+"urgency":"ni"
+},
+"imp-23":{
+"createdAt":1757260800022,
+"direction":"Скрипки",
+"dueDate":"2026-09-07",
+"entity":"LLC VIC",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Встреча с Репиным",
+"type":"meeting",
+"urgency":"ni"
+},
+"imp-24":{
+"createdAt":1757260800023,
+"direction":"Скрипки",
+"dueDate":"2026-09-07",
+"entity":"LLC VIC",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Терешков - решение и модель",
+"type":"task",
+"urgency":"ni"
+},
+"imp-25":{
+"createdAt":1757260800024,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"title":"Встреча по остановкам",
+"type":"meeting",
+"urgency":"ni"
+},
+"imp-26":{
+"createdAt":1757260800025,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"title":"Встреча и проект по волейболу",
+"type":"meeting",
+"urgency":"ni"
+},
+"ki1fax63w9jpnzu0fo07":{
+"completedAt":null,
+"createdAt":1788818045148,
+"direction":"Скрипки",
+"dueDate":"2026-10-20",
+"entity":"LLC VIC",
+"gcalEventId":"vh2alvnm71erag56mlo8asccpc",
+"history":[
+{
+"at":1788818045148,
+"by":"nikita",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"",
+"status":"progress",
+"subtasks":[],
+"syncCalendar":true,
+"title":"Командировка в Шанхай",
+"type":"trip",
+"urgency":"ni"
+},
+"lzpnurebcud3rfbwp6hd":{
+"completedAt":null,
+"createdAt":1788853541388,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788853541388,
+"by":"",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"wk-06",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Купить еще 3 контейнера по 10,4",
+"type":"task",
+"urgency":"ni"
+},
+"mcj9ehjx3919jvivibt5":{
+"createdAt":1788788379426,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Сделать предложение для Саши с долей от Омни при достижении KPI",
+"type":"task",
+"urgency":"ni"
+},
+"pyfzp1vil9ntahkyev3w":{
+"completedAt":null,
+"createdAt":1788853704082,
+"direction":"Какао ECT",
+"dueDate":"2026-09-30",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788853704082,
+"by":"",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"2026-09-23",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Эфиопия",
+"type":"trip",
+"urgency":"ni"
+},
+"sdprymydn13zgyk9if66":{
+"createdAt":1788771993896,
+"direction":"Вкуснокофе",
+"dueDate":"2026-09-25",
+"entity":"ООО Вкуснокофе",
+"notes":"",
+"responsible":"evgeniy",
+"status":"week",
+"syncCalendar":false,
+"title":"Открыть юридическое лицо ООО Вкуснокофе",
+"type":"task",
+"urgency":"ui"
+},
+"seed-b33-1":{
+"carriedOver":true,
+"carriedOverAt":1788857314625,
+"createdAt":1788857056098,
+"direction":"Биржа33",
+"dueDate":"2026-09-11",
+"entity":"ООО Биржа 33",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314625,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-26)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Доделать и прислать презентацию по Бирже Сергею",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-1":{
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Вендекс",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-2":{
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Иншаков — запуск линейки",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-3":{
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Сева — чек Бразилии, контейнера",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-4":{
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Чебокко — получить ОС по образцам",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-5":{
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Получить деньги от Коровина",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-6":{
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Коровин — Эквадор",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-7":{
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Венесуэла — продать 15 т (Сева)",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chb-8":{
+"carriedOver":true,
+"carriedOverAt":1788857314686,
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"2026-09-11",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314686,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-26)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Агентский договор с Капсо",
+"type":"document",
+"urgency":"ni"
+},
+"seed-chb-9":{
+"carriedOver":true,
+"carriedOverAt":1788857314724,
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"2026-09-11",
+"entity":"ООО ЧБ",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314724,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-26)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Продажа акций Чак–Никита",
+"type":"task",
+"urgency":"ni"
+},
+"seed-chebomni-1":{
+"carriedOver":true,
+"carriedOverAt":1788857314734,
+"createdAt":1788857056098,
+"direction":"ЧБ ОМНИ",
+"dueDate":"2026-09-11",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314734,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-28)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Выбор названия и регистрация юрлица",
+"type":"task",
+"urgency":"ni"
+},
+"seed-kakao-1":{
+"createdAt":1788857056098,
+"direction":"Какао ECT",
+"dueDate":"",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Подготовка цифр с Людмилой по какао",
+"type":"task",
+"urgency":"ni"
+},
+"seed-kakao-2":{
+"createdAt":1788857056098,
+"direction":"Какао ECT",
+"dueDate":"",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Звонок со Сьюкс (Чаку)",
+"type":"call",
+"urgency":"ni"
+},
+"seed-other-1":{
+"createdAt":1788857056098,
+"direction":"Общее",
+"dueDate":"",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Встреча по остановкам",
+"type":"meeting",
+"urgency":"ni"
+},
+"seed-other-2":{
+"createdAt":1788857056098,
+"direction":"Общее",
+"dueDate":"",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Встреча и проект по волейболу",
+"type":"meeting",
+"urgency":"ni"
+},
+"seed-rt-1":{
+"carriedOver":true,
+"carriedOverAt":1788857314761,
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314761,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-09-04)"
+}
+],
+"needsClarification":false,
+"notes":"По возвращению Светы",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Прайс лист (Света)",
+"type":"task",
+"urgency":"ni"
+},
+"seed-rt-2":{
+"carriedOver":true,
+"carriedOverAt":1788857314771,
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314771,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-31)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Система хранения и учёта образцов",
+"type":"task",
+"urgency":"ni"
+},
+"seed-rt-3":{
+"carriedOver":true,
+"carriedOverAt":1788857314797,
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314798,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-28)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Юнифуд — встреча в СПб по итогам оценки образцов",
+"type":"meeting",
+"urgency":"ni"
+},
+"seed-rt-4":{
+"carriedOver":true,
+"carriedOverAt":1788857314807,
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314807,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-26)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Презентация Лакин Кофе",
+"type":"task",
+"urgency":"ni"
+},
+"seed-rt-5":{
+"carriedOver":true,
+"carriedOverAt":1788857314813,
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314813,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-26)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Встреча с Ильёй по Лакин Кофе",
+"type":"meeting",
+"urgency":"ni"
+},
+"seed-rt-6":{
+"carriedOver":true,
+"carriedOverAt":1788857314834,
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314834,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-30)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Встреча с Кожиным по 4 контейнерам",
+"type":"meeting",
+"urgency":"ni"
+},
+"seed-rt-7":{
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Согласование с Нудиным и Севой по формату взаимодействия с Рубинтрейд и Мастерфуд; реальный контейнер по Бразилии",
+"type":"task",
+"urgency":"ni"
+},
+"seed-rt-8":{
+"createdAt":1788857056098,
+"direction":"Рубинтрейд",
+"dueDate":"",
+"entity":"ООО Рубинтрейд",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Операционные дела по группе (Рубинтрейд — СП Омни): сайт, почта, лого, презентации, папка",
+"type":"task",
+"urgency":"ni"
+},
+"seed-skr-1":{
+"createdAt":1788857056098,
+"direction":"Скрипки VIC",
+"dueDate":"",
+"entity":"LLC VIC",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+}
+],
+"needsClarification":true,
+"notes":"В задачнике указано только имя без деталей — уточните, что нужно сделать.",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Спиваковский",
+"type":"task",
+"urgency":"ni"
+},
+"seed-skr-2":{
+"carriedOver":true,
+"carriedOverAt":1788857314844,
+"createdAt":1788857056098,
+"direction":"Скрипки VIC",
+"dueDate":"2026-09-11",
+"entity":"LLC VIC",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314844,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-26)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Встреча с Репиным",
+"type":"meeting",
+"urgency":"ni"
+},
+"seed-skr-3":{
+"carriedOver":true,
+"carriedOverAt":1788857314850,
+"createdAt":1788857056098,
+"direction":"Скрипки VIC",
+"dueDate":"2026-09-11",
+"entity":"LLC VIC",
+"history":[
+{
+"at":1788857056098,
+"by":"",
+"summary":"Импортировано из задачника"
+},
+{
+"at":1788857314850,
+"by":"auto",
+"summary":"Перенесена на текущую неделю — не была выполнена на прошлой (срок был 2026-08-26)"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"evgeniy"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"time":"",
+"title":"Терешков — решение и модель",
+"type":"task",
+"urgency":"ni"
+},
+"tstx7lyhczpa83vfuo7u":{
+"completedAt":null,
+"createdAt":1788818611164,
+"direction":"Школы английского",
+"dueDate":"2026-09-08",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788818611163,
+"by":"nikita",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"wk-17",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"title":"Встреча Аня Кеша и Денис",
+"type":"meeting",
+"urgency":"un"
+},
+"ukl0hu1byk9ziwd3mn5n":{
+"completedAt":null,
+"createdAt":1788819395638,
+"direction":"Капсо",
+"dueDate":"2026-09-15",
+"entity":"АО Капсо",
+"history":[
+{
+"at":1788819395638,
+"by":"nikita",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"monthly",
+"responsible":[
+"evgeniy"
+],
+"startDate":"",
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"title":"Деньги Сергей",
+"type":"task",
+"urgency":"ni"
+},
+"vlut6dcfp9jn6y91a7bc":{
+"carriedOver":false,
+"completedAt":null,
+"createdAt":1788862704513,
+"direction":"Общее",
+"dueDate":"2026-09-11",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788862704512,
+"by":"",
+"summary":"Создано"
+}
+],
+"needsClarification":false,
+"notes":"",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"startDate":"2026-09-07",
+"status":"week",
+"subtasks":[],
+"time":"",
+"title":"Тендер от Алиди",
+"type":"task",
+"urgency":"ui"
+},
+"wk-01":{
+"createdAt":1800000000001,
+"direction":"Общее",
+"dueDate":"2026-09-07",
+"entity":"Не применимо",
+"notes":"Вечер понедельника",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Встреча с Аней и Денисом",
+"type":"meeting",
+"urgency":"ni"
+},
+"wk-02":{
+"completedAt":1788798078801,
+"createdAt":1800000000002,
+"direction":"Общее",
+"dueDate":"",
+"entity":"Не применимо",
+"history":[
+{
+"at":1788798078802,
+"by":"nikita",
+"summary":"Статус: «На неделю» → «Готово»; Срочность изменена"
+}
+],
+"needsClarification":true,
+"notes":"Встречи в рамках поездки — см. чек-лист",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"status":"done",
+"subtasks":[
+{
+"done":true,
+"id":"st1",
+"title":"NYK"
+},
+{
+"done":true,
+"id":"st3",
+"title":"Вендекс"
+},
+{
+"done":true,
+"id":"st5",
+"title":"Юнифуд"
+}
+],
+"syncCalendar":false,
+"title":"Поездка СПб",
+"type":"meeting",
+"urgency":"ni"
+},
+"wk-03":{
+"createdAt":1800000000003,
+"direction":"Капсо",
+"dueDate":"2026-09-07",
+"entity":"АО Капсо",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Капсо — заехать в регистрирующий орган",
+"type":"task",
+"urgency":"ni"
+},
+"wk-04":{
+"createdAt":1800000000004,
+"direction":"Общее",
+"dueDate":"2026-09-08",
+"entity":"Не применимо",
+"notes":"",
+"repeat":"none",
+"responsible":[
+"nikita"
+],
+"status":"done",
+"subtasks":[],
+"syncCalendar":false,
+"title":"Участковый",
+"type":"meeting",
+"urgency":"ni"
+},
+"wk-05":{
+"createdAt":1800000000005,
+"direction":"Биржа33",
+"dueDate":"2026-09-07",
+"entity":"ООО Биржа 33",
+"notes":"В 13:00",
+"repeat":"weekly",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"syncCalendar":false,
+"title":"Звонок по Бирже",
+"type":"call",
+"urgency":"ni"
+},
+"wk-06":{
+"createdAt":1800000000006,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-08",
+"entity":"ООО Рубинтрейд",
+"notes":"Варшавское шоссе",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Встреча — Мастерфуд (Варшавское шоссе)",
+"type":"meeting",
+"urgency":"ni"
+},
+"wk-07":{
+"createdAt":1800000000007,
+"direction":"Общее",
+"dueDate":"",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Встреча с чуваком",
+"type":"meeting",
+"urgency":"ni"
+},
+"wk-08":{
+"createdAt":1800000000008,
+"direction":"Вкуснокофе",
+"dueDate":"",
+"entity":"ООО Вкуснокофе",
+"notes":"Из блока «важно» — звонок со Сьюкс Чаку",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"subtasks":[],
+"title":"Открыть все юр лица по всем проектам до отъезда",
+"type":"task",
+"urgency":"ui"
+},
+"wk-09":{
+"createdAt":1800000000009,
+"direction":"Вкуснокофе",
+"dueDate":"",
+"entity":"ООО Вкуснокофе",
+"notes":"Из блока «важно» — звонок со Сьюкс Чаку",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Иметь доверенность на Тёму",
+"type":"document",
+"urgency":"ui"
+},
+"wk-10":{
+"createdAt":1800000000010,
+"direction":"Вкуснокофе",
+"dueDate":"",
+"entity":"ООО Вкуснокофе",
+"notes":"Из блока «важно» — звонок со Сьюкс Чаку",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"subtasks":[],
+"title":"Иметь возможность подписывать по ЭДО",
+"type":"document",
+"urgency":"ui"
+},
+"wk-11":{
+"createdAt":1800000000011,
+"direction":"Вкуснокофе",
+"dueDate":"",
+"entity":"ООО Вкуснокофе",
+"notes":"Из блока «важно»; связано с «Система хранения и учёта образцов», «Сева — чек Бразилии», «Чебокко — получить ОС»",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"subtasks":[],
+"title":"Решить все вопросы по образцам",
+"type":"task",
+"urgency":"ui"
+},
+"wk-12":{
+"createdAt":1800000000012,
+"direction":"Вкуснокофе",
+"dueDate":"",
+"entity":"ООО Вкуснокофе",
+"notes":"Из блока «важно» — звонок со Сьюкс Чаку",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Сделать стеллажи",
+"type":"task",
+"urgency":"ui"
+},
+"wk-13":{
+"createdAt":1800000000013,
+"direction":"Биржа33",
+"dueDate":"",
+"entity":"ООО Биржа 33",
+"notes":"3,5 млн руб. за 20%",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"subtasks":[],
+"title":"Биржа33 — встреча и согласование с Сергеем",
+"type":"meeting",
+"urgency":"ui"
+},
+"wk-14":{
+"createdAt":1800000000014,
+"direction":"Биржа33",
+"dueDate":"",
+"entity":"ООО Биржа 33",
+"notes":"3,5 млн руб. за 20%",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Биржа33 — согласование с Андреем",
+"type":"meeting",
+"urgency":"ui"
+},
+"wk-15":{
+"createdAt":1800000000015,
+"direction":"Рубинтрейд",
+"dueDate":"",
+"entity":"ООО Рубинтрейд",
+"notes":"Начать вести учёт и выслать/прописать уже потраченные деньги",
+"responsible":[
+"evgeniy"
+],
+"status":"week",
+"subtasks":[],
+"title":"Учёт потраченных денег (Витя, Маша, поездка по Венесуэле)",
+"type":"document",
+"urgency":"ni"
+},
+"wk-16":{
+"createdAt":1800000000016,
+"direction":"Какао ECT",
+"dueDate":"",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Встреча и проект по какао",
+"type":"meeting",
+"urgency":"ni"
+},
+"wk-17":{
+"createdAt":1800000000017,
+"direction":"Школы английского",
+"dueDate":"",
+"entity":"Не применимо",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Встреча и проект с Анной и Кешей (английский)",
+"type":"meeting",
+"urgency":"ni"
+},
+"wk-18":{
+"createdAt":1800000000018,
+"direction":"Вкуснокофе",
+"dueDate":"",
+"entity":"ООО Вкуснокофе",
+"notes":"",
+"responsible":[
+"nikita"
+],
+"status":"week",
+"subtasks":[],
+"title":"Агентский договор с Омнитрейдер",
+"type":"document",
+"urgency":"ni"
+},
+"wk-19":{
+"completedAt":1788798109975,
+"createdAt":1800000000019,
+"direction":"Биржа33",
+"dueDate":"2026-09-07",
+"entity":"ООО Биржа 33",
+"history":[
+{
+"at":1788798109975,
+"by":"nikita",
+"summary":"Статус: «На неделю» → «Готово»; Срок: — → Сегодня; Ответственный изменён"
+},
+{
+"at":1788818654184,
+"by":"nikita",
+"summary":"Обновлено"
+}
+],
+"needsClarification":true,
+"notes":"Формулировка не до конца ясна («передавай все НЮК») — уточни детали",
+"parentId":"",
+"repeat":"none",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"startDate":"",
+"status":"done",
+"subtasks":[],
+"syncCalendar":false,
+"title":"Открытие Биржи — юр лицо, передать все НЮК",
+"type":"task",
+"urgency":"ni"
+},
+"wk-20":{
+"createdAt":1800000000020,
+"direction":"Вкуснокофе",
+"dueDate":"",
+"entity":"ООО Вкуснокофе",
+"notes":"",
+"responsible":[
+"nikita",
+"evgeniy"
+],
+"status":"week",
+"subtasks":[],
+"title":"Знакомство с командой Омни",
+"type":"meeting",
+"urgency":"ni"
+},
+"xfj67wjboem9c7ri91hi":{
+"createdAt":1788773624238,
+"direction":"Рубинтрейд",
+"dueDate":"2026-09-11",
+"entity":"ООО Рубинтрейд",
+"notes":"",
+"responsible":"evgeniy",
+"status":"week",
+"syncCalendar":false,
+"title":"Создать электронную почту для Рубинтрейд",
+"type":"task",
+"urgency":"ni"
+}
+},
+"finance":{
+"kapso-ao_2026-09":{
+"costs":0,
+"entity":"АО Капсо",
+"period":"2026-09",
+"revenue":0,
+"updatedAt":1788800023109
+}
+}
+};
+</script>
+
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="brand"><span id="brandDay"></span><span class="brand-dot">.</span> <span class="brand-date" id="brandDate"></span><span class="brand-week-tag" id="brandWeekTag"></span></h1>
+      <select id="whoAmI" class="who-select" aria-label="Кто вы"></select>
+      <div class="tabs" role="tablist" aria-label="Вид">
+        <button class="tab active" data-view="board" role="tab" aria-selected="true">Доска</button>
+        <button class="tab" data-view="calendar" role="tab" aria-selected="false">Календарь</button>
+        <button class="tab" data-view="finance" role="tab" aria-selected="false">Финансы</button>
+        <button class="tab" data-view="analytics" role="tab" aria-selected="false">Аналитика</button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button id="addTaskBtn" class="btn-primary" type="button">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+        Задача
+      </button>
+    </div>
+  </header>
+
+  <div class="filters" id="filters">
+    <input type="search" id="filterSearch" placeholder="Поиск по названию…" aria-label="Поиск">
+    <button type="button" class="chip-toggle" id="filtersToggle" aria-expanded="false">Фильтры<span class="filters-count hidden" id="filtersCount">0</span></button>
+    <div class="filters-spacer"></div>
+    <span id="workloadBar" class="workload-bar"></span>
+    <button type="button" class="chip-toggle" id="selectModeBtn">Выбрать</button>
+    <span id="taskCount"></span>
+  </div>
+  <!-- Everything here still works exactly like the row above — it's just
+       tucked behind "Фильтры" on a phone screen so the bar above doesn't
+       turn into eight stacked rows once the type is this big; on a wider
+       screen it stays open and inline. -->
+  <div class="filters filters-extra" id="filtersExtra">
+    <select id="filterDirection" aria-label="Проект"></select>
+    <select id="filterEntity" aria-label="Юрлицо"></select>
+    <select id="filterResponsible" aria-label="Ответственный"></select>
+    <button type="button" class="chip-toggle" id="filterToday">Сегодня</button>
+    <button type="button" class="chip-toggle" id="filterWeek">Эта неделя</button>
+    <button type="button" class="chip-toggle" id="filterOverdue">Просроченные</button>
+    <button type="button" class="chip-toggle" id="filterClarify">Нужно уточнить</button>
+    <button type="button" class="btn-ghost" id="resetFilters">Сбросить фильтры</button>
+    <button type="button" class="btn-ghost" id="deletedTasksBtn">Удалённые</button>
+  </div>
+
+  <div class="bulk-bar hidden" id="bulkBar">
+    <span id="bulkCount">0 выбрано</span>
+    <div class="bulk-sep"></div>
+    <input type="date" id="bulkDue">
+    <button type="button" class="btn-secondary" id="bulkSetDue">Срок</button>
+    <div class="bulk-sep"></div>
+    <span class="bulk-label">Статус:</span>
+    <div class="pill-row-sm" id="bulkStatusRow"></div>
+    <div class="bulk-sep"></div>
+    <span class="bulk-label">Кому:</span>
+    <div class="pill-row-sm" id="bulkRespRow"></div>
+    <div class="filters-spacer"></div>
+    <button type="button" class="btn-ghost" id="bulkClear">Снять выделение</button>
+  </div>
+
+  <main class="board" id="boardView"></main>
+  <main class="calendar hidden" id="calendarView">
+    <div class="cal-header">
+      <button type="button" id="calPrev" aria-label="Предыдущий месяц">‹</button>
+      <div id="calMonthLabel"></div>
+      <button type="button" id="calNext" aria-label="Следующий месяц">›</button>
+      <button type="button" class="btn-ghost cal-today-btn" id="calToday">Сегодня</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </main>
+
+  <main class="finance hidden" id="financeView">
+    <div class="fin-intro">
+      <p>Черновик финансового раздела: цифры пока вводятся вручную по каждому юрлицу, маржинальная прибыль считается сама. Когда договоримся об источнике данных и валюте по каждому направлению — заменим ручной ввод на реальные цифры.</p>
+    </div>
+    <div class="fin-header">
+      <button type="button" id="finPrev" aria-label="Предыдущий месяц">‹</button>
+      <div id="finMonthLabel"></div>
+      <button type="button" id="finNext" aria-label="Следующий месяц">›</button>
+    </div>
+    <div class="fin-grid" id="finGrid"></div>
+    <div class="fin-total" id="finTotal"></div>
+  </main>
+
+  <main class="analytics hidden" id="analyticsView">
+    <div class="an-summary">
+      <div class="an-donut-wrap">
+        <svg id="anDonut" class="an-donut" viewBox="0 0 120 120" role="img" aria-label="Задачи по статусам"></svg>
+        <div class="an-donut-center">
+          <div class="an-donut-total" id="anTotal">0</div>
+          <div class="an-donut-total-label">задач</div>
+        </div>
+      </div>
+      <div class="an-legend" id="anLegend"></div>
+    </div>
+    <div class="an-breakdown-caption">Полоски ниже: <span style="color:var(--s-done); font-weight:600">зелёным</span> — доля выполненных, <span style="color:var(--u-ui); font-weight:600">красным</span> — доля просроченных.</div>
+    <div class="an-section">
+      <h3>По проектам</h3>
+      <div class="an-rows" id="anByDirection"></div>
+    </div>
+    <div class="an-section">
+      <h3>По юрлицам</h3>
+      <div class="an-rows" id="anByEntity"></div>
+    </div>
+    <div class="an-section">
+      <h3>По типу задачи</h3>
+      <div class="an-rows" id="anByType"></div>
+    </div>
+    <div class="an-section">
+      <h3>По ответственному</h3>
+      <div class="an-rows" id="anByResp"></div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop hidden" id="taskModal">
+  <form class="modal" id="taskForm">
+    <div class="modal-head">
+      <h2 id="modalTitle">Новая задача</h2>
+      <button type="button" class="btn-ghost" id="closeModal" aria-label="Закрыть">✕</button>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Тип задачи</span>
+      <div class="pill-row" id="typeRow"></div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="fTitle">Название задачи</label>
+      <input type="text" id="fTitle" required placeholder="Например: Согласовать договор поставки">
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label class="field-label" for="fDirection">Проект</label>
+        <select class="full" id="fDirection"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="fEntity">Юрлицо</label>
+        <select class="full" id="fEntity"></select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <span class="field-label">Ответственный</span>
+        <div class="pill-row" id="respRow"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">Когда</span>
+        <div class="pill-row" id="whenModeRow"></div>
+        <div class="when-week-info" id="whenWeekInfo"></div>
+        <div id="whenDateFields">
+          <label class="field-label" for="fDue" style="margin-top:9px">Дата</label>
+          <input type="date" id="fDue">
+          <label class="field-label hidden" for="fTime" id="fTimeLabel" style="margin-top:9px">Точное время</label>
+          <input type="time" class="hidden" id="fTime">
+          <label class="field-label" for="fStart" style="margin-top:9px">Начало (если на несколько дней — например, командировка)</label>
+          <input type="date" id="fStart">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Срочность / важность</span>
+      <div class="quad-grid" id="quadGrid"></div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Статус</span>
+      <div class="pill-row" id="statusRow"></div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Повтор</span>
+      <div class="pill-row" id="repeatRow"></div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Подзадачи</span>
+      <div class="subtask-list" id="subtaskList"></div>
+      <div class="subtask-add">
+        <input type="text" id="subtaskInput" placeholder="Новая подзадача…">
+        <button type="button" class="btn-secondary" id="subtaskAddBtn">Добавить</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Ветка задач (необязательно)</span>
+      <select class="full" id="fParent"></select>
+      <div class="thread-children hidden" id="threadChildren">
+        <div class="field-label" style="margin-top:9px">Связанные задачи в этой ветке</div>
+        <div class="history-list" id="threadChildrenList"></div>
+      </div>
+      <button type="button" class="btn-secondary hidden" id="addRelatedBtn" style="margin-top:9px">+ Добавить связанную задачу</button>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="fNotes">Заметка (необязательно)</label>
+      <textarea id="fNotes" placeholder="Детали, ссылки, контекст…"></textarea>
+      <label class="gcal-check">
+        <input type="checkbox" id="fNeedsClarify">
+        Нужно уточнить
+      </label>
+    </div>
+
+    <div class="field" id="historyField" hidden>
+      <span class="field-label">История изменений</span>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-danger hidden" id="deleteBtn">Удалить</button>
+      <div class="modal-actions-right">
+        <button type="button" class="btn-secondary" id="cancelBtn">Отмена</button>
+        <button type="submit" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-backdrop hidden" id="addItemModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="addItemTitle">Добавить</h2>
+      <button type="button" class="btn-ghost" id="addItemClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="field">
+      <label class="field-label" for="addItemName" id="addItemNameLabel">Название</label>
+      <input type="text" id="addItemName" placeholder="">
+    </div>
+    <div class="field hidden" id="addItemEntityField">
+      <label class="field-label" for="addItemEntitySel">Юрлицо этого проекта</label>
+      <select class="full" id="addItemEntitySel"></select>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-right">
+        <button type="button" class="btn-secondary" id="addItemCancel">Отмена</button>
+        <button type="button" class="btn-primary" id="addItemSave">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="manageListModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="manageListTitle">Удалить из списка</h2>
+      <button type="button" class="btn-ghost" id="manageListClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="history-list" id="manageListItems" style="max-height:280px"></div>
+    <div class="modal-actions">
+      <div class="modal-actions-right">
+        <button type="button" class="btn-primary" id="manageListDone">Готово</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="deletedTasksModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Удалённые задачи</h2>
+      <button type="button" class="btn-ghost" id="deletedTasksClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="history-list" id="deletedTasksItems" style="max-height:400px"></div>
+    <div class="modal-actions">
+      <div class="modal-actions-right">
+        <button type="button" class="btn-primary" id="deletedTasksDone">Готово</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="dayDetailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="dayDetailTitle">День</h2>
+      <button type="button" class="btn-ghost" id="dayDetailClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="column-cards" id="dayDetailList"></div>
+    <div class="modal-actions">
+      <div class="modal-actions-right">
+        <button type="button" class="btn-secondary" id="dayDetailAdd">+ Задача на этот день</button>
+        <button type="button" class="btn-primary" id="dayDetailDone">Готово</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Reference data (from the project brief) ----------
+  // Reconciled with the actual portfolio in the brief: "Вкуснокофе" is a
+  // юрлицо, not a направление (that was a mix-up), and ЧБ ОМНИ / УК ЧБ were
+  // missing from the picker entirely even though the brief lists them.
+  var BASE_DIRECTIONS = ["Капсо","Биржа33","Рубинтрейд","ЧБ ОМНИ","Скрипки VIC","УК ЧБ","Какао ECT","Школы английского","Общее"];
+  var BASE_ENTITIES = ["АО Капсо","ООО Рубинтрейд","ООО ЧБ","ООО Вкуснокофе","LLC VIC","ООО Биржа 33","ИП Бабаян Н.Л.","Не применимо"];
+  // ASCII-safe doc-id codes for the finance module (db paths can't carry Cyrillic/spaces).
+  var ENTITY_CODES = {
+    "АО Капсо": "kapso-ao",
+    "ООО Рубинтрейд": "rubintrade-ooo",
+    "ООО ЧБ": "chb-ooo",
+    "ООО Вкуснокофе": "vkusnokofe-ooo",
+    "LLC VIC": "vic-llc",
+    "ООО Биржа 33": "birzha33-ooo",
+    "ИП Бабаян Н.Л.": "ip-babayan"
+  };
+  var FINANCE_ENTITIES = ["АО Капсо","ООО Рубинтрейд","ООО ЧБ","ООО Вкуснокофе","LLC VIC","ООО Биржа 33","ИП Бабаян Н.Л."];
+  // Проект → юрлицо по умолчанию (подтверждено Никитой; "Не применимо" — пока
+  // не решено — это и есть открытый вопрос брифа про ЧБ ОМНИ/Какао ECT/Школы).
+  var DIRECTION_ENTITY = {
+    "Капсо": "АО Капсо",
+    "Биржа33": "ООО Биржа 33",
+    "Рубинтрейд": "ООО Рубинтрейд",
+    "Скрипки VIC": "LLC VIC",
+    "ЧБ ОМНИ": "Не применимо",
+    "УК ЧБ": "Не применимо",
+    "Какао ECT": "Не применимо",
+    "Школы английского": "Не применимо",
+    "Общее": "Не применимо"
+  };
+  var TYPES = [
+    { id: "letter",   label: "Письмо",   icon: 'M2 4h12v8H2z M2 4l6 5 6-5' },
+    { id: "call",     label: "Звонок",   icon: 'M3 2c1 3 2 5 4 7s4 3 7 4l1-3-4-1-1 1c-2-1-3-2-4-4l1-1-1-4z' },
+    { id: "meeting",  label: "Встреча",  icon: 'M2 13v-1a3 3 0 013-3h2a3 3 0 013 3v1 M6 6a2 2 0 100-4 2 2 0 000 4z M9 6a2 2 0 002-2 M13 13v-1a2.5 2.5 0 00-2-2.4' },
+    { id: "document", label: "Документ",icon: 'M4 1h5l3 3v9H4z M9 1v3h3 M6 7h4 M6 9.5h4' },
+    { id: "task",     label: "Задача",  icon: 'M3.5 3.5h9v9h-9z M5.5 8l1.8 1.8 3.2-3.6' },
+    { id: "trip",     label: "Командировка", icon: 'M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1 M2 5h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V5z M2 9h12' }
+  ];
+  // Auto-detect "Тип задачи" from words typed into the title, so picking a
+  // type by hand is only needed when the guess is wrong. First match wins;
+  // checked in this order so more specific words aren't shadowed by vaguer
+  // ones.
+  var TYPE_KEYWORDS = [
+    { type: "call", words: ["звонок", "позвонить", "созвониться"] },
+    { type: "meeting", words: ["встреча", "совещание", "митинг"] },
+    { type: "trip", words: ["командировка", "поездка"] },
+    { type: "document", words: ["договор", "документ", "счёт", "счет", "акт"] },
+    { type: "letter", words: ["письмо", "email", "имейл"] }
+  ];
+  function detectTypeFromTitle(title) {
+    var lower = (title || "").toLowerCase();
+    for (var i = 0; i < TYPE_KEYWORDS.length; i++) {
+      var words = TYPE_KEYWORDS[i].words;
+      for (var j = 0; j < words.length; j++) {
+        if (lower.indexOf(words[j]) !== -1) return TYPE_KEYWORDS[i].type;
+      }
+    }
+    return null;
+  }
+  // "Встреча"/"Звонок" are the only types where a task benefits from an
+  // exact time, not just a date.
+  function updateTimeFieldVisibility(type) {
+    var needsTime = type === "call" || type === "meeting";
+    document.getElementById("fTime").classList.toggle("hidden", !needsTime);
+    document.getElementById("fTimeLabel").classList.toggle("hidden", !needsTime);
+    if (!needsTime) document.getElementById("fTime").value = "";
+  }
+  var BASE_RESPONSIBLE = [
+    { id: "nikita",  label: "Никита",  initial: "Н", color: "#D9720C" },
+    { id: "evgeniy", label: "Евгений", initial: "Е", color: "#7C6FA6" }
+  ];
+  var RESP_COLOR_PALETTE = ["#3E7CA6","#C2861F","#4F8F63","#9B5DE5","#B5495B","#008DA6","#7C6FA6","#556B2F"];
+  // Проекты, юрлица и ответственные, добавленные вручную через «+» — хранятся
+  // в отдельных коллекциях и подмешиваются к базовым спискам ниже, чтобы вся
+  // остальная логика (фильтры, аналитика, карточки) работала с ними так же,
+  // как с изначальными.
+  var customDirections = [];
+  var customEntities = [];
+  var customResponsible = [];
+  // Names removed from the Проект/Юрлицо dropdowns via "Удалить из списка…" —
+  // this only hides them from selection going forward. Existing tasks keep
+  // whatever direction/entity string they already had, untouched, and so
+  // does their history; nothing is deleted except the option to pick that
+  // name again for a new or edited task.
+  var hiddenDirections = [];
+  var hiddenEntities = [];
+  var DIRECTIONS = BASE_DIRECTIONS.slice();
+  var ENTITIES = BASE_ENTITIES.slice();
+  var RESPONSIBLE = BASE_RESPONSIBLE.slice();
+  function genId(prefix) { return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function uniqueNames(base, custom) {
+    var seen = {}; base.forEach(function (n) { seen[n] = true; });
+    var out = base.slice();
+    custom.forEach(function (c) {
+      if (c.name && !seen[c.name]) { seen[c.name] = true; out.push(c.name); }
+    });
+    return out;
+  }
+  function uniqueResponsible(base, custom) {
+    var seen = {}; base.forEach(function (r) { seen[r.label] = true; });
+    var out = base.slice();
+    custom.forEach(function (c) {
+      if (c.label && !seen[c.label]) { seen[c.label] = true; out.push({ id: c.id, label: c.label, initial: c.initial, color: c.color }); }
+    });
+    return out;
+  }
+  // Recomputes the merged lists after a custom item is added (locally or via
+  // the shared db) and refreshes every place that renders from them.
+  function mergeCustomLists() {
+    DIRECTIONS = uniqueNames(BASE_DIRECTIONS, customDirections).filter(function (n) { return hiddenDirections.indexOf(n) === -1; });
+    ENTITIES = uniqueNames(BASE_ENTITIES, customEntities).filter(function (n) { return hiddenEntities.indexOf(n) === -1; });
+    RESPONSIBLE = uniqueResponsible(BASE_RESPONSIBLE, customResponsible);
+    initFilterBar();
+    fillModalSelects();
+    initBulkBar();
+    renderWhoAmI();
+    render();
+  }
+  // Removing a Проект/Юрлицо only ever affects the dropdown: a custom item
+  // (one added via "+") is deleted outright since it only ever existed as a
+  // pickable option; a base item can't be deleted (it's hardcoded), so it's
+  // added to a "hidden" list instead that just filters it out of DIRECTIONS/
+  // ENTITIES above. Either way, tasks already carrying that name — and their
+  // history — are never touched.
+  function removeDirectionFromList(name) {
+    if (DIRECTIONS.length <= 1) { showToast("Нельзя удалить последний проект из списка.", true); return; }
+    var custom = customDirections.filter(function (c) { return c.name === name; })[0];
+    if (custom) {
+      customDirections = customDirections.filter(function (c) { return c.id !== custom.id; });
+      if (db) db.collection("customDirections").doc(custom.id).delete().catch(function () {});
+    } else {
+      hiddenDirections.push(name);
+      if (db) db.collection("hiddenDirections").doc(genId("hd")).set({ name: name, createdAt: Date.now() }).catch(function () {});
+    }
+    mergeCustomLists();
+  }
+  function removeEntityFromList(name) {
+    if (ENTITIES.length <= 1) { showToast("Нельзя удалить последнее юрлицо из списка.", true); return; }
+    var custom = customEntities.filter(function (c) { return c.name === name; })[0];
+    if (custom) {
+      customEntities = customEntities.filter(function (c) { return c.id !== custom.id; });
+      if (db) db.collection("customEntities").doc(custom.id).delete().catch(function () {});
+    } else {
+      hiddenEntities.push(name);
+      if (db) db.collection("hiddenEntities").doc(genId("he")).set({ name: name, createdAt: Date.now() }).catch(function () {});
+    }
+    mergeCustomLists();
+  }
+  function addCustomDirection(name, entity) {
+    name = (name || "").trim();
+    if (!name) return null;
+    if (DIRECTIONS.indexOf(name) !== -1) return name;
+    var id = genId("d");
+    var rec = { id: id, name: name };
+    if (entity && entity !== "Не применимо") { rec.entity = entity; DIRECTION_ENTITY[name] = entity; }
+    customDirections.push(rec);
+    if (db) db.collection("customDirections").doc(id).set(Object.assign({ createdAt: Date.now() }, rec)).catch(function () {});
+    mergeCustomLists();
+    return name;
+  }
+  function addCustomEntity(name) {
+    name = (name || "").trim();
+    if (!name) return null;
+    if (ENTITIES.indexOf(name) !== -1) return name;
+    var id = genId("e");
+    customEntities.push({ id: id, name: name });
+    if (db) db.collection("customEntities").doc(id).set({ name: name, createdAt: Date.now() }).catch(function () {});
+    mergeCustomLists();
+    return name;
+  }
+  function addCustomResponsible(name) {
+    name = (name || "").trim();
+    if (!name) return null;
+    var existing = RESPONSIBLE.filter(function (r) { return r.label === name; })[0];
+    if (existing) return existing.id;
+    var id = genId("u");
+    var rec = { id: id, label: name, initial: name.charAt(0).toUpperCase(), color: RESP_COLOR_PALETTE[RESPONSIBLE.length % RESP_COLOR_PALETTE.length] };
+    customResponsible.push(rec);
+    if (db) db.collection("customResponsible").doc(id).set(Object.assign({ createdAt: Date.now() }, rec)).catch(function () {});
+    mergeCustomLists();
+    return id;
+  }
+  function subscribeCustomLists() {
+    if (!db) return;
+    db.collection("customDirections").onSnapshot(function (snap) {
+      customDirections = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      customDirections.forEach(function (c) { if (c.entity) DIRECTION_ENTITY[c.name] = c.entity; });
+      mergeCustomLists();
+    }, function () {});
+    db.collection("customEntities").onSnapshot(function (snap) {
+      customEntities = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      mergeCustomLists();
+    }, function () {});
+    db.collection("customResponsible").onSnapshot(function (snap) {
+      customResponsible = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      mergeCustomLists();
+    }, function () {});
+    db.collection("hiddenDirections").onSnapshot(function (snap) {
+      hiddenDirections = snap.docs.map(function (d) { return d.data().name; });
+      mergeCustomLists();
+    }, function () {});
+    db.collection("hiddenEntities").onSnapshot(function (snap) {
+      hiddenEntities = snap.docs.map(function (d) { return d.data().name; });
+      mergeCustomLists();
+    }, function () {});
+  }
+  var URGENCY = [
+    { id: "ui", label: "Срочно и важно",        sub: "Сделать сейчас",  varc: "--u-ui" },
+    { id: "un", label: "Срочно, не важно",      sub: "Делегировать",    varc: "--u-un" },
+    { id: "ni", label: "Не срочно, важно",      sub: "Запланировать",   varc: "--u-ni" },
+    { id: "nn", label: "Не срочно, не важно",   sub: "Позже / бэклог",  varc: "--u-nn" }
+  ];
+  // "Входящие" — быстрый сброс задачи без разбора (как в брифе: сначала все
+  // кидают в общий список, потом по понедельникам разносят по направлениям
+  // и решают, что берётся "На неделю"). Быстрое добавление создаёт задачи
+  // именно сюда; полная форма по-прежнему по умолчанию ставит "На неделю".
+  var WHEN_MODES = [
+    { id: "week", label: "Вся неделя" },
+    { id: "date", label: "Точная дата" }
+  ];
+  // "Входящие" removed — quick-add (its main reason to exist) is gone, and
+  // every new task now lands directly on "На неделю" with the whole week
+  // pre-filled, so there's no separate no-date holding area to triage later.
+  var STATUSES = [
+    { id: "week",     label: "На неделю", varc: "--s-week" },
+    { id: "progress", label: "В работе", varc: "--s-progress" },
+    { id: "waiting",  label: "На паузе", varc: "--s-waiting" },
+    { id: "done",     label: "Готово",   varc: "--s-done" }
+  ];
+  var REPEAT = [
+    { id: "none",    label: "Не повторять" },
+    { id: "weekly",  label: "Каждую неделю" },
+    { id: "monthly", label: "Каждый месяц" },
+    { id: "quarterly", label: "Каждый квартал" }
+  ];
+  var byId = function (arr, id) { for (var i=0;i<arr.length;i++) if (arr[i].id===id) return arr[i]; return arr[0]; };
+  // Responsible is stored as an array (a task can belong to more than one
+  // person); this also reads the older single-string shape for tasks saved
+  // before that changed.
+  function respIds(t) {
+    var r = t.responsible;
+    if (Array.isArray(r)) return r.length ? r : ["nikita"];
+    return r ? [r] : ["nikita"];
+  }
+
+  // ---------- State ----------
+  var tasks = [];
+  var currentView = "board";
+  var editingId = null;
+  var modalSubtasks = []; // draft checklist for the task currently open in the modal; saved with the rest of the form
+  // Once the user has explicitly clicked a "Тип задачи" pill themselves in
+  // this modal session, the title-based auto-detection below stops
+  // overriding their choice on further typing.
+  var typeManuallySet = false;
+  var calCursor = new Date();
+  var finCursor = new Date();
+  var finData = {}; // entity label -> { revenue, costs }
+  var finUnsub = null;
+  var filters = { direction: "", entity: "", responsible: "", today: false, week: false, overdue: false, clarify: false, search: "" };
+  var selectMode = false;
+  var selectedIds = {}; // task id -> true, while selectMode is on
+  var db = null;
+  var unsub = null;
+
+  // ---------- "Кто вы" (per-browser, not a real login) ----------
+  // There's no auth in this app — anyone with the link can edit anything as
+  // either person. This just lets the change history below say who made an
+  // edit, so it's stored per-browser in localStorage rather than as a real
+  // account; each viewer sets it once on their own device.
+  var CURRENT_USER_KEY = "ponedelnikCurrentUser";
+  function getCurrentUser() {
+    try { return localStorage.getItem(CURRENT_USER_KEY) || ""; } catch (e) { return ""; }
+  }
+  function setCurrentUser(id) {
+    try { localStorage.setItem(CURRENT_USER_KEY, id); } catch (e) {}
+  }
+  function responsibleLabel(id) {
+    var r = RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
+    return r ? r.label : (id || "?");
+  }
+  function renderWhoAmI() {
+    var sel = document.getElementById("whoAmI");
+    if (!sel) return;
+    var cur = getCurrentUser();
+    sel.innerHTML = '<option value="">Кто вы?</option>' + RESPONSIBLE.map(function (r) {
+      return '<option value="' + r.id + '">Вы: ' + r.label + '</option>';
+    }).join("");
+    sel.value = cur;
+  }
+
+  // ---------- Toast ----------
+  var toastTimer = null;
+  function showToast(msg, warn) {
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.toggle("warn", !!warn);
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, warn ? 4200 : 2600);
+  }
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+  // The masthead itself is the day of the week (in the same big brand font
+  // "CRM EN" used to sit in) with the numeric date next to it — both roll
+  // forward on their own every day.
+  function updateBrandDate() {
+    var d = new Date();
+    var dayEl = document.getElementById("brandDay");
+    var dateEl = document.getElementById("brandDate");
+    if (dayEl) {
+      var weekday = d.toLocaleDateString("ru-RU", { weekday: "long" });
+      dayEl.textContent = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    }
+    if (dateEl) dateEl.textContent = d.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+    var weekEl = document.getElementById("brandWeekTag");
+    if (weekEl) weekEl.textContent = "Нед. " + isoWeekNumber(d);
+  }
+  function pad(n) { return n < 10 ? "0"+n : ""+n; }
+  function addDaysStr(iso, n) {
+    var d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n);
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+  function dateLabel(iso) {
+    if (!iso) return "";
+    var t = todayStr();
+    var d = new Date(iso + "T00:00:00");
+    var tom = new Date(); tom.setDate(tom.getDate()+1);
+    var tomStr = tom.getFullYear()+"-"+pad(tom.getMonth()+1)+"-"+pad(tom.getDate());
+    if (iso === t) return "Сегодня";
+    if (iso === tomStr) return "Завтра";
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+  }
+  function isOverdue(t) { return t.dueDate && t.dueDate < todayStr() && t.status !== "done"; }
+  // A task's active date range. Most tasks are single-day (start === end);
+  // a multi-day task (e.g. a "Командировка" spanning a week) carries a
+  // separate startDate that's earlier than its dueDate ("Срок", still the
+  // end of the range so nothing about single-day tasks needs to change).
+  function taskDateRange(t) {
+    var end = t.dueDate || "";
+    var start = (t.startDate && end && t.startDate <= end) ? t.startDate : end;
+    return { start: start, end: end };
+  }
+  function isMultiDay(t) {
+    var r = taskDateRange(t);
+    return !!(r.start && r.end && r.start !== r.end);
+  }
+  function taskActiveOnDate(t, iso) {
+    var r = taskDateRange(t);
+    if (!r.end) return false;
+    return iso >= r.start && iso <= r.end;
+  }
+  function shortDate(iso) {
+    var d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+  }
+  function rangeLabel(startIso, endIso) {
+    if (!startIso || startIso === endIso) return dateLabel(endIso);
+    var s = new Date(startIso + "T00:00:00"), e = new Date(endIso + "T00:00:00");
+    if (s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth()) return s.getDate() + "–" + shortDate(endIso);
+    return shortDate(startIso) + " – " + shortDate(endIso);
+  }
+  function overdueDays(t) {
+    if (!isOverdue(t)) return 0;
+    var due = new Date(t.dueDate + "T00:00:00");
+    var today = new Date(todayStr() + "T00:00:00");
+    return Math.round((today - due) / 86400000);
+  }
+  // A просроченная задача keeps its original "Срок" (that date is what it
+  // was due to be resolved by, and stays untouched for reporting), but the
+  // hint on its card now points at the end of NEXT week — matching the
+  // weekly rhythm the whole board runs on ("не решена к пятнице — переходит
+  // на следующую неделю с пометкой просрочено") — recomputed on render,
+  // never stored.
+  function nextDueLabel() {
+    var mon = mondayOfWeek(new Date()); mon.setDate(mon.getDate() + 7);
+    var fri = new Date(mon); fri.setDate(fri.getDate() + 4);
+    return fri.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+  }
+  function ruDays(n) {
+    var n10 = n % 10, n100 = n % 100;
+    var word = "дней";
+    if (n10 === 1 && n100 !== 11) word = "день";
+    else if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) word = "дня";
+    return n + " " + word;
+  }
+  function mondayOfWeek(d) {
+    var x = new Date(d); var day = x.getDay() || 7;
+    if (day !== 1) x.setDate(x.getDate() - (day - 1));
+    x.setHours(0,0,0,0); return x;
+  }
+  function isoDate(d) { return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  // A brand-new task with no explicit day picked defaults to spanning the
+  // whole current work week (Mon–Fri) rather than just "today" — it shows
+  // up stretched across the week on the Calendar and reads as "this week's
+  // job", which is closer to how the Monday-planning ritual actually works.
+  function currentWeekRange() {
+    var mon = mondayOfWeek(new Date());
+    var fri = new Date(mon); fri.setDate(fri.getDate() + 4);
+    return { start: isoDate(mon), end: isoDate(fri) };
+  }
+  // Standard ISO-8601 week number (Monday-start weeks, week 1 contains the
+  // year's first Thursday) — used for the "На неделю" column header and for
+  // week-long task badges.
+  function isoWeekNumber(d) {
+    var date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var dayNum = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+    var yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  }
+  // "Когда" pill in the task form — "Вся неделя" (the default: the task
+  // spans the whole current work week, Mon–Fri) vs "Точная дата" (a single
+  // date, optionally with a separate start date for something like a
+  // multi-day trip). Switching to "Вся неделя" recomputes the range fresh
+  // every time so it always means *this* week, not whatever week the form
+  // happened to default to earlier.
+  function setWhenMode(mode) {
+    var isWeek = mode === "week";
+    document.getElementById("whenDateFields").classList.toggle("hidden", isWeek);
+    document.getElementById("whenWeekInfo").classList.toggle("hidden", !isWeek);
+    if (isWeek) {
+      var wr = currentWeekRange();
+      document.getElementById("fDue").value = wr.end;
+      document.getElementById("fStart").value = wr.start;
+      document.getElementById("whenWeekInfo").textContent = "Неделя " + isoWeekNumber(new Date()) + ": " + rangeLabel(wr.start, wr.end);
+    }
+  }
+  // Editing an existing task: it's in "week" mode only if its dates still
+  // exactly match the current week's Mon–Fri — anything else (a specific
+  // date, a custom multi-day range, a past or future week) is "date" mode
+  // so nothing gets silently rewritten just by opening it.
+  function computeWhenMode(t) {
+    if (!t) return "week";
+    var wr = currentWeekRange();
+    return (t.startDate === wr.start && t.dueDate === wr.end) ? "week" : "date";
+  }
+  // Tasks with a nearer due date surface first within a column; tasks with
+  // no due date at all (nothing time-sensitive to sort by) sink to the end.
+  function byDueDateAsc(a, b) {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0;
+  }
+  function isThisWeek(iso) {
+    if (!iso) return false;
+    var mon = mondayOfWeek(new Date());
+    var sun = new Date(mon); sun.setDate(sun.getDate()+6);
+    var d = new Date(iso + "T00:00:00");
+    return d >= mon && d <= sun;
+  }
+
+  // ---------- Local fallback store (used only if the db capability is unavailable) ----------
+  var localSeeded = false;
+  function seedLocal() {
+    if (localSeeded) return; localSeeded = true;
+    var t = todayStr();
+    tasks = [
+      { id: "demo1", title: "Согласовать договор поставки — пример", type: "document", direction: "ЧБ ОМНИ", entity: "ООО ЧБ", responsible: "nikita", dueDate: t, urgency: "ui", status: "week", notes: "" },
+      { id: "demo2", title: "Созвон с партнёром по Биржа33 — пример", type: "call", direction: "Биржа33", entity: "ООО Биржа 33", responsible: "evgeniy", dueDate: "", urgency: "ni", status: "week", notes: "" },
+      { id: "demo3", title: "Письмо в банк по Капсо — пример", type: "letter", direction: "Капсо", entity: "АО Капсо", responsible: "nikita", dueDate: "", urgency: "un", status: "progress", notes: "" },
+      { id: "demo4", title: "Командировка в Санкт-Петербург — пример", type: "trip", direction: "Общее", entity: "Не применимо", responsible: "evgeniy", startDate: t, dueDate: addDaysStr(t, 4), urgency: "ni", status: "week", notes: "" }
+    ];
+    rolloverOverdueTasks();
+  }
+
+  // A short, human-readable log of what changed and who changed it — "who"
+  // is whichever person is set in the "Вы" picker on this browser (see
+  // getCurrentUser/setCurrentUser below); best-effort, not an audit trail.
+  function diffSummary(prev, data) {
+    if (!prev) return ["Создано"];
+    var parts = [];
+    if ("status" in data && data.status !== prev.status) parts.push("Статус: «" + byId(STATUSES, prev.status).label + "» → «" + byId(STATUSES, data.status).label + "»");
+    if (("dueDate" in data && data.dueDate !== prev.dueDate) || ("startDate" in data && data.startDate !== prev.startDate)) {
+      var prevR = taskDateRange(prev);
+      var nextR = taskDateRange(Object.assign({}, prev, data));
+      var prevLabel = prevR.end ? rangeLabel(prevR.start, prevR.end) : "—";
+      var nextLabel = nextR.end ? rangeLabel(nextR.start, nextR.end) : "—";
+      if (prevLabel !== nextLabel) parts.push("Срок: " + prevLabel + " → " + nextLabel);
+    }
+    if ("responsible" in data) {
+      var a = respIds(prev).slice().sort().join(",");
+      var b = (Array.isArray(data.responsible) ? data.responsible : [data.responsible]).slice().sort().join(",");
+      if (a !== b) parts.push("Ответственный изменён");
+    }
+    if ("title" in data && data.title !== prev.title) parts.push("Название изменено");
+    if ("urgency" in data && data.urgency !== prev.urgency) parts.push("Срочность изменена");
+    if ("needsClarification" in data && data.needsClarification !== !!prev.needsClarification) parts.push(data.needsClarification ? "Помечено «нужно уточнить»" : "Снята пометка «нужно уточнить»");
+    if (!parts.length) parts.push("Обновлено");
+    return parts;
+  }
+  function persist(data, id) {
+    var prev = id ? findTask(id) : null;
+    var histEntry = { at: Date.now(), by: getCurrentUser() || "", summary: diffSummary(prev, data).join("; ") };
+    var prevHistory = (prev && Array.isArray(prev.history)) ? prev.history : [];
+    data = Object.assign({}, data, { history: prevHistory.concat([histEntry]).slice(-40) });
+    if (db) {
+      var col = db.collection("tasks");
+      var p = id ? col.doc(id).update(data) : col.add(Object.assign({ createdAt: Date.now() }, data));
+      p.catch(function (e) { console.error("db write failed", e); showToast("Не удалось сохранить задачу. Попробуйте ещё раз.", true); });
+      return;
+    }
+    // Local preview fallback.
+    if (id) {
+      var i = findIndex(id);
+      if (i > -1) tasks[i] = Object.assign({}, tasks[i], data);
+    } else {
+      tasks.push(Object.assign({ id: "local" + Date.now() }, data));
+    }
+    render();
+  }
+  // Soft delete: the task stays in the "tasks" collection (so history and
+  // any thread children are unaffected) but is flagged deleted and hidden
+  // everywhere via the `!t.deleted` checks — it only reappears in the
+  // "Удалённые задачи" list, where it can be restored or purged for good.
+  function softDeleteTask(id) {
+    var data = { deleted: true, deletedAt: Date.now() };
+    if (db) {
+      db.collection("tasks").doc(id).update(data).catch(function (e) { console.error(e); });
+      return;
+    }
+    var i = findIndex(id);
+    if (i > -1) tasks[i] = Object.assign({}, tasks[i], data);
+    render();
+  }
+  function restoreTask(id) {
+    var data = { deleted: false, deletedAt: null };
+    if (db) {
+      db.collection("tasks").doc(id).update(data).catch(function (e) { console.error(e); });
+      return;
+    }
+    var i = findIndex(id);
+    if (i > -1) tasks[i] = Object.assign({}, tasks[i], data);
+    render();
+  }
+  // Permanent removal — only reachable from inside "Удалённые задачи".
+  function purgeDeletedTask(id) {
+    if (db) {
+      db.collection("tasks").doc(id).delete().catch(function (e) { console.error(e); });
+      return;
+    }
+    tasks = tasks.filter(function (t) { return t.id !== id; });
+    render();
+  }
+  function deletedTasksList() {
+    return tasks.filter(function (t) { return t.deleted; }).sort(function (a, b) { return (b.deletedAt||0) - (a.deletedAt||0); });
+  }
+  function findIndex(id) { for (var i=0;i<tasks.length;i++) if (tasks[i].id===id) return i; return -1; }
+  function findTask(id) { var i = findIndex(id); return i>-1 ? tasks[i] : null; }
+  // "Если неделя проходит, а задача не выполнена — она переходит на
+  // следующую неделю с пометкой просрочено." This actually moves the task's
+  // dates forward (not just a cosmetic label) the first time it's seen
+  // after its week has fully passed, and marks it carriedOver so the card
+  // can still say so even though the date itself no longer looks overdue.
+  // Self-limiting: once a task's dates are in the current week the check
+  // below no longer matches it, so this never loops.
+  function rolloverOverdueTasks() {
+    var thisMonday = currentWeekRange().start;
+    tasks.forEach(function (t) {
+      if (t.deleted || t.status === "done" || !t.dueDate) return;
+      if (t.dueDate >= thisMonday) return;
+      var wr = currentWeekRange();
+      var update = {
+        dueDate: wr.end,
+        startDate: t.startDate ? wr.start : "",
+        carriedOver: true,
+        carriedOverAt: Date.now(),
+        history: (Array.isArray(t.history) ? t.history : []).concat([{
+          at: Date.now(), by: "auto",
+          summary: "Перенесена на текущую неделю — не была выполнена на прошлой (срок был " + t.dueDate + ")"
+        }]).slice(-40)
+      };
+      if (db) {
+        db.collection("tasks").doc(t.id).update(update).catch(function (e) { console.error("rollover failed", e); });
+      } else {
+        var i = findIndex(t.id);
+        if (i > -1) tasks[i] = Object.assign({}, tasks[i], update);
+      }
+    });
+  }
+  // Tasks linked into this one's "ветка" (thread) via parentId — real,
+  // independent tasks (their own type/срок/ответственный), just grouped
+  // together instead of duplicated as disconnected cards.
+  function childrenOf(id) { return tasks.filter(function (t) { return t.parentId === id && !t.deleted; }); }
+
+  // ---------- Rendering: filter bar options ----------
+  function fillSelect(sel, options, withAll, withAdd, withManage) {
+    var val = sel.value;
+    var html = withAll ? '<option value="">'+withAll+'</option>' : "";
+    options.forEach(function (o) { html += '<option value="'+o+'">'+o+'</option>'; });
+    if (withAdd) html += '<option value="__add__">+ Добавить…</option>';
+    if (withManage) html += '<option value="__manage__">Удалить из списка…</option>';
+    sel.innerHTML = html;
+    if (val && options.indexOf(val) !== -1) sel.value = val;
+  }
+  function initFilterBar() {
+    fillSelect(document.getElementById("filterDirection"), DIRECTIONS, "Все проекты", true, true);
+    fillSelect(document.getElementById("filterEntity"), ENTITIES, "Все юрлица", true, true);
+    var respSel = document.getElementById("filterResponsible");
+    var respVal = respSel.value;
+    respSel.innerHTML = '<option value="">Все ответственные</option>' + RESPONSIBLE.map(function (r) { return '<option value="'+r.id+'">'+r.label+'</option>'; }).join("") + '<option value="__add__">+ Добавить…</option>';
+    if (respVal && RESPONSIBLE.some(function (r) { return r.id === respVal; })) respSel.value = respVal;
+  }
+  // "+" in a filter dropdown adds a new Проект/Юрлицо/Ответственный the same
+  // way the task form does, then immediately filters by the new item.
+  function handleFilterAdd(sel, kind, filterKey) {
+    openAddItemModal(kind, function (result) {
+      filters[filterKey] = result || "";
+      sel.value = filters[filterKey];
+      render();
+    }, sel, filters[filterKey] || "");
+  }
+  // "Удалить из списка…" in a filter dropdown opens the same manage/delete
+  // popup as the task form's selects (see openManageListModal below).
+  function handleFilterManage(sel, kind, filterKey) {
+    openManageListModal(kind, sel, filters[filterKey] || "");
+  }
+
+  // ---------- "+ Добавить" popup — a small modal (not a native prompt()) for
+  // adding a new Проект / Юрлицо / Ответственный from any of the "+" entry
+  // points (task form selects, the filter bar, the respRow pill row). `sel`
+  // and `cancelValue` are optional: when given, cancelling (Отмена, ✕, the
+  // backdrop, or Escape) puts that <select> back to its value from before
+  // "+ Добавить…" was picked, instead of leaving it stuck on that option. ----------
+  var addItemState = { kind: null, onDone: null, sel: null, cancelValue: "" };
+  var ADD_ITEM_LABELS = {
+    direction:   { title: "Новый проект",         name: "Название проекта" },
+    entity:      { title: "Новое юрлицо",         name: "Название юрлица" },
+    responsible: { title: "Новый ответственный",  name: "Имя ответственного" }
+  };
+  function openAddItemModal(kind, onDone, sel, cancelValue) {
+    addItemState = { kind: kind, onDone: onDone, sel: sel || null, cancelValue: cancelValue || "" };
+    var labels = ADD_ITEM_LABELS[kind];
+    document.getElementById("addItemTitle").textContent = labels.title;
+    document.getElementById("addItemNameLabel").textContent = labels.name;
+    var nameInput = document.getElementById("addItemName");
+    nameInput.value = "";
+    var entField = document.getElementById("addItemEntityField");
+    entField.classList.toggle("hidden", kind !== "direction");
+    if (kind === "direction") {
+      fillSelect(document.getElementById("addItemEntitySel"), ENTITIES, null, false);
+      document.getElementById("addItemEntitySel").value = "Не применимо";
+    }
+    document.getElementById("addItemModal").classList.remove("hidden");
+    setTimeout(function () { nameInput.focus(); }, 30);
+  }
+  function closeAddItemModal() {
+    document.getElementById("addItemModal").classList.add("hidden");
+    if (addItemState.sel && addItemState.sel.value === "__add__") addItemState.sel.value = addItemState.cancelValue;
+    addItemState = { kind: null, onDone: null, sel: null, cancelValue: "" };
+  }
+  function saveAddItemModal() {
+    var name = document.getElementById("addItemName").value.trim();
+    if (!name) { showToast("Введите название.", true); return; }
+    var kind = addItemState.kind, onDone = addItemState.onDone, result;
+    if (kind === "direction") result = addCustomDirection(name, document.getElementById("addItemEntitySel").value);
+    else if (kind === "entity") result = addCustomEntity(name);
+    else if (kind === "responsible") result = addCustomResponsible(name);
+    closeAddItemModal();
+    if (onDone) onDone(result);
+  }
+
+  // ---------- "Удалить из списка…" popup — lists every current Проект or
+  // Юрлицо with a delete button per row. Deleting only removes the name from
+  // DIRECTIONS/ENTITIES (so it stops showing up as an option) — tasks and
+  // their history keep the name they already had. The confirmation step is
+  // done in-page (turn the row into "Точно удалить? Да / Отмена") rather
+  // than with window.confirm(), which the artifact sandbox blocks silently —
+  // that's what made deleting look like it did nothing before. `sel`/
+  // `cancelValue` behave like the add-item popup above: if the underlying
+  // <select> is still stuck on "__manage__" when this closes, it's put back
+  // to whatever it was before. ----------
+  var manageListState = { kind: null, sel: null, cancelValue: "", confirming: null };
+  var MANAGE_LIST_LABELS = {
+    direction: { title: "Удалить проекты", empty: "Нет проектов в списке" },
+    entity:    { title: "Удалить юрлица",  empty: "Нет юрлиц в списке" }
+  };
+  function openManageListModal(kind, sel, cancelValue) {
+    manageListState = { kind: kind, sel: sel || null, cancelValue: cancelValue || "", confirming: null };
+    document.getElementById("manageListTitle").textContent = MANAGE_LIST_LABELS[kind].title;
+    renderManageList();
+    document.getElementById("manageListModal").classList.remove("hidden");
+  }
+  function closeManageListModal() {
+    document.getElementById("manageListModal").classList.add("hidden");
+    if (manageListState.sel && manageListState.sel.value === "__manage__") manageListState.sel.value = manageListState.cancelValue;
+    manageListState = { kind: null, sel: null, cancelValue: "", confirming: null };
+  }
+  function renderManageList() {
+    var kind = manageListState.kind;
+    if (!kind) return;
+    var list = kind === "direction" ? DIRECTIONS : ENTITIES;
+    var el = document.getElementById("manageListItems");
+    if (!list.length) { el.innerHTML = '<div class="manage-list-empty">' + MANAGE_LIST_LABELS[kind].empty + '</div>'; return; }
+    el.innerHTML = list.map(function (name) {
+      if (name === manageListState.confirming) {
+        return '<div class="manage-list-row manage-list-row-confirm">' +
+          '<span class="manage-list-confirm-text">Удалить «' + escapeHtml(name) + '»?</span>' +
+          '<button type="button" class="btn-secondary manage-list-confirm-no" data-name="' + escapeHtml(name) + '">Отмена</button>' +
+          '<button type="button" class="btn-danger manage-list-confirm-yes" data-name="' + escapeHtml(name) + '">Удалить</button>' +
+        '</div>';
+      }
+      return '<div class="manage-list-row"><span class="manage-list-name">' + escapeHtml(name) + '</span>' +
+        '<button type="button" class="manage-list-del" data-name="' + escapeHtml(name) + '" aria-label="Удалить ' + escapeHtml(name) + '">✕</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll(".manage-list-del"), function (b) {
+      b.addEventListener("click", function () {
+        manageListState.confirming = b.getAttribute("data-name");
+        renderManageList();
+      });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".manage-list-confirm-no"), function (b) {
+      b.addEventListener("click", function () {
+        manageListState.confirming = null;
+        renderManageList();
+      });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".manage-list-confirm-yes"), function (b) {
+      b.addEventListener("click", function () {
+        var name = b.getAttribute("data-name");
+        manageListState.confirming = null;
+        if (kind === "direction") removeDirectionFromList(name); else removeEntityFromList(name);
+        showToast((kind === "direction" ? "Проект" : "Юрлицо") + " «" + name + "» убран" + (kind === "entity" ? "о" : "") + " из списка.");
+        renderManageList();
+      });
+    });
+  }
+
+  // ---------- "Удалённые задачи" popup — every soft-deleted task, newest
+  // first, each with a "Восстановить" button. Nothing here is a permanent
+  // delete — that keeps the same one-tap-undo safety net as the rest of the
+  // app, since a real window.confirm() is silently blocked in this sandbox
+  // anyway. ----------
+  function openDeletedTasksModal() {
+    renderDeletedTasksList();
+    document.getElementById("deletedTasksModal").classList.remove("hidden");
+  }
+  function closeDeletedTasksModal() {
+    document.getElementById("deletedTasksModal").classList.add("hidden");
+  }
+  function renderDeletedTasksList() {
+    var list = deletedTasksList();
+    var el = document.getElementById("deletedTasksItems");
+    if (!list.length) { el.innerHTML = '<div class="deleted-tasks-empty">Удалённых задач нет.</div>'; return; }
+    el.innerHTML = list.map(function (t) {
+      var when = t.deletedAt ? new Date(t.deletedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) : "";
+      return '<div class="deleted-task-row">' +
+        '<div class="deleted-task-info">' +
+          '<div class="deleted-task-title">' + escapeHtml(t.title || "(без названия)") + '</div>' +
+          '<div class="deleted-task-meta">' + escapeHtml(t.direction || "") + (when ? " · удалено " + when : "") + '</div>' +
+        '</div>' +
+        '<button type="button" class="btn-secondary deleted-task-restore" data-id="' + t.id + '">Восстановить</button>' +
+      '</div>';
+    }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll(".deleted-task-restore"), function (b) {
+      b.addEventListener("click", function () {
+        restoreTask(b.getAttribute("data-id"));
+        showToast("Задача восстановлена.");
+      });
+    });
+  }
+  function updateDeletedTasksBtn() {
+    var btn = document.getElementById("deletedTasksBtn");
+    if (!btn) return;
+    var n = deletedTasksList().length;
+    btn.textContent = n ? "Удалённые (" + n + ")" : "Удалённые";
+    btn.classList.toggle("has-items", n > 0);
+  }
+
+  // ---------- Calendar day drill-down — click any day cell (or "+N ещё")
+  // to see every task active that day, not just the first 3 shown inline. ----------
+  var dayDetailState = { iso: "" };
+  function openDayDetailModal(iso) {
+    if (!iso) return;
+    dayDetailState.iso = iso;
+    renderDayDetailModal();
+    document.getElementById("dayDetailModal").classList.remove("hidden");
+  }
+  function closeDayDetailModal() {
+    document.getElementById("dayDetailModal").classList.add("hidden");
+    dayDetailState.iso = "";
+  }
+  function renderDayDetailModal() {
+    var iso = dayDetailState.iso;
+    if (!iso) return;
+    var d = new Date(iso + "T00:00:00");
+    var titleText = d.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+    document.getElementById("dayDetailTitle").textContent = titleText.charAt(0).toUpperCase() + titleText.slice(1);
+    var list = tasks.filter(matchesFilters).filter(function (t) { return taskActiveOnDate(t, iso); }).sort(byDueDateAsc);
+    var el = document.getElementById("dayDetailList");
+    el.innerHTML = list.length ? list.map(cardHtml).join("") : '<div class="deleted-tasks-empty">На этот день задач нет.</div>';
+    Array.prototype.forEach.call(el.querySelectorAll(".card"), function (c) {
+      c.addEventListener("click", function () { openModal(c.getAttribute("data-id")); });
+    });
+  }
+
+  // Bulk bar buttons apply immediately to every selected card — they're
+  // actions, not a field with a persistent selected state, so they're wired
+  // directly rather than through buildPillRow.
+  function initBulkBar() {
+    var statusEl = document.getElementById("bulkStatusRow");
+    statusEl.innerHTML = STATUSES.filter(function (s) { return s.id !== "done"; }).map(function (s) {
+      return '<button type="button" class="pill-btn-sm" data-id="'+s.id+'">'+s.label+'</button>';
+    }).join("");
+    Array.prototype.forEach.call(statusEl.children, function (b) {
+      b.addEventListener("click", function () { applyToSelected({ status: b.getAttribute("data-id") }); showToast("Статус обновлён."); });
+    });
+
+    var respEl = document.getElementById("bulkRespRow");
+    respEl.innerHTML = RESPONSIBLE.map(function (r) {
+      return '<button type="button" class="pill-btn-sm" data-id="'+r.id+'">'+r.label+'</button>';
+    }).join("") + '<button type="button" class="pill-btn-sm" data-id="both">Оба</button>';
+    Array.prototype.forEach.call(respEl.children, function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-id");
+        var resp = id === "both" ? ["nikita","evgeniy"] : [id];
+        applyToSelected({ responsible: resp });
+        showToast("Ответственный обновлён.");
+      });
+    });
+  }
+
+  function matchesFilters(t) {
+    // Soft-deleted tasks never show up in any normal view — Board, Calendar,
+    // task counts — only in the dedicated "Удалённые задачи" list.
+    if (t.deleted) return false;
+    if (filters.direction && t.direction !== filters.direction) return false;
+    if (filters.entity && t.entity !== filters.entity) return false;
+    if (filters.responsible && respIds(t).indexOf(filters.responsible) === -1) return false;
+    if (filters.today && t.dueDate !== todayStr()) return false;
+    if (filters.week && !isThisWeek(t.dueDate)) return false;
+    if (filters.overdue && !isOverdue(t)) return false;
+    if (filters.clarify && !t.needsClarification) return false;
+    if (filters.search && t.title.toLowerCase().indexOf(filters.search.toLowerCase()) === -1) return false;
+    return true;
+  }
+
+  // ---------- Icons ----------
+  function typeIconSvg(typeId, size) {
+    var t = byId(TYPES, typeId);
+    return '<svg class="type-icon" style="width:'+(size||15)+'px;height:'+(size||15)+'px" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+t.icon+'"/></svg>';
+  }
+
+  // ---------- Card ----------
+  function cardHtml(t) {
+    var u = byId(URGENCY, t.urgency);
+    var avatars = respIds(t).map(function (id) { return byId(RESPONSIBLE, id); });
+    var overdueFlag = isOverdue(t);
+    var isDoneCard = t.status === "done";
+    var multiDay = isMultiDay(t);
+    var due = t.dueDate ? (multiDay ? rangeLabel(t.startDate, t.dueDate) + " · Нед " + isoWeekNumber(new Date(t.startDate + "T00:00:00")) : dateLabel(t.dueDate)) : "";
+    if (due && t.time && !multiDay) due += " · " + t.time;
+    if (overdueFlag) due = "Просрочено · " + ruDays(overdueDays(t));
+    var dueClass = overdueFlag ? "overdue" : (t.dueDate === todayStr() ? "today" : "");
+    var subtasks = Array.isArray(t.subtasks) ? t.subtasks : [];
+    var subDone = subtasks.filter(function (s) { return s.done; }).length;
+    var selected = !!selectedIds[t.id];
+    // A task can be linked into a "ветка" (thread) of related-but-distinct
+    // tasks (e.g. "prepare the deck" → "call to present it") via parentId,
+    // instead of being duplicated as unrelated standalone cards.
+    var parentTask = t.parentId ? findTask(t.parentId) : null;
+    var kids = childrenOf(t.id);
+    var kidsDone = kids.filter(function (k) { return k.status === "done"; }).length;
+    // Overdue and Готово get a clear, state-driven colour (red / green) that
+    // overrides the usual urgency-based accent — the point is to be able to
+    // scan the board and immediately see what's late vs. what's finished.
+    var accentVar = overdueFlag ? "--u-ui" : (isDoneCard ? "--s-done" : u.varc);
+    var tintStyle = overdueFlag ? "background: var(--u-ui-soft);" : (isDoneCard ? "background: var(--s-done-soft);" : "");
+    return (
+      '<button type="button" class="card'+(selected?' selected':'')+'" data-id="'+t.id+'" style="border-left-color: var('+accentVar+'); '+tintStyle+'">' +
+        '<div class="card-top">' +
+          (selectMode ? '<span class="card-select-dot'+(selected?' checked':'')+'"></span>' : '') +
+          '<span class="type-chip" title="'+byId(TYPES, t.type).label+'">' + typeIconSvg(t.type, 14) + '</span>' +
+          '<span class="type-label">'+byId(TYPES, t.type).label+'</span>' +
+          (t.needsClarification ? '<span class="clarify-badge" title="Нужно уточнить">?</span>' : '') +
+          (due ? '<span class="due-badge '+dueClass+'">'+due+'</span>' : '') +
+        '</div>' +
+        (overdueFlag ? '<div class="next-due-row">Переходит на след. неделю — новый срок: <b>'+nextDueLabel()+'</b></div>' : '') +
+        (t.carriedOver && !overdueFlag ? '<div class="carried-over-row">↻ Перенесена с прошлой недели — не была выполнена</div>' : '') +
+        '<div class="card-title">'+escapeHtml(t.title)+'</div>' +
+        '<div class="card-meta">' +
+          '<span class="meta-tag">'+escapeHtml(t.direction||"—")+'</span>' +
+          (t.entity && t.entity !== "Не применимо" ? '<span class="meta-tag meta-tag-entity">'+escapeHtml(t.entity)+'</span>' : "") +
+        '</div>' +
+        (parentTask ? '<div class="card-parent-chip">↳ '+escapeHtml(parentTask.title)+'</div>' : "") +
+        (subtasks.length ? '<div class="card-subtasks"><div class="card-subtasks-track"><div class="card-subtasks-fill" style="width:'+Math.round(subDone/subtasks.length*100)+'%"></div></div><span class="card-subtasks-val">'+subDone+'/'+subtasks.length+'</span></div>' : '') +
+        (kids.length ? '<div class="card-subtasks" title="Связанные задачи в ветке"><div class="card-subtasks-track"><div class="card-subtasks-fill" style="width:'+Math.round(kidsDone/kids.length*100)+'%"></div></div><span class="card-subtasks-val">Ветка '+kidsDone+'/'+kids.length+'</span></div>' : '') +
+        '<div class="card-bottom">' +
+          '<div class="avatar-stack">' + avatars.map(function (r, i) {
+            return '<span class="avatar" style="background:'+r.color+'; margin-left:'+(i ? "-11px" : "0")+'" title="'+r.label+'">'+r.initial+'</span>';
+          }).join("") + '</div>' +
+          '<span class="urgency-pill" style="background: var('+u.varc+'-soft, transparent); color: var('+u.varc+')">'+u.sub+'</span>' +
+        '</div>' +
+      '</button>'
+    );
+  }
+  function escapeHtml(s) {
+    return String(s||"").replace(/[&<>"']/g, function (c) {
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  // ---------- Board ----------
+  // "Просрочено" is never a status the person sets — it's computed from
+  // dueDate + status every render, so a task automatically leaves its normal
+  // column and surfaces here the day after its deadline passes, with a
+  // running day-count, until it's marked done or rescheduled.
+  // "Готово" tasks finished more than a week ago collapse behind a
+  // "Показать ещё N" toggle so a long-lived board doesn't just grow forever —
+  // tasks marked done before this feature existed (no completedAt yet) stay
+  // visible until they're touched again, rather than vanishing with no cue.
+  var DONE_COLLAPSE_DAYS = 7;
+  function columnSectionHtml(s, list, isDoneCol) {
+    var weekTagHtml = s.weekTag ? '<span class="column-week-tag">'+s.weekTag+'</span>' : "";
+    if (!isDoneCol) {
+      return '<section class="column">' +
+        '<div class="column-head"><span class="status-dot" style="background: var('+s.varc+')"></span>' +
+        '<span class="column-title">'+s.label+'</span>'+weekTagHtml+'<span class="column-count">'+list.length+'</span></div>' +
+        '<div class="column-cards">' +
+        (list.length ? list.map(cardHtml).join("") : '<div class="column-empty">Пусто</div>') +
+        '</div></section>';
+    }
+    var cutoff = Date.now() - DONE_COLLAPSE_DAYS * 86400000;
+    var recent = list.filter(function (t) { return !t.completedAt || t.completedAt >= cutoff; });
+    var old = list.filter(function (t) { return t.completedAt && t.completedAt < cutoff; });
+    var html = '<section class="column">' +
+      '<div class="column-head"><span class="status-dot" style="background: var('+s.varc+')"></span>' +
+      '<span class="column-title">'+s.label+'</span>'+weekTagHtml+'<span class="column-count">'+list.length+'</span></div>' +
+      '<div class="column-cards">' +
+      (recent.length ? recent.map(cardHtml).join("") : (old.length ? "" : '<div class="column-empty">Пусто</div>')) +
+      '</div>';
+    if (old.length) {
+      html += '<details class="done-collapsed"><summary>Показать ещё '+old.length+' — старше '+DONE_COLLAPSE_DAYS+' дней</summary>' +
+        '<div class="column-cards">'+old.map(cardHtml).join("")+'</div></details>';
+    }
+    html += '</section>';
+    return html;
+  }
+  function renderBoard() {
+    var el = document.getElementById("boardView");
+    var visible = tasks.filter(matchesFilters);
+    var overdueTasks = visible.filter(isOverdue).sort(function (a, b) { return overdueDays(b) - overdueDays(a); });
+    var overdueIds = {};
+    overdueTasks.forEach(function (t) { overdueIds[t.id] = true; });
+
+    // "Просрочено" sits right after "На неделю" — noticeable, but not the
+    // very first thing on the board.
+    var html = "";
+    STATUSES.forEach(function (s) {
+      var col = visible.filter(function (t) { return t.status === s.id && !overdueIds[t.id]; }).sort(byDueDateAsc);
+      var headerStatus = (s.id === "week") ? Object.assign({}, s, { weekTag: "Нед. " + isoWeekNumber(new Date()) }) : s;
+      html += columnSectionHtml(headerStatus, col, s.id === "done");
+      if (s.id === "week") html += columnSectionHtml({ label: "Просрочено", varc: "--u-ui" }, overdueTasks, false);
+    });
+    el.innerHTML = html;
+    Array.prototype.forEach.call(el.querySelectorAll(".card"), function (c) {
+      c.addEventListener("click", function () {
+        var id = c.getAttribute("data-id");
+        if (selectMode) toggleSelect(id); else openModal(id);
+      });
+    });
+  }
+
+  // ---------- Bulk select (triage mode: pick several cards, apply a due
+  // date / status / responsible to all of them at once). ----------
+  function toggleSelect(id) {
+    if (selectedIds[id]) delete selectedIds[id]; else selectedIds[id] = true;
+    render();
+    updateBulkBar();
+  }
+  function clearSelection() {
+    selectedIds = {};
+    updateBulkBar();
+    render();
+  }
+  function updateBulkBar() {
+    var ids = Object.keys(selectedIds);
+    document.getElementById("bulkBar").classList.toggle("hidden", ids.length === 0);
+    document.getElementById("bulkCount").textContent = ids.length + " выбрано";
+  }
+  function applyToSelected(data) {
+    Object.keys(selectedIds).forEach(function (id) { persist(data, id); });
+  }
+
+  // ---------- Calendar ----------
+  var DOW = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+  function renderCalendar() {
+    var label = document.getElementById("calMonthLabel");
+    label.textContent = calCursor.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+
+    var grid = document.getElementById("calGrid");
+    var year = calCursor.getFullYear(), month = calCursor.getMonth();
+    var first = new Date(year, month, 1);
+    var startOffset = (first.getDay() || 7) - 1; // Monday = 0
+    var start = new Date(year, month, 1 - startOffset);
+
+    var visible = tasks.filter(matchesFilters);
+    var byDate = {};
+    // Multi-day tasks (e.g. a "Командировка" spanning a week) are kept apart
+    // from single-day ones — they're drawn as a stretched bar across every
+    // day of their range instead of a per-day chip.
+    var multiDayTasks = [];
+    visible.forEach(function (t) {
+      if (!t.dueDate) return;
+      if (isMultiDay(t)) multiDayTasks.push(t); else (byDate[t.dueDate] = byDate[t.dueDate] || []).push(t);
+    });
+
+    var dayMeta = [];
+    var t0 = todayStr();
+    for (var i = 0; i < 42; i++) {
+      var d = new Date(start); d.setDate(start.getDate() + i);
+      var iso = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+      dayMeta.push({ iso: iso, day: d.getDate(), outside: d.getMonth() !== month, isToday: iso === t0 });
+      if (i >= 34 && d.getDay() === 0 && d.getMonth() !== month) break; // stop after full trailing week once month ended
+    }
+
+    var html = DOW.map(function (d) { return '<div class="cal-dow">'+d+'</div>'; }).join("");
+    var MAX_LANES = 3;
+    for (var w = 0; w < dayMeta.length; w += 7) {
+      var rowDays = dayMeta.slice(w, w + 7);
+      var rowStart = rowDays[0].iso, rowEnd = rowDays[rowDays.length - 1].iso;
+      // Bars keep their lane only within one calendar row (one week) — that's
+      // enough for the "stretched across the week" look without needing a
+      // lane to stay stable across a month-boundary wrap.
+      var rowTasks = multiDayTasks.filter(function (mt) {
+        var r = taskDateRange(mt);
+        return r.start <= rowEnd && r.end >= rowStart;
+      }).sort(function (a, b) {
+        var ra = taskDateRange(a), rb = taskDateRange(b);
+        return ra.start < rb.start ? -1 : ra.start > rb.start ? 1 : 0;
+      });
+      var laneEnds = [];
+      rowTasks.forEach(function (mt) {
+        var r = taskDateRange(mt);
+        var lane = 0;
+        while (laneEnds[lane] !== undefined && laneEnds[lane] >= r.start) lane++;
+        mt.__lane = lane;
+        laneEnds[lane] = r.end < rowEnd ? r.end : rowEnd;
+      });
+
+      rowDays.forEach(function (dm) {
+        var iso = dm.iso;
+        var dayTasks = byDate[iso] || [];
+        var shown = dayTasks.slice(0, 3);
+        var activeHere = rowTasks.filter(function (mt) { return taskActiveOnDate(mt, iso); });
+        var barsHtml = "";
+        for (var lane = 0; lane < Math.min(laneEnds.length, MAX_LANES); lane++) {
+          var barTask = activeHere.filter(function (mt) { return mt.__lane === lane; })[0];
+          if (!barTask) { barsHtml += '<span class="cal-bar-empty"></span>'; continue; }
+          var bu = byId(URGENCY, barTask.urgency);
+          var barVar = isOverdue(barTask) ? "--u-ui" : bu.varc;
+          barsHtml += '<button type="button" class="cal-bar" data-id="'+barTask.id+'" style="background: var('+barVar+'-soft, transparent); color: var('+barVar+')" title="'+escapeHtml(barTask.title)+'">'+escapeHtml(barTask.title)+'</button>';
+        }
+        html += '<div class="cal-cell'+(dm.outside?' outside':'')+(dm.isToday?' is-today':'')+'" data-date="'+iso+'">' +
+          '<div class="cal-daynum">'+dm.day+'<button type="button" class="cal-add" data-date="'+iso+'" aria-label="Добавить задачу">+</button></div>' +
+          barsHtml +
+          shown.map(function (ct) {
+            var u = byId(URGENCY, ct.urgency);
+            var overdueSuffix = isOverdue(ct) ? " · " + overdueDays(ct) + "д" : "";
+            return '<button type="button" class="cal-chip" data-id="'+ct.id+'" style="background: var('+u.varc+'-soft, transparent); color: var('+u.varc+')">' +
+              '<span class="cal-chip-dot" style="background: var('+(isOverdue(ct) ? "--u-ui" : u.varc)+')"></span><span>'+escapeHtml(ct.title)+overdueSuffix+'</span></button>';
+          }).join("") +
+          (dayTasks.length > 3 ? '<button type="button" class="cal-more" data-date="'+iso+'">+'+(dayTasks.length-3)+' ещё</button>' : "") +
+          '</div>';
+      });
+    }
+    grid.innerHTML = html;
+
+    Array.prototype.forEach.call(grid.querySelectorAll(".cal-chip, .cal-bar"), function (c) {
+      c.addEventListener("click", function (e) { e.stopPropagation(); openModal(c.getAttribute("data-id")); });
+    });
+    Array.prototype.forEach.call(grid.querySelectorAll(".cal-add"), function (b) {
+      b.addEventListener("click", function (e) { e.stopPropagation(); openModal(null, b.getAttribute("data-date")); });
+    });
+    // "+N ещё", and the day cell itself, both drill into that day — a
+    // modal listing every task active that day, not just the first 3.
+    Array.prototype.forEach.call(grid.querySelectorAll(".cal-more"), function (b) {
+      b.addEventListener("click", function (e) { e.stopPropagation(); openDayDetailModal(b.getAttribute("data-date")); });
+    });
+    Array.prototype.forEach.call(grid.querySelectorAll(".cal-cell"), function (c) {
+      c.addEventListener("click", function () { openDayDetailModal(c.getAttribute("data-date")); });
+    });
+  }
+
+  // ---------- Modal ----------
+  function buildPillRow(container, items, activeId, onPick) {
+    container.innerHTML = items.map(function (it) {
+      var icon = it.icon ? typeIconSvg(it.id, 13) : "";
+      return '<button type="button" class="pill-btn" data-id="'+it.id+'">'+icon+it.label+'</button>';
+    }).join("");
+    setActive();
+    function setActive() {
+      Array.prototype.forEach.call(container.children, function (b) {
+        b.classList.toggle("selected", b.getAttribute("data-id") === container.getAttribute("data-value"));
+      });
+    }
+    container.setAttribute("data-value", activeId);
+    setActive();
+    Array.prototype.forEach.call(container.children, function (b) {
+      b.addEventListener("click", function () {
+        container.setAttribute("data-value", b.getAttribute("data-id"));
+        setActive();
+        if (onPick) onPick(b.getAttribute("data-id"));
+      });
+    });
+  }
+  // Same pill look, but toggles freely — a task can have more than one
+  // responsible person. Selected ids live in data-value as a comma list.
+  function buildMultiPillRow(container, items, activeIds, allowAdd) {
+    var html = items.map(function (it) {
+      return '<button type="button" class="pill-btn" data-id="'+it.id+'">'+it.label+'</button>';
+    }).join("");
+    if (allowAdd) html += '<button type="button" class="pill-btn" data-id="__add__">+ Добавить</button>';
+    container.innerHTML = html;
+    var selected = (activeIds && activeIds.length ? activeIds.slice() : [items[0].id]);
+    setActive();
+    function setActive() {
+      container.setAttribute("data-value", selected.join(","));
+      Array.prototype.forEach.call(container.children, function (b) {
+        if (b.getAttribute("data-id") === "__add__") return;
+        b.classList.toggle("selected", selected.indexOf(b.getAttribute("data-id")) !== -1);
+      });
+    }
+    setActive();
+    Array.prototype.forEach.call(container.children, function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-id");
+        if (id === "__add__") {
+          openAddItemModal("responsible", function (newId) {
+            if (newId) { selected.push(newId); buildMultiPillRow(container, RESPONSIBLE, selected, true); }
+          });
+          return;
+        }
+        var idx = selected.indexOf(id);
+        if (idx !== -1) {
+          if (selected.length > 1) selected.splice(idx, 1); // keep at least one selected
+        } else {
+          selected.push(id);
+        }
+        setActive();
+      });
+    });
+  }
+  function buildQuadGrid(activeId) {
+    var g = document.getElementById("quadGrid");
+    g.innerHTML = URGENCY.map(function (u) {
+      return '<button type="button" class="quad-btn" data-id="'+u.id+'" style="background: var('+u.varc+'-soft); color: var('+u.varc+'); border-color: transparent">'+
+        u.label+'<small>'+u.sub+'</small></button>';
+    }).join("");
+    g.setAttribute("data-value", activeId);
+    setQuadActive();
+    function setQuadActive() {
+      Array.prototype.forEach.call(g.children, function (b) {
+        b.style.outline = b.getAttribute("data-id") === g.getAttribute("data-value") ? "2px solid currentColor" : "none";
+        b.style.outlineOffset = "-2px";
+      });
+    }
+    Array.prototype.forEach.call(g.children, function (b) {
+      b.addEventListener("click", function () { g.setAttribute("data-value", b.getAttribute("data-id")); setQuadActive(); });
+    });
+  }
+
+  // ---------- Subtasks (a lightweight checklist embedded in the task, not
+  // separate tasks of their own — kept in modalSubtasks while the modal is
+  // open, and saved as part of the task on submit). ----------
+  function renderSubtaskList() {
+    var el = document.getElementById("subtaskList");
+    if (!modalSubtasks.length) { el.innerHTML = '<div class="subtask-empty">Пока нет подзадач</div>'; return; }
+    el.innerHTML = modalSubtasks.map(function (s, i) {
+      return '<div class="subtask-row" data-i="' + i + '">' +
+        '<input type="checkbox"' + (s.done ? " checked" : "") + '>' +
+        '<span class="' + (s.done ? "done" : "") + '">' + escapeHtml(s.title) + '</span>' +
+        '<button type="button" class="subtask-del" aria-label="Удалить подзадачу">✕</button>' +
+      '</div>';
+    }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll(".subtask-row"), function (row) {
+      var i = Number(row.getAttribute("data-i"));
+      row.querySelector('input[type="checkbox"]').addEventListener("change", function (e) {
+        modalSubtasks[i].done = e.target.checked; renderSubtaskList();
+      });
+      row.querySelector(".subtask-del").addEventListener("click", function () {
+        modalSubtasks.splice(i, 1); renderSubtaskList();
+      });
+    });
+  }
+  function addSubtaskFromInput() {
+    var inp = document.getElementById("subtaskInput");
+    var v = inp.value.trim();
+    if (!v) return;
+    modalSubtasks.push({ id: "st" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, done: false });
+    inp.value = "";
+    renderSubtaskList();
+    inp.focus();
+  }
+
+  // ---------- Task threads (linked tasks, e.g. "prepare the deck" → "call
+  // to present it") — distinct from the checklist above: each entry here is
+  // a full, independent task, just linked instead of duplicated. ----------
+  function fillParentSelect(excludeId) {
+    var sel = document.getElementById("fParent");
+    sel.innerHTML = '<option value="">— Без ветки —</option>' + tasks.filter(function (x) { return x.id !== excludeId && !x.deleted; }).map(function (x) {
+      var label = x.title.length > 48 ? x.title.slice(0, 48) + "…" : x.title;
+      return '<option value="' + x.id + '">' + escapeHtml(label) + '</option>';
+    }).join("");
+  }
+  function renderThreadSection(t) {
+    var addBtn = document.getElementById("addRelatedBtn");
+    var wrap = document.getElementById("threadChildren");
+    addBtn.classList.toggle("hidden", !t);
+    if (!t) { wrap.classList.add("hidden"); return; }
+    var kids = childrenOf(t.id);
+    wrap.classList.toggle("hidden", !kids.length);
+    if (!kids.length) return;
+    var listEl = document.getElementById("threadChildrenList");
+    listEl.innerHTML = kids.map(function (k) {
+      var st = byId(STATUSES, k.status);
+      return '<button type="button" class="thread-child-row" data-id="' + k.id + '">' +
+        '<span class="thread-child-dot" style="background: var(' + st.varc + ')"></span>' +
+        '<span class="thread-child-title">' + escapeHtml(k.title) + '</span></button>';
+    }).join("");
+    Array.prototype.forEach.call(listEl.querySelectorAll(".thread-child-row"), function (b) {
+      b.addEventListener("click", function () { openModal(b.getAttribute("data-id")); });
+    });
+  }
+
+  // Re-fills just the two selects' <option> lists — called again every time
+  // a custom Проект/Юрлицо is added, without re-binding the listeners below.
+  function fillModalSelects() {
+    fillSelect(document.getElementById("fDirection"), DIRECTIONS, null, true, true);
+    fillSelect(document.getElementById("fEntity"), ENTITIES, null, true, true);
+  }
+  function handleAddDirection(sel) {
+    var t = editingId ? findTask(editingId) : null;
+    var cancelValue = t ? t.direction : DIRECTIONS[DIRECTIONS.length - 1];
+    openAddItemModal("direction", function (name) {
+      var entSel = document.getElementById("fEntity");
+      if (name) {
+        sel.value = name;
+        entSel.value = DIRECTION_ENTITY[name] || "Не применимо";
+      } else {
+        sel.value = DIRECTIONS[DIRECTIONS.length - 1];
+      }
+    }, sel, cancelValue);
+  }
+  function handleAddEntity(sel) {
+    var t = editingId ? findTask(editingId) : null;
+    var cancelValue = t ? t.entity : "Не применимо";
+    openAddItemModal("entity", function (name) {
+      sel.value = name || "Не применимо";
+    }, sel, cancelValue);
+  }
+  function handleManageDirection(sel) {
+    var t = editingId ? findTask(editingId) : null;
+    var cancelValue = t ? t.direction : DIRECTIONS[DIRECTIONS.length - 1];
+    openManageListModal("direction", sel, cancelValue);
+  }
+  function handleManageEntity(sel) {
+    var t = editingId ? findTask(editingId) : null;
+    var cancelValue = t ? t.entity : "Не применимо";
+    openManageListModal("entity", sel, cancelValue);
+  }
+  function initModalStatics() {
+    var dirSel = document.getElementById("fDirection");
+    var entSel = document.getElementById("fEntity");
+    fillModalSelects();
+    // Проект подставляет юрлицо по умолчанию; выбор остаётся редактируемым вручную.
+    dirSel.addEventListener("change", function () {
+      if (dirSel.value === "__add__") { handleAddDirection(dirSel); return; }
+      if (dirSel.value === "__manage__") { handleManageDirection(dirSel); return; }
+      var mapped = DIRECTION_ENTITY[dirSel.value];
+      entSel.value = mapped || "Не применимо";
+    });
+    entSel.addEventListener("change", function () {
+      if (entSel.value === "__add__") { handleAddEntity(entSel); return; }
+      if (entSel.value === "__manage__") handleManageEntity(entSel);
+    });
+  }
+
+  function openModal(id, prefillDate, presets) {
+    editingId = id;
+    presets = presets || {};
+    var modal = document.getElementById("taskModal");
+    var title = document.getElementById("modalTitle");
+    var del = document.getElementById("deleteBtn");
+    var t = id ? findTask(id) : null;
+
+    title.textContent = t ? "Редактировать задачу" : "Новая задача";
+    del.classList.toggle("hidden", !t);
+    resetDeleteBtn();
+
+    document.getElementById("fTitle").value = t ? t.title : "";
+    document.getElementById("fDirection").value = t ? t.direction : (presets.direction || DIRECTIONS[DIRECTIONS.length-1]);
+    document.getElementById("fEntity").value = t ? t.entity : (presets.entity || "Не применимо");
+    // A brand-new task with no specific day already in play (no calendar day
+    // clicked, no Board day selected, no explicit срок passed in) defaults
+    // to the whole current week rather than just today — see
+    // currentWeekRange() above. Any explicit date context still wins.
+    var explicitDate = prefillDate || presets.dueDate || "";
+    if (t) {
+      document.getElementById("fDue").value = t.dueDate || "";
+      document.getElementById("fStart").value = t.startDate || "";
+    } else if (explicitDate) {
+      document.getElementById("fDue").value = explicitDate;
+      document.getElementById("fStart").value = "";
+    }
+    var initialWhenMode = explicitDate ? "date" : computeWhenMode(t);
+    buildPillRow(document.getElementById("whenModeRow"), WHEN_MODES, initialWhenMode, setWhenMode);
+    setWhenMode(initialWhenMode);
+    document.getElementById("fNotes").value = t ? (t.notes||"") : "";
+    document.getElementById("fNeedsClarify").checked = t ? !!t.needsClarification : false;
+
+    var histEl = document.getElementById("historyField");
+    if (t && Array.isArray(t.history) && t.history.length) {
+      histEl.hidden = false;
+      document.getElementById("historyList").innerHTML = t.history.slice().reverse().map(function (h) {
+        var when = new Date(h.at).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+        var who = h.by === "auto" ? "Авто" : responsibleLabel(h.by);
+        return '<div class="history-row"><span class="history-when">'+when+'</span><span class="history-who">'+escapeHtml(who)+':</span><span>'+escapeHtml(h.summary||"")+'</span></div>';
+      }).join("");
+    } else {
+      histEl.hidden = true;
+    }
+
+    typeManuallySet = !!t;
+    buildPillRow(document.getElementById("typeRow"), TYPES, t ? t.type : "task", function (pickedType) {
+      typeManuallySet = true;
+      updateTimeFieldVisibility(pickedType);
+    });
+    document.getElementById("fTime").value = t ? (t.time || "") : "";
+    updateTimeFieldVisibility(t ? t.type : "task");
+    // Ответственный in the task form is deliberately just Никита/Евгений —
+    // custom people (added via the filter bar's "+") aren't offered here.
+    var curUser = getCurrentUser();
+    var defaultResp = (curUser === "nikita" || curUser === "evgeniy") ? curUser : "nikita";
+    buildMultiPillRow(document.getElementById("respRow"), BASE_RESPONSIBLE, t ? respIds(t) : [defaultResp], false);
+    buildPillRow(document.getElementById("statusRow"), STATUSES, t ? t.status : "week");
+    buildPillRow(document.getElementById("repeatRow"), REPEAT, t ? (t.repeat || "none") : "none");
+    buildQuadGrid(t ? t.urgency : "ni");
+    modalSubtasks = (t && Array.isArray(t.subtasks)) ? t.subtasks.map(function (s) { return Object.assign({}, s); }) : [];
+    renderSubtaskList();
+
+    fillParentSelect(id);
+    document.getElementById("fParent").value = t ? (t.parentId || "") : (presets.parentId || "");
+    renderThreadSection(t);
+
+    modal.classList.remove("hidden");
+    setTimeout(function () { document.getElementById("fTitle").focus(); }, 30);
+  }
+  function closeModal() { document.getElementById("taskModal").classList.add("hidden"); editingId = null; resetDeleteBtn(); }
+  // "Удалить" needs its own confirmation, but window.confirm() is silently
+  // blocked inside the artifact sandbox — the same reason prompt() had to be
+  // replaced earlier. Instead the button arms itself in place: first click
+  // turns it into "Точно удалить?" for a few seconds, second click while
+  // armed actually deletes.
+  var deleteArmed = false;
+  var deleteArmTimer = null;
+  function resetDeleteBtn() {
+    deleteArmed = false;
+    clearTimeout(deleteArmTimer);
+    var btn = document.getElementById("deleteBtn");
+    if (btn) btn.textContent = "Удалить";
+  }
+
+  function onSubmit(e) {
+    e.preventDefault();
+    var data = {
+      title: document.getElementById("fTitle").value.trim(),
+      direction: document.getElementById("fDirection").value,
+      entity: document.getElementById("fEntity").value,
+      dueDate: document.getElementById("fDue").value,
+      startDate: document.getElementById("fStart").value,
+      time: document.getElementById("fTime").classList.contains("hidden") ? "" : document.getElementById("fTime").value,
+      notes: document.getElementById("fNotes").value.trim(),
+      type: document.getElementById("typeRow").getAttribute("data-value"),
+      responsible: document.getElementById("respRow").getAttribute("data-value").split(","),
+      status: document.getElementById("statusRow").getAttribute("data-value"),
+      urgency: document.getElementById("quadGrid").getAttribute("data-value"),
+      repeat: document.getElementById("repeatRow").getAttribute("data-value"),
+      parentId: document.getElementById("fParent").value,
+      needsClarification: document.getElementById("fNeedsClarify").checked,
+      subtasks: modalSubtasks,
+      // A manual save is the user actively dealing with the task, so the
+      // "this got silently punted to this week" flag no longer applies.
+      carriedOver: false
+    };
+    if (!data.title) return;
+    if (data.startDate && !data.dueDate) {
+      showToast("Чтобы задать начало, укажите ещё и срок (дату окончания).", true);
+      return;
+    }
+    if (data.startDate && data.dueDate && data.startDate > data.dueDate) {
+      showToast("Дата начала не может быть позже срока.", true);
+      return;
+    }
+    if (data.status === "done") {
+      var openCount = modalSubtasks.filter(function (s) { return !s.done; }).length;
+      if (openCount) {
+        showToast("Сначала закройте все подзадачи (осталось " + openCount + ").", true);
+        return;
+      }
+    }
+    // completedAt drives the "collapse old Готово tasks" grouping — set the
+    // first time a task lands on "done", kept as-is while it stays done,
+    // cleared the moment it's moved back to any other status.
+    var prevTask = editingId ? findTask(editingId) : null;
+    if (data.status === "done") {
+      data.completedAt = (prevTask && prevTask.status === "done" && prevTask.completedAt) ? prevTask.completedAt : Date.now();
+    } else {
+      data.completedAt = null;
+    }
+    persist(data, editingId);
+    // A recurring task that just got marked done spawns its next occurrence
+    // automatically — same fields, checklist reset, due date rolled forward
+    // by the repeat interval (or from today if it had no due date).
+    if (data.status === "done" && data.repeat && data.repeat !== "none") {
+      var base = new Date((data.dueDate || todayStr()) + "T00:00:00");
+      if (data.repeat === "weekly") base.setDate(base.getDate() + 7);
+      else if (data.repeat === "monthly") base.setMonth(base.getMonth() + 1);
+      else if (data.repeat === "quarterly") base.setMonth(base.getMonth() + 3);
+      var nextDue = base.getFullYear() + "-" + pad(base.getMonth() + 1) + "-" + pad(base.getDate());
+      var nextData = Object.assign({}, data, {
+        status: "week",
+        dueDate: nextDue,
+        subtasks: modalSubtasks.map(function (s) { return { id: s.id, title: s.title, done: false }; })
+      });
+      persist(nextData, null);
+      showToast("Готово — следующая задача создана на " + dateLabel(nextDue));
+    }
+    closeModal();
+  }
+
+  // ---------- View switching ----------
+  function setView(v) {
+    currentView = v;
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
+      var active = b.getAttribute("data-view") === v;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    document.getElementById("boardView").classList.toggle("hidden", v !== "board");
+    document.getElementById("calendarView").classList.toggle("hidden", v !== "calendar");
+    document.getElementById("financeView").classList.toggle("hidden", v !== "finance");
+    document.getElementById("analyticsView").classList.toggle("hidden", v !== "analytics");
+    document.getElementById("filters").classList.toggle("hidden", v === "finance" || v === "analytics");
+    if (v !== "board") document.getElementById("bulkBar").classList.add("hidden");
+    if (v === "finance") subscribeFinance(); else render();
+  }
+
+  // ---------- Master render ----------
+  function render() {
+    var live = tasks.filter(function (t) { return !t.deleted; });
+    var visible = live.filter(matchesFilters);
+    document.getElementById("taskCount").textContent = visible.length + " из " + live.length;
+    renderWorkload();
+    updateFiltersToggleBadge();
+    updateDeletedTasksBtn();
+    if (!document.getElementById("deletedTasksModal").classList.contains("hidden")) renderDeletedTasksList();
+    if (!document.getElementById("dayDetailModal").classList.contains("hidden")) renderDayDetailModal();
+    if (currentView === "board") renderBoard();
+    else if (currentView === "calendar") renderCalendar();
+    else if (currentView === "analytics") renderAnalytics();
+  }
+  // A small count on "Фильтры" so collapsing the secondary filters on a
+  // phone doesn't hide the fact that some of them are still active.
+  function updateFiltersToggleBadge() {
+    var btn = document.getElementById("filtersToggle");
+    if (!btn) return;
+    var n = 0;
+    if (filters.direction) n++;
+    if (filters.entity) n++;
+    if (filters.responsible) n++;
+    if (filters.today) n++;
+    if (filters.week) n++;
+    if (filters.overdue) n++;
+    if (filters.clarify) n++;
+    var badge = document.getElementById("filtersCount");
+    badge.textContent = n;
+    badge.classList.toggle("hidden", n === 0);
+    btn.classList.toggle("active", n > 0);
+  }
+
+  // A quick "who's underwater" read at a glance: how many open (not done)
+  // tasks each person has that are overdue or due today, shown as small
+  // pills in the filter bar — a lighter-weight cousin of the Analytics tab.
+  function computeWorkload() {
+    var map = {};
+    tasks.forEach(function (t) {
+      if (t.deleted || t.status === "done") return;
+      if (isOverdue(t) || t.dueDate === todayStr()) {
+        respIds(t).forEach(function (id) { map[id] = (map[id] || 0) + 1; });
+      }
+    });
+    return map;
+  }
+  function renderWorkload() {
+    var el = document.getElementById("workloadBar");
+    if (!el) return;
+    var map = computeWorkload();
+    el.innerHTML = RESPONSIBLE.map(function (r) {
+      var n = map[r.id] || 0;
+      if (!n) return "";
+      return '<span class="workload-pill" style="background:'+r.color+'22;color:'+r.color+'" title="'+r.label+': горящих задач сегодня/просрочено">'+r.label+' · '+n+'</span>';
+    }).join("");
+  }
+
+  // ---------- Analytics ----------
+  // dimFn may return one key or an array of keys (e.g. a task with two
+  // responsible people counts once in each person's tally).
+  function computeBreakdown(dimFn) {
+    var groups = {};
+    tasks.forEach(function (t) {
+      if (t.deleted) return;
+      var keys = dimFn(t);
+      if (!keys) return;
+      if (!Array.isArray(keys)) keys = [keys];
+      keys.forEach(function (key) {
+        if (!key) return;
+        if (!groups[key]) groups[key] = { total: 0, done: 0, overdue: 0 };
+        groups[key].total++;
+        if (t.status === "done") groups[key].done++;
+        if (isOverdue(t)) groups[key].overdue++;
+      });
+    });
+    return groups;
+  }
+  function renderBreakdownSection(elId, groups, orderedKeys) {
+    var el = document.getElementById(elId);
+    var keys = orderedKeys.filter(function (k) { return groups[k]; });
+    if (!keys.length) { el.innerHTML = '<div class="an-empty">Пока нет данных</div>'; return; }
+    el.innerHTML = keys.map(function (k) {
+      var g = groups[k];
+      var donePct = Math.round(g.done / g.total * 100);
+      var overduePct = Math.round(g.overdue / g.total * 100);
+      var restPct = Math.max(100 - donePct - overduePct, 0);
+      return '<div class="an-row">' +
+        '<div class="an-row-label">' + escapeHtml(k) + '<span class="an-row-count">' + g.total + '</span></div>' +
+        '<div class="an-stackbar"><div class="an-stackbar-track">' +
+          (donePct ? '<div class="an-stackbar-seg good" style="width:' + donePct + '%"></div>' : '') +
+          (overduePct ? '<div class="an-stackbar-seg bad" style="width:' + overduePct + '%"></div>' : '') +
+          (restPct ? '<div class="an-stackbar-seg rest" style="width:' + restPct + '%"></div>' : '') +
+        '</div><span class="an-stackbar-val">' + donePct + '% / ' + overduePct + '%</span></div>' +
+      '</div>';
+    }).join("");
+  }
+  // A donut of every live task by status — overdue counts as its own slice
+  // (matching the Board's own "Просрочено" section) rather than staying
+  // folded into whichever column it was due in.
+  var AN_DONUT_BUCKETS = [
+    { id: "overdue",  label: "Просрочено", varc: "--u-ui" },
+    { id: "week",     label: "На неделю",  varc: "--s-week" },
+    { id: "progress", label: "В работе",   varc: "--s-progress" },
+    { id: "waiting",  label: "На паузе",   varc: "--s-waiting" },
+    { id: "done",     label: "Готово",     varc: "--s-done" }
+  ];
+  function renderAnalyticsDonut(liveTasks) {
+    var total = liveTasks.length;
+    document.getElementById("anTotal").textContent = total;
+    var counts = {};
+    AN_DONUT_BUCKETS.forEach(function (b) { counts[b.id] = 0; });
+    liveTasks.forEach(function (t) {
+      if (isOverdue(t)) counts.overdue++;
+      else if (counts[t.status] !== undefined) counts[t.status]++;
+    });
+    var r = 44, cx = 60, cy = 60, circumference = 2 * Math.PI * r;
+    var svgHtml = '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" stroke="var(--surface-2)"></circle>';
+    var offset = 0;
+    AN_DONUT_BUCKETS.forEach(function (b) {
+      var count = counts[b.id];
+      if (!count || !total) return;
+      var frac = count / total;
+      var segLen = Math.max(frac * circumference - 2, 0); // 2px gap between slices
+      svgHtml += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" stroke="var('+b.varc+')" stroke-dasharray="'+segLen+' '+(circumference-segLen)+'" stroke-dashoffset="'+(-offset)+'"></circle>';
+      offset += frac * circumference;
+    });
+    document.getElementById("anDonut").innerHTML = svgHtml;
+    document.getElementById("anLegend").innerHTML = AN_DONUT_BUCKETS.map(function (b) {
+      var count = counts[b.id];
+      var pct = total ? Math.round(count / total * 100) : 0;
+      return '<div class="an-legend-row"><span class="an-legend-dot" style="background:var('+b.varc+')"></span>' +
+        '<span class="an-legend-label">'+b.label+'</span><span class="an-legend-val">'+count+' · '+pct+'%</span></div>';
+    }).join("");
+  }
+  function renderAnalytics() {
+    var liveTasks = tasks.filter(function (t) { return !t.deleted; });
+    renderAnalyticsDonut(liveTasks);
+
+    // Include names removed from the dropdowns too — tasks that already used
+    // them (and their history) still count in Analytics, they've just fallen
+    // off the list you'd pick from for a new task.
+    var directionKeys = DIRECTIONS.slice();
+    liveTasks.forEach(function (t) { if (t.direction && directionKeys.indexOf(t.direction) === -1) directionKeys.push(t.direction); });
+    var entityKeys = ENTITIES.slice();
+    liveTasks.forEach(function (t) { if (t.entity && entityKeys.indexOf(t.entity) === -1) entityKeys.push(t.entity); });
+    renderBreakdownSection("anByDirection", computeBreakdown(function (t) { return t.direction; }), directionKeys);
+    renderBreakdownSection("anByEntity", computeBreakdown(function (t) { return t.entity; }), entityKeys);
+    renderBreakdownSection("anByType", computeBreakdown(function (t) { return byId(TYPES, t.type).label; }), TYPES.map(function (x) { return x.label; }));
+    renderBreakdownSection("anByResp", computeBreakdown(function (t) { return respIds(t).map(function (id) { return byId(RESPONSIBLE, id).label; }); }), RESPONSIBLE.map(function (x) { return x.label; }));
+  }
+
+  // ---------- Finance (draft, manual entry) ----------
+  function periodStr(d) { return d.getFullYear() + "-" + pad(d.getMonth()+1); }
+  function formatMoney(n) {
+    var sign = n < 0 ? "−" : "";
+    return sign + Math.abs(Math.round(n)).toLocaleString("ru-RU");
+  }
+  function subscribeFinance() {
+    if (finUnsub) { finUnsub(); finUnsub = null; }
+    var period = periodStr(finCursor);
+    if (!db) { renderFinance(); return; }
+    finUnsub = db.collection("finance").where("period", "==", period).onSnapshot(function (snap) {
+      var map = {};
+      snap.docs.forEach(function (d) { var data = d.data(); map[data.entity] = data; });
+      finData = map;
+      renderFinance();
+    }, function (err) { console.warn("finance subscribe error", err); renderFinance(); });
+  }
+  function saveFinance(entity, revenue, costs) {
+    var period = periodStr(finCursor);
+    var docId = ENTITY_CODES[entity] + "_" + period;
+    var data = { entity: entity, period: period, revenue: revenue, costs: costs, updatedAt: Date.now() };
+    if (db) {
+      db.collection("finance").doc(docId).set(data).catch(function (e) { console.error("finance write failed", e); showToast("Не удалось сохранить сумму.", true); });
+    } else {
+      finData[entity] = data; renderFinance();
+    }
+  }
+  function renderFinance() {
+    document.getElementById("finMonthLabel").textContent = finCursor.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+    var grid = document.getElementById("finGrid");
+    var totalRev = 0, totalCost = 0;
+    grid.innerHTML = FINANCE_ENTITIES.map(function (entity) {
+      var rec = finData[entity] || {};
+      var revenue = Number(rec.revenue) || 0;
+      var costs = Number(rec.costs) || 0;
+      totalRev += revenue; totalCost += costs;
+      var margin = revenue - costs;
+      return '<div class="fin-card" data-entity="' + escapeHtml(entity) + '">' +
+        '<div class="fin-card-title">' + escapeHtml(entity) + '</div>' +
+        '<div class="fin-row"><label>Выручка, ₽</label><input type="number" inputmode="decimal" class="fin-revenue" value="' + (revenue || "") + '" placeholder="0"></div>' +
+        '<div class="fin-row"><label>Затраты, ₽</label><input type="number" inputmode="decimal" class="fin-costs" value="' + (costs || "") + '" placeholder="0"></div>' +
+        '<div class="fin-margin"><span class="fin-margin-label">Маржинальная прибыль</span><span class="fin-margin-value ' + (margin >= 0 ? "pos" : "neg") + '">' + formatMoney(margin) + ' ₽</span></div>' +
+      '</div>';
+    }).join("");
+
+    Array.prototype.forEach.call(grid.querySelectorAll(".fin-card"), function (card) {
+      var entity = card.getAttribute("data-entity");
+      var revInput = card.querySelector(".fin-revenue");
+      var costInput = card.querySelector(".fin-costs");
+      function save() { saveFinance(entity, Number(revInput.value) || 0, Number(costInput.value) || 0); }
+      revInput.addEventListener("change", save);
+      costInput.addEventListener("change", save);
+    });
+
+    var totalMargin = totalRev - totalCost;
+    document.getElementById("finTotal").innerHTML =
+      '<div class="fin-total-label">Итого по всем юрлицам</div>' +
+      '<div class="fin-total-figures">' +
+        '<div><b>Выручка</b>' + formatMoney(totalRev) + ' ₽</div>' +
+        '<div><b>Затраты</b>' + formatMoney(totalCost) + ' ₽</div>' +
+        '<div><b>Маржа</b><span style="color: var(' + (totalMargin >= 0 ? "--s-done" : "--u-ui") + ')">' + formatMoney(totalMargin) + ' ₽</span></div>' +
+      '</div>';
+  }
+
+  // ---------- Wire up ----------
+  function wire() {
+    updateBrandDate();
+    setInterval(updateBrandDate, 60000); // rolls over to the next day without needing a page reload
+    initFilterBar();
+    initModalStatics();
+    initBulkBar();
+    renderWhoAmI();
+    document.getElementById("whoAmI").addEventListener("change", function (e) { setCurrentUser(e.target.value); });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
+      b.addEventListener("click", function () { setView(b.getAttribute("data-view")); });
+    });
+    document.getElementById("addTaskBtn").addEventListener("click", function () { openModal(null); });
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", closeModal);
+    document.getElementById("taskModal").addEventListener("click", function (e) { if (e.target.id === "taskModal") closeModal(); });
+    document.getElementById("taskForm").addEventListener("submit", onSubmit);
+    document.getElementById("fTitle").addEventListener("input", function (e) {
+      if (typeManuallySet) return;
+      var detected = detectTypeFromTitle(e.target.value);
+      if (!detected) return;
+      var typeRow = document.getElementById("typeRow");
+      if (typeRow.getAttribute("data-value") === detected) return;
+      typeRow.setAttribute("data-value", detected);
+      Array.prototype.forEach.call(typeRow.children, function (b) {
+        b.classList.toggle("selected", b.getAttribute("data-id") === detected);
+      });
+      updateTimeFieldVisibility(detected);
+    });
+    document.getElementById("subtaskAddBtn").addEventListener("click", addSubtaskFromInput);
+    document.getElementById("subtaskInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); addSubtaskFromInput(); }
+    });
+    document.getElementById("deleteBtn").addEventListener("click", function (e) {
+      if (!editingId) return;
+      if (!deleteArmed) {
+        deleteArmed = true;
+        e.target.textContent = "Точно удалить?";
+        clearTimeout(deleteArmTimer);
+        deleteArmTimer = setTimeout(resetDeleteBtn, 4000);
+        return;
+      }
+      softDeleteTask(editingId);
+      showToast("Задача перемещена в «Удалённые».");
+      closeModal();
+    });
+    document.getElementById("addRelatedBtn").addEventListener("click", function () {
+      if (!editingId) return;
+      var parent = findTask(editingId);
+      if (!parent) return;
+      openModal(null, null, { parentId: parent.id, direction: parent.direction, entity: parent.entity });
+    });
+
+    document.getElementById("addItemCancel").addEventListener("click", closeAddItemModal);
+    document.getElementById("addItemClose").addEventListener("click", closeAddItemModal);
+    document.getElementById("addItemModal").addEventListener("click", function (e) { if (e.target.id === "addItemModal") closeAddItemModal(); });
+    document.getElementById("addItemSave").addEventListener("click", saveAddItemModal);
+    document.getElementById("addItemName").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); saveAddItemModal(); } });
+
+    document.getElementById("manageListDone").addEventListener("click", closeManageListModal);
+    document.getElementById("manageListClose").addEventListener("click", closeManageListModal);
+    document.getElementById("manageListModal").addEventListener("click", function (e) { if (e.target.id === "manageListModal") closeManageListModal(); });
+
+    document.getElementById("deletedTasksBtn").addEventListener("click", openDeletedTasksModal);
+    document.getElementById("deletedTasksDone").addEventListener("click", closeDeletedTasksModal);
+    document.getElementById("deletedTasksClose").addEventListener("click", closeDeletedTasksModal);
+    document.getElementById("deletedTasksModal").addEventListener("click", function (e) { if (e.target.id === "deletedTasksModal") closeDeletedTasksModal(); });
+
+    document.getElementById("dayDetailDone").addEventListener("click", closeDayDetailModal);
+    document.getElementById("dayDetailClose").addEventListener("click", closeDayDetailModal);
+    document.getElementById("dayDetailModal").addEventListener("click", function (e) { if (e.target.id === "dayDetailModal") closeDayDetailModal(); });
+    document.getElementById("dayDetailAdd").addEventListener("click", function () {
+      var iso = dayDetailState.iso;
+      closeDayDetailModal();
+      openModal(null, iso);
+    });
+
+    document.getElementById("filterDirection").addEventListener("change", function (e) {
+      if (e.target.value === "__add__") { handleFilterAdd(e.target, "direction", "direction"); return; }
+      if (e.target.value === "__manage__") { handleFilterManage(e.target, "direction", "direction"); return; }
+      filters.direction = e.target.value; render();
+    });
+    document.getElementById("filterEntity").addEventListener("change", function (e) {
+      if (e.target.value === "__add__") { handleFilterAdd(e.target, "entity", "entity"); return; }
+      if (e.target.value === "__manage__") { handleFilterManage(e.target, "entity", "entity"); return; }
+      filters.entity = e.target.value; render();
+    });
+    document.getElementById("filterResponsible").addEventListener("change", function (e) {
+      if (e.target.value === "__add__") { handleFilterAdd(e.target, "responsible", "responsible"); return; }
+      filters.responsible = e.target.value; render();
+    });
+    document.getElementById("filterToday").addEventListener("click", function (e) { filters.today = !filters.today; e.target.classList.toggle("active", filters.today); render(); });
+    document.getElementById("filterWeek").addEventListener("click", function (e) { filters.week = !filters.week; e.target.classList.toggle("active", filters.week); render(); });
+    document.getElementById("filterOverdue").addEventListener("click", function (e) { filters.overdue = !filters.overdue; e.target.classList.toggle("active", filters.overdue); render(); });
+    document.getElementById("filterClarify").addEventListener("click", function (e) { filters.clarify = !filters.clarify; e.target.classList.toggle("active", filters.clarify); render(); });
+    document.getElementById("filterSearch").addEventListener("input", function (e) { filters.search = e.target.value; render(); });
+    document.getElementById("filtersToggle").addEventListener("click", function (e) {
+      var extra = document.getElementById("filtersExtra");
+      var open = extra.classList.toggle("open");
+      e.target.closest("#filtersToggle").setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.getElementById("resetFilters").addEventListener("click", function () {
+      filters = { direction: "", entity: "", responsible: "", today: false, week: false, overdue: false, clarify: false, search: "" };
+      document.getElementById("filterDirection").value = "";
+      document.getElementById("filterEntity").value = "";
+      document.getElementById("filterResponsible").value = "";
+      document.getElementById("filterSearch").value = "";
+      ["filterToday","filterWeek","filterOverdue","filterClarify"].forEach(function (id) {
+        document.getElementById(id).classList.remove("active");
+      });
+      render();
+    });
+
+    document.getElementById("selectModeBtn").addEventListener("click", function (e) {
+      selectMode = !selectMode;
+      e.target.classList.toggle("active", selectMode);
+      if (!selectMode) clearSelection(); else render();
+    });
+    document.getElementById("bulkClear").addEventListener("click", clearSelection);
+    document.getElementById("bulkSetDue").addEventListener("click", function () {
+      var d = document.getElementById("bulkDue").value;
+      if (!d) { showToast("Сначала выберите дату.", true); return; }
+      applyToSelected({ dueDate: d });
+      showToast("Срок обновлён.");
+    });
+    document.getElementById("calPrev").addEventListener("click", function () { calCursor.setMonth(calCursor.getMonth()-1); calCursor = new Date(calCursor); render(); });
+    document.getElementById("calNext").addEventListener("click", function () { calCursor.setMonth(calCursor.getMonth()+1); calCursor = new Date(calCursor); render(); });
+    document.getElementById("calToday").addEventListener("click", function () { calCursor = new Date(); render(); });
+
+    document.getElementById("finPrev").addEventListener("click", function () { finCursor.setMonth(finCursor.getMonth()-1); finCursor = new Date(finCursor); subscribeFinance(); });
+    document.getElementById("finNext").addEventListener("click", function () { finCursor.setMonth(finCursor.getMonth()+1); finCursor = new Date(finCursor); subscribeFinance(); });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      if (!document.getElementById("addItemModal").classList.contains("hidden")) closeAddItemModal();
+      else if (!document.getElementById("manageListModal").classList.contains("hidden")) closeManageListModal();
+      else if (!document.getElementById("deletedTasksModal").classList.contains("hidden")) closeDeletedTasksModal();
+      else if (!document.getElementById("dayDetailModal").classList.contains("hidden")) closeDayDetailModal();
+      else closeModal();
+    });
+  }
+
+  function ensureSeeded() {
+    return db.collection("tasks").limit(1).get().then(function (snap) {
+      if (!snap.empty) return;
+      return db.collection("meta").doc("seeded").get().then(function (marker) {
+        if (marker.exists) return;
+        var seed = window.__CRM_SEED__ || {};
+        var batch = db.batch();
+        Object.keys(seed.tasks || {}).forEach(function (id) {
+          batch.set(db.collection("tasks").doc(id), seed.tasks[id]);
+        });
+        Object.keys(seed.finance || {}).forEach(function (id) {
+          batch.set(db.collection("finance").doc(id), seed.finance[id]);
+        });
+        batch.set(db.collection("meta").doc("seeded"), { at: Date.now() });
+        return batch.commit();
+      });
+    }).catch(function (err) { console.error("seed check failed", err); });
+  }
+
+  function boot() {
+    wire();
+    render();
+    try {
+      db = window.__CRM_DB__;
+      if (!db) throw new Error("Firestore not initialized");
+      ensureSeeded().then(function () {
+        unsub = db.collection("tasks").onSnapshot(function (snap) {
+          tasks = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+          rolloverOverdueTasks();
+          render();
+        }, function (err) {
+          console.error("db subscribe error", err);
+          if (!tasks.length) { seedLocal(); render(); }
+        });
+        subscribeCustomLists();
+      });
+    } catch (e) {
+      console.error("firebase init failed", e);
+      seedLocal(); render();
+    }
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
+</script>
+</body>
+</html>
