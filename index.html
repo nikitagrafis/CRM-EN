@@ -720,6 +720,7 @@
 <body>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
@@ -732,6 +733,7 @@
   };
   firebase.initializeApp(firebaseConfig);
   window.__CRM_DB__ = firebase.firestore();
+  window.__CRM_AUTH_READY__ = firebase.auth().signInAnonymously();
   window.__CRM_SEED__ = {
 "tasks":{
 "4i21tjxrxhqrhj05jgl0":{
@@ -4845,7 +4847,8 @@
     try {
       db = window.__CRM_DB__;
       if (!db) throw new Error("Firestore not initialized");
-      ensureSeeded().then(function () {
+      Promise.resolve(window.__CRM_AUTH_READY__).then(function () {
+      return ensureSeeded(); }).then(function () {
         unsub = db.collection("tasks").onSnapshot(function (snap) {
           tasks = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
           rolloverOverdueTasks();
@@ -4855,6 +4858,9 @@
           if (!tasks.length) { seedLocal(); render(); }
         });
         subscribeCustomLists();
+      }).catch(function (err) {
+        console.error("auth/init failed", err);
+        if (!tasks.length) { seedLocal(); render(); }
       });
     } catch (e) {
       console.error("firebase init failed", e);
