@@ -475,6 +475,10 @@
     padding: 2px 6px; font-weight: 600;
   }
   .meta-tag-entity { margin-left: auto; }
+  /* Часть 25 (доп.): бейдж "есть вложения" на карточке — тот же визуальный
+     язык, что у meta-tag, но с иконкой-скрепкой, чтобы отличать на глаз от
+     направления/юрлица. */
+  .meta-tag-attach { display: inline-flex; align-items: center; gap: 3px; }
   .card-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
   .avatar-stack { display: flex; align-items: center; }
   .avatar {
@@ -754,6 +758,18 @@
   .an-stackbar-seg.rest { background: var(--ink-faint); opacity: .35; }
   .an-stackbar-val { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); width: 64px; text-align: right; flex: none; }
   .an-empty { font-size: 12.5px; color: var(--ink-faint); }
+  /* Часть 25 (доп.): "Между вами" — персональная статистика вовремя/
+     просрочено/перенесено по ответственному, с переключателем периода. */
+  .an-person-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .an-person-header h3 { margin: 0; }
+  .an-period-toggle { display: flex; gap: 6px; }
+  .an-person-rows { display: flex; flex-direction: column; gap: 10px; }
+  .an-person-card { background: var(--surface-2); border-radius: var(--radius-s); padding: 10px 12px; }
+  .an-person-name { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .an-person-stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; font-weight: 600; }
+  .an-person-stat.good { color: var(--s-done); }
+  .an-person-stat.bad { color: var(--danger); }
+  .an-person-stat.warn { color: var(--accent); }
 
   /* ---------- Modal ---------- */
   .modal-backdrop {
@@ -1036,6 +1052,8 @@
     .an-row { grid-template-columns: 1fr; gap: 4px; }
     .an-stackbar-val { width: auto; font-size: 15px; }
     .an-summary { flex-direction: column; align-items: flex-start; }
+    .an-person-name { font-size: 17px; }
+    .an-person-stats { font-size: 16px; gap: 10px; }
     /* Nothing on the page should be allowed to force it wider than the
        screen — any element that would (a long select, a wide date input)
        shrinks to fit instead of pushing the page sideways. */
@@ -3239,6 +3257,17 @@
     </div>
     <div class="an-breakdown-caption">Полоски ниже: <span style="color:var(--s-done); font-weight:600">зелёным</span> — доля выполненных, <span style="color:var(--danger); font-weight:600">красным</span> — доля просроченных.</div>
     <div class="an-section">
+      <div class="an-person-header">
+        <h3>Между вами: вовремя / просрочено / перенесено</h3>
+        <div class="an-period-toggle" id="anPersonPeriodToggle">
+          <button type="button" class="chip-toggle" data-period="week">Неделя</button>
+          <button type="button" class="chip-toggle" data-period="month">Месяц</button>
+          <button type="button" class="chip-toggle" data-period="all">Всё время</button>
+        </div>
+      </div>
+      <div class="an-person-rows" id="anByPerson"></div>
+    </div>
+    <div class="an-section">
       <h3>По проектам</h3>
       <div class="an-rows" id="anByDirection"></div>
     </div>
@@ -4604,6 +4633,14 @@
     var n10 = n % 10, n100 = n % 100;
     return n + " " + ((n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) ? "раза" : "раз");
   }
+  // Для "N задач/задачи/задача" в персональной статистике "Между вами".
+  // Возвращает только слово (число уже подставляется отдельно в шаблоне).
+  function ruTaskWord(n) {
+    var n10 = n % 10, n100 = n % 100;
+    if (n10 === 1 && n100 !== 11) return "задача";
+    if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return "задачи";
+    return "задач";
+  }
   function mondayOfWeek(d) {
     var x = new Date(d); var day = x.getDay() || 7;
     if (day !== 1) x.setDate(x.getDate() - (day - 1));
@@ -4979,7 +5016,14 @@
     var i = findIndex(id);
     if (i > -1) {
       tasks[i] = Object.assign({}, tasks[i], { comments: comments });
-      renderCommentsSection(tasks[i]);
+      // Часть 25 (доп.): раньше здесь перерисовывалась только сама лента
+      // комментариев внутри открытой модалки — карточка на доске (а с ней и
+      // бейдж "📎 N" вложений) в локальном режиме без Firestore не
+      // обновлялась вообще, до следующего действия, которое случайно
+      // дёрнет полный render(). render() сам знает, что модалка открыта, и
+      // помимо доски обновит и ленту комментариев в ней — так что просто
+      // заменяем точечный вызов на общий.
+      render();
     }
   }
   // Общая запись задачи в Firestore (или в память для локального превью),
@@ -5521,6 +5565,19 @@
   }
 
   // ---------- Card ----------
+  // Часть 25 (доп., по просьбе Никиты): сколько файлов прикреплено к
+  // комментариям этой задачи — суммируем attachments по всем НЕ удалённым
+  // комментариям (у удалённого комментария есть deletedAt — его вложения
+  // на карточке считать не нужно, они уже скрыты и в самой ленте).
+  function taskAttachmentsCount(t) {
+    var comments = Array.isArray(t.comments) ? t.comments : [];
+    var n = 0;
+    comments.forEach(function (c) {
+      if (c.deletedAt) return;
+      if (Array.isArray(c.attachments)) n += c.attachments.length;
+    });
+    return n;
+  }
   function cardHtml(t) {
     var u = taskUrgency(t);
     // По просьбе Никиты (15 сент.): чужая личная задача теперь отфильтрована
@@ -5543,6 +5600,7 @@
     if (overdueFlag) due = "Просрочено · " + ruDays(overdueDays(t));
     var dueClass = overdueFlag ? "overdue" : (t.dueDate === todayStr() ? "today" : "");
     var selected = !!selectedIds[t.id];
+    var attCount = taskAttachmentsCount(t);
     // Подзадача — это обычная задача-документ со своим parentId (п.16):
     // родительская карточка показывает прогресс по своим подзадачам. Чужая
     // личная подзадача сюда не попадает вообще (см. taskTitleLabel выше и
@@ -5586,6 +5644,10 @@
         '<div class="card-meta">' +
           '<span class="meta-tag">'+escapeHtml(t.direction||DEFAULT_DIRECTION)+'</span>' +
           (t.entity && t.entity !== "Не применимо" ? '<span class="meta-tag meta-tag-entity">'+escapeHtml(t.entity)+'</span>' : "") +
+          // Часть 25 (доп.): скрепка + число файлов, если к задаче есть
+          // хоть один активный (не удалённый) вложенный файл — чтобы не
+          // приходилось открывать карточку, чтобы узнать, есть ли вложения.
+          (attCount ? '<span class="meta-tag meta-tag-attach" title="Вложений: '+attCount+'">📎 '+attCount+'</span>' : "") +
         '</div>' +
         (kids.length ? '<div class="card-subtasks" title="Подзадачи"><div class="card-subtasks-track"><div class="card-subtasks-fill" style="width:'+Math.round(kidsDone/kids.length*100)+'%"></div></div><span class="card-subtasks-val">Подзадачи '+kidsDone+'/'+kids.length+'</span></div>' : '') +
         '<div class="card-bottom">' +
@@ -6142,7 +6204,10 @@
     var i = findIndex(taskId);
     if (i > -1) {
       tasks[i] = Object.assign({}, tasks[i], { comments: comments });
-      renderCommentsSection(tasks[i]);
+      // См. комментарий в postComment выше — используем общий render(),
+      // чтобы бейдж вложений на карточке доски тоже обновился, если
+      // удалённый комментарий был последним с прикреплённым файлом.
+      render();
     }
   }
 
@@ -6783,6 +6848,66 @@
 
 
   // ---------- Analytics ----------
+  // Часть 25 (доп., по просьбе Никиты и Жени): "Между вами" — сколько задач
+  // каждый выполняет вовремя, срывает и переносит. Личные задачи ("Личное")
+  // сюда сознательно не попадают — они и так не видны другому человеку, не
+  // хватало ещё, чтобы они портили общую статистику по нему же.
+  var anPersonPeriod = "week";
+  // Период считаем по СРОКУ задачи (t.dueDate), а не по дате создания или
+  // завершения — вопрос был "что случилось со сроками за неделю/месяц", а
+  // не "что вообще происходило". Заглядываем только назад (не включаем
+  // задачи со сроком в будущем) — это ретроспективная сводка, а не план.
+  function personStatInPeriod(t, periodKey) {
+    if (periodKey === "all") return true;
+    if (!t.dueDate) return false;
+    var days = periodKey === "week" ? 7 : 30;
+    var today = new Date(todayStr() + "T00:00:00");
+    var cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - days);
+    var due = new Date(t.dueDate + "T00:00:00");
+    return due >= cutoff && due <= today;
+  }
+  function computePersonStats(periodKey) {
+    var stats = {};
+    RESPONSIBLE.forEach(function (r) { stats[r.id] = { total: 0, onTime: 0, overdueNow: 0, moved: 0 }; });
+    tasks.forEach(function (t) {
+      if (t.deleted || t.direction === "Личное") return;
+      if (!personStatInPeriod(t, periodKey)) return;
+      var moved = dueDateChangeCount(t) > 0;
+      // "Вовремя" — задача выполнена И ни разу не переносился срок (перенос
+      // засчитывается отдельно, ниже, независимо от того, выполнена задача
+      // или нет — перенос это перенос).
+      var onTime = t.status === "done" && !moved;
+      respIds(t).forEach(function (id) {
+        if (!stats[id]) stats[id] = { total: 0, onTime: 0, overdueNow: 0, moved: 0 };
+        stats[id].total++;
+        if (onTime) stats[id].onTime++;
+        if (moved) stats[id].moved++;
+        if (isOverdue(t)) stats[id].overdueNow++;
+      });
+    });
+    return stats;
+  }
+  function renderPersonStatsSection() {
+    var toggle = document.getElementById("anPersonPeriodToggle");
+    Array.prototype.forEach.call(toggle.querySelectorAll(".chip-toggle"), function (btn) {
+      btn.classList.toggle("active", btn.getAttribute("data-period") === anPersonPeriod);
+    });
+    var stats = computePersonStats(anPersonPeriod);
+    var people = RESPONSIBLE.filter(function (r) { return stats[r.id] && stats[r.id].total > 0; });
+    var el = document.getElementById("anByPerson");
+    if (!people.length) { el.innerHTML = '<div class="an-empty">Пока нет данных за этот период</div>'; return; }
+    el.innerHTML = people.map(function (r) {
+      var s = stats[r.id];
+      return '<div class="an-person-card">' +
+        '<div class="an-person-name">' + escapeHtml(r.label) + '<span class="an-row-count">' + s.total + ' ' + ruTaskWord(s.total) + '</span></div>' +
+        '<div class="an-person-stats">' +
+          '<span class="an-person-stat good">✓ Вовремя: ' + s.onTime + '</span>' +
+          '<span class="an-person-stat bad">⚠ Просрочено сейчас: ' + s.overdueNow + '</span>' +
+          '<span class="an-person-stat warn">↻ Переносилось: ' + s.moved + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  }
   // dimFn may return one key or an array of keys (e.g. a task with two
   // responsible people counts once in each person's tally).
   function computeBreakdown(dimFn) {
@@ -6864,6 +6989,7 @@
   function renderAnalytics() {
     var liveTasks = tasks.filter(function (t) { return !t.deleted; });
     renderAnalyticsDonut(liveTasks);
+    renderPersonStatsSection();
 
     // Include names removed from the dropdowns too — tasks that already used
     // them (and their history) still count in Analytics, they've just fallen
@@ -8115,6 +8241,13 @@
       document.getElementById("commentAttachPreview").classList.remove("hidden");
     });
     document.getElementById("commentAttachRemove").addEventListener("click", clearPendingCommentFile);
+    // Часть 25 (доп.): переключатель периода в "Между вами" (Аналитика).
+    document.getElementById("anPersonPeriodToggle").addEventListener("click", function (e) {
+      var btn = e.target.closest(".chip-toggle");
+      if (!btn) return;
+      anPersonPeriod = btn.getAttribute("data-period");
+      renderPersonStatsSection();
+    });
     // Часть 5, п.4 (повторная правка 15 сент.): "Задача завершена" — кнопка
     // внизу формы, видна только для уже существующей задачи (см.
     // updateModalDoneBtn), поэтому автосохранение здесь больше не нужно —
