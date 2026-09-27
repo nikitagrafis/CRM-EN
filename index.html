@@ -162,6 +162,12 @@
   .topbar {
     position: sticky; top: 0; z-index: 20;
     display: flex; align-items: center; justify-content: space-between;
+    /* Часть 24: раньше не переносился на десктопе вовсе (перенос был только
+       в мобильном media-запросе ниже) — с добавлением кнопки Google Calendar
+       в topbar-right строка с длинным списком вкладок стала не помещаться
+       и наезжать на неё (см. #gcalConnectBtn). flex-wrap здесь безопасен и
+       на широком экране — просто ничего не переносится, пока помещается. */
+    flex-wrap: wrap;
     gap: 12px;
     padding: 14px 20px;
     background: var(--surface);
@@ -196,7 +202,12 @@
     background: var(--accent-soft); border-radius: 999px; padding: 2px 9px; margin-left: 8px;
     vertical-align: middle; letter-spacing: 0;
   }
-  .tabs { display: flex; gap: 4px; background: var(--surface-2); border-radius: var(--radius-s); padding: 3px; }
+  /* Часть 24: до этой правки .tabs не переносился на десктопе — начиная с
+     появления «Заказы»/«Сотрудники» (Части 22-23) сам ряд вкладок уже был
+     шире стандартных 1280px и вкладка «Сотрудники» физически вылезала за
+     край окна (не было видно/некликабельно). flex-wrap чинит это заодно с
+     переносом кнопки Google Calendar чуть выше. */
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface-2); border-radius: var(--radius-s); padding: 3px; }
   .tab {
     border: none; background: none; padding: 6px 14px; border-radius: 6px;
     font-weight: 600; font-size: 13px; color: var(--ink-soft);
@@ -659,6 +670,51 @@
   .meeting-card-restore { font-size: 11.5px; align-self: flex-start; }
   .meeting-participants-row { display: flex; gap: 6px; flex-wrap: wrap; }
 
+  /* ---------- Сотрудники / доступ (Часть 22) — админ-панель, видна только
+     Никите/Жене. Тот же визуальный паттерн, что «Протоколы»/«Образцы». ---------- */
+  .employees { flex: 1; padding: 16px 20px 40px; max-width: 760px; width: 100%; margin: 0 auto; }
+  .employees-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .employees-toolbar-spacer { flex: 1; }
+  .employee-list { display: flex; flex-direction: column; gap: 10px; }
+  .employee-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
+    padding: 13px 15px; box-shadow: var(--shadow-1); cursor: pointer; text-align: left;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .employee-card:hover { border-color: var(--accent); }
+  .employee-card-name { font-weight: 700; font-size: 14px; }
+  .employee-card-pw { font-size: 11.5px; color: var(--ink-soft); }
+  .employee-card-pw-warn { color: var(--danger); }
+  .employee-no-access { font-size: 10.5px; color: var(--ink-faint); }
+  .employee-dir-checks { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+  .employee-dir-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .field-hint { font-size: 11.5px; color: var(--ink-faint); margin-top: 4px; }
+  .who-select-label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); padding: 0 4px; }
+
+  /* ---------- Заказы (Часть 23) — то же визуальное решение, что
+     «Протоколы»: список карточек новыми сверху, с фильтром по направлению.
+     У каждого заказа при создании сама ставится задача ответственному
+     менеджеру — см. createOrderAutoTask(). ---------- */
+  .orders { flex: 1; padding: 16px 20px 40px; max-width: 760px; width: 100%; margin: 0 auto; }
+  .orders-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .orders-toolbar-spacer { flex: 1; }
+  .order-list { display: flex; flex-direction: column; gap: 10px; }
+  .order-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
+    padding: 13px 15px; box-shadow: var(--shadow-1); cursor: pointer; text-align: left;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .order-card:hover { border-color: var(--accent); }
+  .order-card.deleted { opacity: .55; }
+  .order-card-head { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+  .order-card-due { font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; color: var(--accent); flex: none; }
+  .order-card-title { font-weight: 700; font-size: 14px; flex: 1; min-width: 140px; }
+  .order-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .order-card-tag { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: var(--surface-2); color: var(--ink-soft); }
+  .order-card-line { font-size: 12px; color: var(--ink-soft); }
+  .order-card-meta { font-size: 10.5px; color: var(--ink-faint); margin-top: 2px; }
+  .order-card-restore { font-size: 11.5px; align-self: flex-start; }
+
   /* ---------- Analytics ---------- */
   .analytics { flex: 1; padding: 16px 20px 40px; max-width: 900px; width: 100%; margin: 0 auto; }
   .an-summary {
@@ -1007,6 +1063,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<!-- Часть 24: Google Identity Services — для подключения личного Google
+     Calendar каждого человека (см. GCAL_* константы и gcal*-функции в
+     скрипте ниже). Грузится асинхронно; если сеть недоступна/скрипт
+     заблокирован — вся синхронизация с календарём просто молча выключена,
+     остальной сайт работает как прежде (см. gcalConfigured/ensureGcalTokenClient). -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyC6Hv19DnDLQJwD1D_nFMNueFNtI9xHnJM",
@@ -3038,6 +3100,11 @@
     <div class="topbar-left">
       <h1 class="brand"><span id="brandDay"></span><span class="brand-dot">.</span> <span class="brand-date" id="brandDate"></span><span class="brand-week-tag" id="brandWeekTag"></span></h1>
       <select id="whoAmI" class="who-select" aria-label="Кто вы"></select>
+      <!-- Часть 22: у сотрудника (в отличие от Никиты/Жени) личность уже
+           однозначно определена его личным паролем на входе — переключатель
+           "Кто вы" ему не показывается (иначе он мог бы выдать себя за
+           другого без пароля), вместо него просто подпись, под кем он вошёл. -->
+      <span id="whoAmILabel" class="who-select-label hidden"></span>
       <div class="tabs" role="tablist" aria-label="Вид">
         <button class="tab active" data-view="board" role="tab" aria-selected="true">Доска Задач</button>
         <button id="addTaskBtn" class="btn-primary btn-add-compact" type="button" aria-label="Добавить задачу" title="Добавить задачу">+</button>
@@ -3046,7 +3113,21 @@
         <button class="tab" data-view="analytics" role="tab" aria-selected="false">Аналитика</button>
         <button class="tab" data-view="meetings" role="tab" aria-selected="false">Протоколы</button>
         <button class="tab" data-view="samples" role="tab" aria-selected="false">Образцы</button>
+        <!-- Часть 23: «Заказы» — рядом с «Образцы», см. ниже #ordersView. -->
+        <button class="tab" data-view="orders" role="tab" aria-selected="false">Заказы</button>
+        <!-- Часть 22: видна только администраторам (Никита/Женя) — см.
+             updateAdminNav(), вызывается при каждом обновлении "Кто вы". -->
+        <button class="tab hidden" data-view="employees" role="tab" aria-selected="false" id="employeesTabBtn">Сотрудники</button>
       </div>
+    </div>
+    <!-- Часть 24: подключение личного Google Calendar — см. connectGcal()/
+         disconnectGcal(). Кнопка одна на все состояния (текст/цвет меняет
+         updateGcalStatusUi), клик по уже подключённому статусу отключает. -->
+    <div class="topbar-right">
+      <button type="button" class="chip-toggle" id="gcalConnectBtn" title="Задачи и встречи (кроме «Личное») будут появляться в вашем Google Calendar">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5 2v2.4M11 2v2.4"/></svg>
+        <span id="gcalConnectBtnText">Подключить Google Calendar</span>
+      </button>
     </div>
   </header>
 
@@ -3205,6 +3286,42 @@
     </div>
     <div class="sample-grid" id="sampleGrid"></div>
   </main>
+
+  <!-- Часть 23 (23 сент.): «Заказы» — по просьбе Никиты, персонально
+       приходящие ему (или Жене) заказы по каждому Проекту: что купить, у
+       кого, по какой цене, кому продать, срок, контактное лицо — и кто из
+       менеджеров этим занимается. При сохранении НОВОГО заказа CRM сама
+       ставит ответственному менеджеру задачу "Заказ: …" со всеми деталями
+       первым комментарием — см. createOrderAutoTask() в скрипте. -->
+  <main class="orders hidden" id="ordersView">
+    <div class="orders-toolbar">
+      <div class="pill-row" id="ordersDirFilter"></div>
+      <div class="orders-toolbar-spacer"></div>
+      <button type="button" class="chip-toggle" id="ordersShowDeletedBtn">Показать удалённые</button>
+      <button type="button" class="btn-primary" id="addOrderBtn">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+        Заказ
+      </button>
+    </div>
+    <div class="order-list" id="orderList"></div>
+  </main>
+
+  <!-- Часть 22: «Сотрудники» — админ-панель для управления доступом.
+       Видна и доступна только Никите/Жене (isAdmin()); у остальных вкладка
+       скрыта, а setView() не пускает на этот экран, даже если как-то
+       попытаться открыть его напрямую. Пароль сотрудника хранится обычным
+       текстом в customResponsible (тот же уровень "лёгкой заслонки", что и
+       общий SITE_PASSWORD, — см. предупреждение у initPasswordGate). -->
+  <main class="employees hidden" id="employeesView">
+    <div class="employees-toolbar">
+      <div class="employees-toolbar-spacer"></div>
+      <button type="button" class="btn-primary" id="addEmployeeBtn">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+        Сотрудник
+      </button>
+    </div>
+    <div class="employee-list" id="employeeList"></div>
+  </main>
 </div>
 
 <div class="modal-backdrop hidden" id="taskModal">
@@ -3359,6 +3476,42 @@
   </div>
 </div>
 
+<!-- Часть 22: карточка сотрудника в админ-панели «Сотрудники» — имя, личный
+     пароль для входа и разрешённые направления (проекты). Пароль в обычном
+     текстовом поле (не type=password) — это внутренний инструмент только
+     для Никиты/Жени, скрывать его от них самих смысла нет. -->
+<div class="modal-backdrop hidden" id="employeeModal">
+  <form class="modal" id="employeeForm">
+    <div class="modal-head">
+      <h2 id="employeeModalTitle">Новый сотрудник</h2>
+      <div class="modal-head-actions">
+        <button type="button" class="btn-ghost" id="closeEmployeeModal" aria-label="Закрыть">✕</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label" for="empName">Имя</label>
+      <input type="text" id="empName" required>
+    </div>
+    <div class="field">
+      <label class="field-label" for="empPassword">Личный пароль для входа</label>
+      <input type="text" id="empPassword" placeholder="Придумайте пароль" autocomplete="off">
+      <p class="field-hint">Сотрудник вводит этот пароль на экране входа вместо общего — CRM сразу понимает, что это именно он, без экрана «Кто вы». Пока пароль не задан, войти он не сможет.</p>
+    </div>
+    <div class="field">
+      <span class="field-label">Разрешённые направления</span>
+      <div class="employee-dir-checks" id="empDirChecks"></div>
+      <p class="field-hint">«Личное» доступно каждому всегда для своих личных задач — отдельно отмечать не нужно.</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-danger hidden" id="employeeDeleteBtn">Удалить</button>
+      <div class="modal-actions-right">
+        <button type="button" class="btn-secondary" id="employeeCancelBtn">Отмена</button>
+        <button type="submit" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  </form>
+</div>
+
 <!-- По просьбе Никиты (16 сент.): выбор задачи, к которой привязать текущую
      (как подзадачу) — поиск по названию/номеру + список; клик по строке
      привязывает и закрывает попап (само сохранение — по общей кнопке
@@ -3503,6 +3656,78 @@
       <button type="button" class="btn-danger hidden" id="sampleDeleteBtn">Удалить</button>
       <div class="modal-actions-right">
         <button type="button" class="btn-secondary" id="sampleCancelBtn">Отмена</button>
+        <button type="submit" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Часть 23: карточка заказа. При первом сохранении (orNewOrderNotice)
+     сразу видно, что менеджеру автоматически поставится задача. -->
+<div class="modal-backdrop hidden" id="orderModal">
+  <form class="modal" id="orderForm">
+    <div class="modal-head">
+      <h2 id="orderModalTitle">Новый заказ</h2>
+      <button type="button" class="btn-ghost" id="closeOrderModal" aria-label="Закрыть">✕</button>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="orItem">Что за заказ</label>
+      <input type="text" id="orItem" required placeholder="Например: 60 кг кофе Вкуснокофе">
+    </div>
+
+    <div class="field">
+      <span class="field-label">Направление</span>
+      <div class="pill-row" id="orDirectionRow"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label class="field-label" for="orEntity">Юрлицо</label>
+        <select class="full" id="orEntity"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="orDueDate">Срок</label>
+        <input type="date" id="orDueDate" required>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label class="field-label" for="orSupplier">У кого купить</label>
+        <input type="text" id="orSupplier">
+      </div>
+      <div class="field">
+        <label class="field-label" for="orPurchaseCost">Стоимость закупки, ₽</label>
+        <input type="number" id="orPurchaseCost" inputmode="decimal" min="0" step="0.01" placeholder="0">
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label class="field-label" for="orBuyer">Кому продать</label>
+        <input type="text" id="orBuyer">
+      </div>
+      <div class="field">
+        <label class="field-label" for="orContact">Контактное лицо</label>
+        <input type="text" id="orContact">
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Ответственный менеджер</span>
+      <div class="pill-row" id="orRespRow"></div>
+      <p class="field-hint" id="orNewOrderNotice">При сохранении этому человеку автоматически поставится задача — подготовить договор и счёт, со всеми деталями заказа в первом комментарии.</p>
+    </div>
+
+    <div class="field hidden" id="orderMetaField">
+      <div class="meeting-card-meta" id="orderMetaText"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-danger hidden" id="orderDeleteBtn">Удалить</button>
+      <div class="modal-actions-right">
+        <button type="button" class="btn-secondary" id="orderCancelBtn">Отмена</button>
         <button type="submit" class="btn-primary">Сохранить</button>
       </div>
     </div>
@@ -3692,7 +3917,11 @@
     initFilterBar();
     fillModalSelects();
     initBulkBar();
+    refreshMeetingsDirFilter();
+    refreshSamplesDirFilter();
+    refreshOrdersDirFilter();
     renderWhoAmI();
+    if (currentView === "employees") renderEmployees();
     render();
   }
   // Removing a Проект/Юрлицо only ever affects the dropdown: a custom item
@@ -3779,6 +4008,10 @@
     }, function () {});
     db.collection("customResponsible").onSnapshot(function (snap) {
       customResponsible = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      // Часть 22: с этого момента считаем список сотрудников достоверным —
+      // экран входа больше не должен путать "ещё не загрузили" с "пароль
+      // неверный" (см. customResponsibleReady у initPasswordGate).
+      customResponsibleReady = true;
       mergeCustomLists();
     }, function () {});
     db.collection("hiddenDirections").onSnapshot(function (snap) {
@@ -3893,6 +4126,15 @@
   var meetingsShowDeleted = false;
   var meetingEditingId = null;
   var meetingParticipantsSelected = [];
+  // CRM v2 Часть 23 (23 сент.): «Заказы» — персонально приходящие Никите/Жене
+  // заказы по каждому Проекту; тот же паттерн живой подписки, что samples/
+  // meetings. При сохранении нового заказа отдельно создаётся задача
+  // ответственному менеджеру — см. createOrderAutoTask().
+  var orders = [];
+  var ordersUnsub = null;
+  var ordersFilterDirection = "";
+  var ordersShowDeleted = false;
+  var orderEditingId = null;
 
   // ---------- "Кто вы" (per-browser, not a real login) ----------
   // There's no auth in this app — anyone with the link can edit anything as
@@ -3905,6 +4147,64 @@
   }
   function setCurrentUser(id) {
     try { localStorage.setItem(CURRENT_USER_KEY, id); } catch (e) {}
+  }
+  // ---------- Часть 22: роли и доступ по направлениям ----------
+  // Быстрый путь (по решению Никиты): без Firebase Auth и правил
+  // безопасности на сервере — разграничение только на уровне интерфейса.
+  // Никита и Женя — всегда администраторы (полный доступ, вход по общему
+  // паролю SITE_PASSWORD). Остальные — сотрудники, добавленные через
+  // панель «Сотрудники»: у каждого свой личный пароль для входа
+  // (customResponsible[].password) и список разрешённых направлений
+  // (customResponsible[].allowedDirections), которые задаёт администратор.
+  function isAdminId(id) { return id === "nikita" || id === "evgeniy"; }
+  function isAdmin() { return isAdminId(getCurrentUser()); }
+  function currentEmployeeRecord() {
+    var id = getCurrentUser();
+    if (!id || isAdminId(id)) return null;
+    return customResponsible.filter(function (r) { return r.id === id; })[0] || null;
+  }
+  // null = без ограничений (администратор). Иначе — конкретный список
+  // разрешённых направлений; "Личное" всегда в нём, чтобы у сотрудника в
+  // любом случае работали свои личные задачи. Если запись сотрудника почему-
+  // то не нашлась (например, её удалили, а старый currentUser остался в
+  // localStorage этого браузера) — самый безопасный вариант это НЕ открывать
+  // всё, а свести доступ только к "Личное".
+  function allowedDirectionsForCurrentUser() {
+    if (isAdmin()) return null;
+    var emp = currentEmployeeRecord();
+    var allowed = emp ? (emp.allowedDirections || []).slice() : [];
+    if (allowed.indexOf("Личное") === -1) allowed.push("Личное");
+    return allowed;
+  }
+  // Задачи/протоколы без указанного направления (пустая строка) считаются
+  // не привязанными к конкретному проекту — их видно всем, ограничивать
+  // нечем.
+  function isDirectionAllowed(direction) {
+    if (!direction) return true;
+    var allowed = allowedDirectionsForCurrentUser();
+    return !allowed || allowed.indexOf(direction) !== -1;
+  }
+  function scopedDirections() {
+    var allowed = allowedDirectionsForCurrentUser();
+    if (!allowed) return DIRECTIONS;
+    return DIRECTIONS.filter(function (d) { return allowed.indexOf(d) !== -1; });
+  }
+  // Проект по умолчанию для новой задачи: обычно "Общее", но если у
+  // сотрудника нет к нему доступа — берём первое направление из того, что
+  // ему разрешено (иначе фактическое значение при сохранении всё равно
+  // съехало бы на DEFAULT_DIRECTION, см. onSubmit).
+  function defaultDirectionForCurrentUser() {
+    var scoped = scopedDirections();
+    if (scoped.indexOf(DEFAULT_DIRECTION) !== -1) return DEFAULT_DIRECTION;
+    return scoped[0] || DEFAULT_DIRECTION;
+  }
+  function updateAdminNav() {
+    var tab = document.getElementById("employeesTabBtn");
+    if (tab) tab.classList.toggle("hidden", !isAdmin());
+  }
+  function findEmployeeByPassword(pw) {
+    if (!pw) return null;
+    return customResponsible.filter(function (r) { return r.password && r.password === pw; })[0] || null;
   }
   function responsibleLabel(id) {
     var r = RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
@@ -3971,56 +4271,145 @@
   // потребует Firebase Auth (вход по email+паролю) и правил Firestore,
   // которые пускают к данным только вошедших — это отдельная, более крупная
   // задача, запланирована отдельно (см. спецификацию).
-  // Никита/Евгений: чтобы сменить пароль — отредактируйте строку ниже.
+  // Никита/Евгений: чтобы сменить общий пароль администратора —
+  // отредактируйте строку ниже. Личные пароли сотрудников задаются не
+  // здесь, а через панель «Сотрудники» (customResponsible[].password).
   var SITE_PASSWORD = "crm2026";
   var PW_GATE_STORAGE_KEY = "crmPwGateOk";
+  // ---------- Google Calendar (Часть 24, 27 сент. 2026) ----------
+  // По просьбе Никиты: задачи (кроме "Личное") и встречи/звонки из
+  // «Протоколов» автоматически появляются в Google Calendar. Выбранный
+  // способ (см. обсуждение в чате) — подключение НАПРЯМУЮ из браузера
+  // каждого человека (Никита/Женя/сотрудник по очереди жмут «Подключить
+  // Google Calendar» и один раз входят через окно Google), без отдельного
+  // сервера/сервисного аккаунта — сайт статический, второй вариант потребовал
+  // бы платный тариф Firebase и Cloud Functions, которые больше нигде в
+  // проекте не нужны.
+  //
+  // Никита: тут два значения нужно один раз подставить свои после настройки
+  // в Google Cloud Console (инструкция — отдельно в чате/спецификации):
+  // 1) GCAL_CLIENT_ID — OAuth Client ID (тип «Веб-приложение», Authorized
+  //    JavaScript origins = https://nikitagrafis.github.io), publicly
+  //    safe-значение, как и Firebase apiKey выше по файлу.
+  // 2) GCAL_CALENDAR_ID — id общего календаря "CRM" (рекомендую завести
+  //    отдельный календарь в своём Google Calendar и расшарить его на Женю
+  //    и сотрудников с правом "Вносить изменения в мероприятия" — тогда все
+  //    видят одно и то же). Пока не заменено — id "primary" значит "личный
+  //    календарь того, кто сейчас подключён" (у каждого будет СВОЙ набор
+  //    событий, не общий).
+  var GCAL_CLIENT_ID = "487269026021-f2sg44o8844mk0j973b0ois84vkpl056.apps.googleusercontent.com";
+  var GCAL_CALENDAR_ID = "primary";
+  var GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+  // Часовой пояс для событий с точным временем (задачи типа "Звонок"/
+  // "Встреча", у которых заполнено поле "Время") — у протоколов встреч
+  // отдельного поля времени нет, они всегда идут как события на весь день.
+  var GCAL_TIMEZONE = "Europe/Moscow";
+  var GCAL_TOKEN_KEY = "crmGcalToken";
+  var GCAL_WANT_KEY = "crmGcalWant";
+  // Часть 22: становится true после первой же загрузки списка сотрудников
+  // из Firestore (см. subscribeCustomLists) — пока это не случилось, мы не
+  // можем достоверно сказать, что введённый пароль НЕ принадлежит
+  // какому-то сотруднику (его запись просто ещё не успела прийти по сети).
+  // В песочнице без Firestore (db == null) список сотрудников и не
+  // появится, поэтому там сразу true — ждать нечего (см. boot()).
+  var customResponsibleReady = false;
   function initPasswordGate() {
     var gate = document.getElementById("pwGate");
     if (!gate) return;
     var alreadyOk = false;
     try { alreadyOk = localStorage.getItem(PW_GATE_STORAGE_KEY) === "1"; } catch (e) {}
-    if (alreadyOk) { gate.classList.add("hidden"); return; }
+    // Часть 22: раньше заслонку пропускали, если её один раз уже прошли в
+    // этом браузере, — даже если "Кто вы" (currentUser) при этом пуст.
+    // Теперь дополнительно требуем, чтобы currentUser тоже был известен:
+    // иначе сотрудник с наполовину очищенным localStorage попал бы на
+    // экран "Кто вы" с кнопками Никита/Женя и смог бы выдать себя за
+    // администратора без пароля. При пустом currentUser заслонка паролем
+    // показывается заново в любом случае — она же теперь и определяет,
+    // под кем именно войти (см. ниже).
+    if (alreadyOk && getCurrentUser()) { gate.classList.add("hidden"); return; }
     gate.classList.remove("hidden");
     var form = document.getElementById("pwGateForm");
     var input = document.getElementById("pwGateInput");
     var err = document.getElementById("pwGateError");
+    function showGateError(text) {
+      if (!err) return;
+      err.textContent = text;
+      err.classList.remove("hidden");
+    }
     if (form) form.addEventListener("submit", function (e) {
       e.preventDefault();
+      // Путь администратора: общий пароль, дальше — как раньше, экран
+      // "Кто вы" с выбором Никита/Женя.
       if (input.value === SITE_PASSWORD) {
         try { localStorage.setItem(PW_GATE_STORAGE_KEY, "1"); } catch (e2) {}
         gate.classList.add("hidden");
         if (err) err.classList.add("hidden");
-      } else {
-        if (err) err.classList.remove("hidden");
-        input.value = "";
-        input.focus();
+        return;
       }
+      // Путь сотрудника: личный пароль сразу же определяет, кто он — экран
+      // "Кто вы" ему не нужен.
+      var emp = findEmployeeByPassword(input.value);
+      if (emp) {
+        setCurrentUser(emp.id);
+        try { localStorage.setItem(PW_GATE_STORAGE_KEY, "1"); } catch (e2) {}
+        gate.classList.add("hidden");
+        if (err) err.classList.add("hidden");
+        mergeCustomLists();
+        return;
+      }
+      if (!customResponsibleReady) {
+        // Список сотрудников ещё не подгрузился — не можем быть уверены,
+        // что пароль неверный (см. комментарий у customResponsibleReady
+        // выше). Не чистим поле, чтобы можно было просто отправить форму
+        // ещё раз через секунду.
+        showGateError("Проверяем пароль — отправьте ещё раз через секунду.");
+        return;
+      }
+      showGateError("Неверный пароль, попробуйте ещё раз.");
+      input.value = "";
+      input.focus();
     });
   }
   function renderWhoAmI() {
     var sel = document.getElementById("whoAmI");
+    var label = document.getElementById("whoAmILabel");
     if (!sel) return;
     var cur = getCurrentUser();
-    sel.innerHTML = '<option value="">Кто вы?</option>' + RESPONSIBLE.map(function (r) {
-      return '<option value="' + r.id + '">Вы: ' + r.label + '</option>';
-    }).join("");
-    sel.value = cur;
+    if (!cur || isAdminId(cur)) {
+      sel.classList.remove("hidden");
+      if (label) label.classList.add("hidden");
+      sel.innerHTML = '<option value="">Кто вы?</option>' + BASE_RESPONSIBLE.map(function (r) {
+        return '<option value="' + r.id + '">Вы: ' + r.label + '</option>';
+      }).join("");
+      sel.value = cur;
+    } else {
+      // Часть 22: сотрудник — личность уже определена его личным паролем
+      // на входе, переключатель здесь не нужен (и не должен позволять
+      // выдать себя за другого без пароля) — просто подпись, под кем вошли.
+      sel.classList.add("hidden");
+      if (label) {
+        label.textContent = "Вы: " + responsibleLabel(cur);
+        label.classList.remove("hidden");
+      }
+    }
     renderWhoGateBtns();
+    updateAdminNav();
   }
   // Часть 5, п.12: те же варианты, что и в whoAmI, просто крупными кнопками
   // на заслонке — выбор сразу же прячет её (см. updateWhoGate, вызывается
-  // из render()).
+  // из render()). Часть 22: только администраторы (Никита/Женя) — сотрудник
+  // до этого экрана вообще не доходит, его личность уже определена паролем.
   function renderWhoGateBtns() {
     var el = document.getElementById("whoGateBtns");
     if (!el) return;
-    el.innerHTML = RESPONSIBLE.map(function (r) {
+    el.innerHTML = BASE_RESPONSIBLE.map(function (r) {
       return '<button type="button" data-id="' + r.id + '">' + r.label + '</button>';
     }).join("");
     Array.prototype.forEach.call(el.children, function (b) {
       b.addEventListener("click", function () {
         setCurrentUser(b.getAttribute("data-id"));
         renderWhoAmI();
-        render();
+        mergeCustomLists();
       });
     });
   }
@@ -4457,6 +4846,11 @@
       { id: "mdemo2", date: addDaysStr(t, -3), title: "Встреча с поставщиком — пример", participants: ["evgeniy"], participantsExternal: "Иван (поставщик)", direction: "Капсо", entity: "АО Капсо",
         notes: "Обсудили условия поставки.", createdBy: "evgeniy", createdAt: new Date(t + "T00:00:00").getTime() - 86400000*3 }
     ];
+    orders = [
+      { id: "odemo1", item: "60 кг кофе Вкуснокофе — пример", direction: "Вкуснокофе", entity: "ООО Вкуснокофе",
+        supplier: "ООО Рубинтрейд", purchaseCost: 45000, buyer: "Кофейня «Утро»", contact: "Мария, +7 900 000-00-00",
+        dueDate: addDaysStr(t, 7), responsible: "nikita", createdBy: "nikita", createdAt: new Date(t + "T00:00:00").getTime() }
+    ];
   }
 
   // A short, human-readable log of what changed and who changed it — "who"
@@ -4566,19 +4960,31 @@
     var full = Object.assign({}, data, { history: prevHistory.concat([histEntry]).slice(-40) });
     if (db) {
       var col = db.collection("tasks");
-      if (id) return col.doc(id).update(full).then(function () { return id; });
-      return col.add(Object.assign({ createdAt: Date.now() }, full)).then(function (ref) { return ref.id; });
+      // Часть 24: синхронизация с Google Calendar — best-effort поверх
+      // основного сохранения, из уже известных на этот момент данных
+      // (full/prev), а не через findTask() после — сам Firestore-снапшот
+      // ещё не придёт в момент, когда resolve этого промиса.
+      if (id) return col.doc(id).update(full).then(function () {
+        syncTaskToGcal(Object.assign({ id: id }, prev, full));
+        return id;
+      });
+      return col.add(Object.assign({ createdAt: Date.now() }, full)).then(function (ref) {
+        syncTaskToGcal(Object.assign({ id: ref.id }, full));
+        return ref.id;
+      });
     }
     // Local preview fallback.
     if (id) {
       var i = findIndex(id);
       if (i > -1) tasks[i] = Object.assign({}, tasks[i], full);
       render();
+      syncTaskToGcal(findTask(id));
       return Promise.resolve(id);
     }
     var newId = "local" + Date.now();
     tasks.push(Object.assign({ id: newId }, full));
     render();
+    syncTaskToGcal(findTask(newId));
     return Promise.resolve(newId);
   }
   function persist(data, id) {
@@ -4593,6 +4999,10 @@
   // "Удалённые задачи" list, where it can be restored or purged for good.
   function softDeleteTask(id) {
     var data = { deleted: true, deletedAt: Date.now() };
+    // Часть 24: удаляемая задача убирает и своё событие из Google Calendar
+    // (если оно было) — иначе в календаре оставался бы "осиротевший" пункт.
+    var t = findTask(id);
+    if (t && t.gcalEventId) gcalDeleteEvent(id, "tasks", t.gcalEventId);
     if (db) {
       db.collection("tasks").doc(id).update(data).catch(function (e) { console.error(e); });
       return;
@@ -4605,14 +5015,21 @@
     var data = { deleted: false, deletedAt: null };
     if (db) {
       db.collection("tasks").doc(id).update(data).catch(function (e) { console.error(e); });
-      return;
+    } else {
+      var i = findIndex(id);
+      if (i > -1) tasks[i] = Object.assign({}, tasks[i], data);
+      render();
     }
-    var i = findIndex(id);
-    if (i > -1) tasks[i] = Object.assign({}, tasks[i], data);
-    render();
+    // Часть 24: gcalEventId принудительно сбрасываем — старое событие уже
+    // удалено при softDeleteTask(), пересоздаём заново, а не пытаемся
+    // обновить (PATCH) несуществующий id.
+    var t = findTask(id);
+    if (t) syncTaskToGcal(Object.assign({}, t, data, { gcalEventId: null }));
   }
   // Permanent removal — only reachable from inside "Удалённые задачи".
   function purgeDeletedTask(id) {
+    var t = findTask(id);
+    if (t && t.gcalEventId) gcalDeleteEvent(id, "tasks", t.gcalEventId);
     if (db) {
       db.collection("tasks").doc(id).delete().catch(function (e) { console.error(e); });
       return;
@@ -4749,21 +5166,26 @@
   }
   function initFilterBar() {
     // Чистим выбор от значений, которых больше нет в списках (проект/юрлицо
-    // могли убрать через "Удалить из списка…").
-    filters.direction = filters.direction.filter(function (d) { return DIRECTIONS.indexOf(d) !== -1; });
+    // могли убрать через "Удалить из списка…") — а для сотрудника ещё и от
+    // направлений вне его доступа (Часть 22).
+    var scopedDirs = scopedDirections();
+    filters.direction = filters.direction.filter(function (d) { return scopedDirs.indexOf(d) !== -1; });
     filters.entity = filters.entity.filter(function (e) { return ENTITIES.indexOf(e) !== -1; });
     filters.responsible = filters.responsible.filter(function (id) { return RESPONSIBLE.some(function (r) { return r.id === id; }); });
-    setupMsFilter("filterDirection", "direction", DIRECTIONS.map(function (d) { return { value: d, label: d }; }), "Все проекты", {
+    // Часть 22: заводить новые проекты/юрлица/людей — теперь действие
+    // администратора (Никита/Женя); у сотрудника пунктов "+ Добавить…" и
+    // "Удалить из списка…" в этих трёх фильтрах просто нет.
+    setupMsFilter("filterDirection", "direction", scopedDirs.map(function (d) { return { value: d, label: d }; }), "Все проекты", isAdmin() ? {
       add: function () { handleFilterAdd("direction", "direction"); },
       manage: function () { handleFilterManage("direction"); }
-    });
-    setupMsFilter("filterEntity", "entity", ENTITIES.map(function (e) { return { value: e, label: e }; }), "Все юр лица", {
+    } : null);
+    setupMsFilter("filterEntity", "entity", ENTITIES.map(function (e) { return { value: e, label: e }; }), "Все юр лица", isAdmin() ? {
       add: function () { handleFilterAdd("entity", "entity"); },
       manage: function () { handleFilterManage("entity"); }
-    });
-    setupMsFilter("filterResponsible", "responsible", RESPONSIBLE.map(function (r) { return { value: r.id, label: r.label }; }), "Все ответственные", {
+    } : null);
+    setupMsFilter("filterResponsible", "responsible", RESPONSIBLE.map(function (r) { return { value: r.id, label: r.label }; }), "Все ответственные", isAdmin() ? {
       add: function () { handleFilterAdd("responsible", "responsible"); }
-    });
+    } : null);
     setupMsFilter("filterType", "type", TYPES.map(function (ty) { return { value: ty.id, label: ty.label }; }), "Все типы задач", null);
     // Часть 5, п.16: единое поле "Срок задачи" вместо трёх кнопок
     // (Сегодня/Эта неделя/Просроченные) + отдельно "Готово"/"Удалённые".
@@ -5027,6 +5449,11 @@
     // ни строкой в "Удалённых". Раньше заглушка была видна намеренно (чтобы
     // показать, что время занято), теперь — полностью скрыта.
     if (isPersonalHidden(t)) return false;
+    // Часть 22: сотрудник с ограниченным доступом просто не видит задачи по
+    // направлениям, которые ему не разрешил администратор — ни на доске, ни
+    // в календаре, ни в "Удалённых", ни через поиск (все они проходят через
+    // matchesBaseFilters/matchesFilters — единая точка входа).
+    if (!isDirectionAllowed(t.direction)) return false;
     // По просьбе Никиты (15 сент.): каждое поле теперь массив — пусто =
     // фильтр не применяется, иначе задача должна попасть хоть в одно из
     // отмеченных значений (для "Ответственный" — хотя бы один из выбранных
@@ -5812,8 +6239,34 @@
   // Re-fills just the two selects' <option> lists — called again every time
   // a custom Проект/Юрлицо is added, without re-binding the listeners below.
   function fillModalSelects() {
-    fillSelect(document.getElementById("fDirection"), DIRECTIONS, null, true, true);
+    // Часть 22: сотрудник видит и может выбрать в форме задачи только
+    // разрешённые ему направления, и не может сам заводить новые/удалять
+    // (withAdd/withManage только у администратора).
+    fillSelect(document.getElementById("fDirection"), scopedDirections(), null, isAdmin(), isAdmin());
     fillSelect(document.getElementById("fEntity"), ENTITIES, null, true, true);
+  }
+  // Часть 22: пересчитывает список направлений в фильтре "Протоколы" —
+  // нужно как при первом wire(), так и заново при каждой смене того, кто
+  // вошёл (mergeCustomLists), иначе у сотрудника фильтр показывал бы
+  // направления, которых он не видит.
+  function refreshMeetingsDirFilter() {
+    var sel = document.getElementById("meetingsDirFilter");
+    if (sel) fillSelect(sel, scopedDirections(), "Все проекты", false, false);
+  }
+  // Часть 22: то же самое для пилюль-фильтра "Образцы" — id в SAMPLE_
+  // DIRECTIONS совпадают со строками DIRECTIONS, так что isDirectionAllowed
+  // применим напрямую, без отдельного маппинга.
+  function refreshSamplesDirFilter() {
+    var el = document.getElementById("samplesDirFilter");
+    if (!el) return;
+    var items = [{ id: "", label: "Все" }].concat(SAMPLE_DIRECTIONS.filter(function (d) { return isDirectionAllowed(d.id); }));
+    if (items.length === 1) items = [{ id: "", label: "Все" }].concat(SAMPLE_DIRECTIONS);
+    var keepValue = items.some(function (i) { return i.id === samplesFilterDirection; }) ? samplesFilterDirection : "";
+    samplesFilterDirection = keepValue;
+    buildPillRow(el, items, keepValue, function (id) {
+      samplesFilterDirection = id;
+      renderSamples();
+    });
   }
   function handleAddDirection(sel) {
     var t = editingId ? findTask(editingId) : null;
@@ -5945,7 +6398,7 @@
     // Часть 5, п.2: у подзадачи Проект/Юрлицо подставляются от родителя
     // (presets.direction/entity, см. openSubtaskFormFor) — как и раньше,
     // всё это можно поменять руками.
-    document.getElementById("fDirection").value = t ? t.direction : (presets.direction || DEFAULT_DIRECTION);
+    document.getElementById("fDirection").value = t ? t.direction : (presets.direction || defaultDirectionForCurrentUser());
     document.getElementById("fEntity").value = t ? t.entity : (presets.entity || "Не применимо");
     // У совсем новой задачи без конкретного дня (не кликали по календарю,
     // не выбирали день на доске, явного срока не передали) по умолчанию —
@@ -6052,7 +6505,7 @@
     // селекта в момент сохранения всё же оказывается пустым (гонка при
     // очень быстром сохранении, странное состояние DOM и т.п.), берём
     // защитный дефолт прямо здесь — на уровне сохранения, а не только UI.
-    var direction = document.getElementById("fDirection").value || DEFAULT_DIRECTION;
+    var direction = document.getElementById("fDirection").value || defaultDirectionForCurrentUser();
     var data = {
       title: document.getElementById("fTitle").value.trim(),
       direction: direction,
@@ -6169,6 +6622,9 @@
 
   // ---------- View switching ----------
   function setView(v) {
+    // Часть 22: раздел "Сотрудники" — только для администратора; случайный
+    // (или намеренный) переход туда у сотрудника просто возвращает на доску.
+    if (v === "employees" && !isAdmin()) v = "board";
     currentView = v;
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
       var active = b.getAttribute("data-view") === v;
@@ -6181,14 +6637,16 @@
     document.getElementById("analyticsView").classList.toggle("hidden", v !== "analytics");
     document.getElementById("meetingsView").classList.toggle("hidden", v !== "meetings");
     document.getElementById("samplesView").classList.toggle("hidden", v !== "samples");
+    document.getElementById("ordersView").classList.toggle("hidden", v !== "orders");
+    document.getElementById("employeesView").classList.toggle("hidden", v !== "employees");
     // Задачные фильтры (строка поиска + "Фильтры" и сам развёрнутый ряд
     // селектов под ней — это два разных div'а, filters/filtersExtra) не
     // относятся ни к Финансам, ни к Аналитике, ни к Протоколам, ни к
-    // Образцам. Раньше прятался только первый div — второй (filtersExtra)
-    // на широком экране виден всегда по умолчанию (.filters-extra{display:
-    // flex}), поэтому ряд селектов "протекал" поверх этих разделов; здесь
-    // заодно и это поправлено.
-    var hideTaskFilters = v === "finance" || v === "analytics" || v === "meetings" || v === "samples";
+    // Образцам, ни к Сотрудникам. Раньше прятался только первый div —
+    // второй (filtersExtra) на широком экране виден всегда по умолчанию
+    // (.filters-extra{display: flex}), поэтому ряд селектов "протекал"
+    // поверх этих разделов; здесь заодно и это поправлено.
+    var hideTaskFilters = v === "finance" || v === "analytics" || v === "meetings" || v === "samples" || v === "orders" || v === "employees";
     document.getElementById("filters").classList.toggle("hidden", hideTaskFilters);
     document.getElementById("filtersExtra").classList.toggle("hidden", hideTaskFilters);
     if (v !== "board") document.getElementById("bulkBar").classList.add("hidden");
@@ -6209,6 +6667,8 @@
     else if (currentView === "analytics") renderAnalytics();
     else if (currentView === "meetings") renderMeetings();
     else if (currentView === "samples") renderSamples();
+    else if (currentView === "orders") renderOrders();
+    else if (currentView === "employees") renderEmployees();
   }
   // A small count on "Фильтры" so collapsing the secondary filters on a
   // phone doesn't hide the fact that some of them are still active.
@@ -6408,6 +6868,10 @@
   function stockClass(n) { return n < 0 ? "negative" : (n === 0 ? "zero" : ""); }
   function renderSamples() {
     var base = samplesShowDeleted ? samples : samples.filter(function (s) { return !s.deleted; });
+    // Часть 22: id направлений в SAMPLE_DIRECTIONS — те же строки, что и в
+    // общем DIRECTIONS (Рубинтрейд/Капсо/Биржа33), так что isDirectionAllowed
+    // работает без дополнительного маппинга.
+    base = base.filter(function (s) { return isDirectionAllowed(s.direction); });
     var visible = samplesFilterDirection ? base.filter(function (s) { return s.direction === samplesFilterDirection; }) : base;
     visible = visible.slice().sort(function (a, b) {
       if (a.direction !== b.direction) return (a.direction || "").localeCompare(b.direction || "", "ru");
@@ -6494,15 +6958,23 @@
     var party = document.getElementById("smMoveParty").value.trim();
     var dateVal = document.getElementById("smMoveDate").value || todayStr();
     var by = document.getElementById("smMoveByRow").getAttribute("data-value") || getCurrentUser() || "";
+    var newId = genId("mv");
     modalMovements.push({
-      id: genId("mv"), type: type, qty: qty, party: party,
+      id: newId, type: type, qty: qty, party: party,
       at: new Date(dateVal + "T00:00:00").getTime(), by: by,
       createdAt: Date.now(), createdBy: getCurrentUser() || ""
     });
+    // Часть 23: любое движение (выдача/возврат) — новая задача при сохранении.
+    newMovementIds.push(newId);
     document.getElementById("smMoveQty").value = "";
     document.getElementById("smMoveParty").value = "";
     renderMovementList();
   }
+  // Часть 23: id-шники движений, добавленных в текущем открытии карточки (не
+  // ещё существовавших до этого) — по ним при "Сохранить" ставится
+  // автоматическая задача (см. createSampleMovementAutoTask), ровно на новые
+  // записи, а не на уже сохранённый ранее журнал.
+  var newMovementIds = [];
   var sampleDeleteArmed = false;
   var sampleDeleteArmTimer = null;
   function resetSampleDeleteBtn() {
@@ -6522,8 +6994,14 @@
     document.getElementById("sampleModalTitle").textContent = s ? "Редактировать образец" : "Новый образец";
     document.getElementById("sampleDeleteBtn").classList.toggle("hidden", !s);
     document.getElementById("smName").value = s ? (s.name || "") : "";
-    var initialDirection = s ? s.direction : SAMPLE_DIRECTIONS[0].id;
-    buildPillRow(document.getElementById("smDirectionRow"), SAMPLE_DIRECTIONS, initialDirection, function (dirId) {
+    // Часть 22: для новой карточки сотрудник выбирает направление только из
+    // разрешённых ему (для уже существующего образца s.direction всегда в
+    // допуске — иначе карточку было бы не открыть, renderSamples() уже её
+    // отфильтровал бы).
+    var scopedSampleDirs = SAMPLE_DIRECTIONS.filter(function (d) { return isDirectionAllowed(d.id); });
+    if (!scopedSampleDirs.length) scopedSampleDirs = SAMPLE_DIRECTIONS;
+    var initialDirection = s ? s.direction : scopedSampleDirs[0].id;
+    buildPillRow(document.getElementById("smDirectionRow"), scopedSampleDirs, initialDirection, function (dirId) {
       document.getElementById("smEntity").value = DIRECTION_ENTITY[dirId] || "Не применимо";
     });
     fillSelect(document.getElementById("smEntity"), ENTITIES, null, false, false);
@@ -6531,6 +7009,7 @@
     document.getElementById("smUnitCost").value = s && s.unitCost ? s.unitCost : "";
     document.getElementById("smInitialQty").value = s ? (s.initialQty || 0) : 0;
     modalMovements = s && Array.isArray(s.movements) ? s.movements.map(function (m) { return Object.assign({}, m); }) : [];
+    newMovementIds = [];
     document.getElementById("smMoveQty").value = "";
     document.getElementById("smMoveParty").value = "";
     document.getElementById("smMoveDate").value = todayStr();
@@ -6588,8 +7067,13 @@
     };
     if (!data.name) { showToast("Укажите наименование образца.", true); return; }
     persistSample(data, sampleEditingId);
+    // Часть 23: по любому новому движению (не по уже существовавшим в
+    // журнале) — своя автоматическая задача, до закрытия модалки, пока
+    // newMovementIds/modalMovements ещё доступны.
+    var newlyAdded = modalMovements.filter(function (m) { return newMovementIds.indexOf(m.id) !== -1 && !m.deletedAt; });
+    newlyAdded.forEach(function (m) { createSampleMovementAutoTask(data.name, data.direction, data.entity, m); });
     closeSampleModal();
-    showToast("Образец сохранён.");
+    showToast(newlyAdded.length ? "Образец сохранён, по движению поставлена задача." : "Образец сохранён.");
   }
 
   // ---------- Протоколы встреч/звонков (CRM v2 Часть 20) ----------
@@ -6604,6 +7088,9 @@
   function renderMeetings() {
     var base = meetingsShowDeleted ? meetings : meetings.filter(function (m) { return !m.deleted; });
     var visible = base.filter(function (m) {
+      // Часть 22: тот же принцип, что и с задачами — протокол по
+      // направлению вне доступа сотрудника просто не показывается.
+      if (!isDirectionAllowed(m.direction)) return false;
       if (meetingsFilterDirection && m.direction !== meetingsFilterDirection) return false;
       if (meetingsFilterEntity && m.entity !== meetingsFilterEntity) return false;
       return true;
@@ -6699,7 +7186,8 @@
     document.getElementById("mTitle").value = m ? (m.title || "") : "";
     buildMeetingParticipantsRow(m ? (m.participants || []) : (getCurrentUser() ? [getCurrentUser()] : []));
     document.getElementById("mExternal").value = m ? (m.participantsExternal || "") : "";
-    fillSelect(document.getElementById("mDirection"), DIRECTIONS, "—", false, false);
+    // Часть 22: сотрудник может отметить протокол только своим направлением.
+    fillSelect(document.getElementById("mDirection"), scopedDirections(), "—", false, false);
     document.getElementById("mDirection").value = m ? (m.direction || "") : "";
     fillSelect(document.getElementById("mEntity"), ENTITIES, "—", false, false);
     document.getElementById("mEntity").value = m ? (m.entity || "") : "";
@@ -6719,22 +7207,35 @@
     resetMeetingDeleteBtn();
   }
   function persistMeeting(data, id) {
+    var prev = id ? findMeeting(id) : null;
     if (db) {
       var col = db.collection("meetings");
-      var p = id ? col.doc(id).update(data) : col.add(Object.assign({ createdAt: Date.now(), createdBy: getCurrentUser() || "" }, data));
+      // Часть 24: та же логика, что у saveFormData() — синк из уже
+      // известных данных (prev/data), не дожидаясь onSnapshot.
+      var p = id
+        ? col.doc(id).update(data).then(function () { syncMeetingToGcal(Object.assign({ id: id }, prev, data)); })
+        : col.add(Object.assign({ createdAt: Date.now(), createdBy: getCurrentUser() || "" }, data)).then(function (ref) {
+            syncMeetingToGcal(Object.assign({ id: ref.id }, data));
+          });
       p.catch(function (e) { console.error("meetings write failed", e); showToast("Не удалось сохранить протокол. Попробуйте ещё раз.", true); });
       return;
     }
     if (id) {
       var i = meetings.map(function (m) { return m.id; }).indexOf(id);
       if (i > -1) meetings[i] = Object.assign({}, meetings[i], data);
-    } else {
-      meetings.push(Object.assign({ id: "local" + Date.now(), createdAt: Date.now(), createdBy: getCurrentUser() || "" }, data));
+      renderMeetings();
+      syncMeetingToGcal(findMeeting(id));
+      return;
     }
+    var newId = "local" + Date.now();
+    meetings.push(Object.assign({ id: newId, createdAt: Date.now(), createdBy: getCurrentUser() || "" }, data));
     renderMeetings();
+    syncMeetingToGcal(findMeeting(newId));
   }
   function softDeleteMeeting(id) {
     var data = { deleted: true, deletedAt: Date.now() };
+    var m = findMeeting(id);
+    if (m && m.gcalEventId) gcalDeleteEvent(id, "meetings", m.gcalEventId);
     if (db) { db.collection("meetings").doc(id).update(data).catch(function (e) { console.error(e); }); return; }
     var i = meetings.map(function (m) { return m.id; }).indexOf(id);
     if (i > -1) meetings[i] = Object.assign({}, meetings[i], data);
@@ -6742,10 +7243,15 @@
   }
   function restoreMeeting(id) {
     var data = { deleted: false, deletedAt: null };
-    if (db) { db.collection("meetings").doc(id).update(data).catch(function (e) { console.error(e); }); return; }
-    var i = meetings.map(function (m) { return m.id; }).indexOf(id);
-    if (i > -1) meetings[i] = Object.assign({}, meetings[i], data);
-    renderMeetings();
+    if (db) {
+      db.collection("meetings").doc(id).update(data).catch(function (e) { console.error(e); });
+    } else {
+      var i = meetings.map(function (m) { return m.id; }).indexOf(id);
+      if (i > -1) meetings[i] = Object.assign({}, meetings[i], data);
+      renderMeetings();
+    }
+    var m = findMeeting(id);
+    if (m) syncMeetingToGcal(Object.assign({}, m, data, { gcalEventId: null }));
   }
   function onMeetingSubmit(e) {
     e.preventDefault();
@@ -6765,6 +7271,609 @@
     showToast("Протокол сохранён.");
   }
 
+  // ---------- Автоматические задачи (Часть 23) ----------
+  // Общий помощник: создаёт настоящую задачу той же нумерацией/структурой,
+  // что и ручное "Сохранить" в форме задачи (см. saveFormData/onSubmit),
+  // только без открытой формы — сразу с готовыми полями и, если передан
+  // commentText, с первым комментарием (та же структура, что у postComment).
+  // Используется для «Заказы» (новый заказ → задача менеджеру) и «Образцы»
+  // (любое движение → задача) — по прямой просьбе Никиты.
+  function createAutoTask(opts) {
+    var due = opts.dueDate || todayStr();
+    var taskData = {
+      title: opts.title,
+      direction: opts.direction || "Общее",
+      entity: opts.entity || DIRECTION_ENTITY[opts.direction] || "Не применимо",
+      dueDate: due,
+      startDate: "",
+      time: "",
+      type: opts.type || "task",
+      responsible: [opts.responsibleId || getCurrentUser() || (RESPONSIBLE[0] && RESPONSIBLE[0].id) || ""],
+      status: "open",
+      personal: opts.direction === "Личное",
+      parentId: null,
+      carriedOver: false,
+      createdBy: getCurrentUser() || "",
+      originalDueDate: due,
+      comments: opts.commentText ? [{ id: genId("c"), at: Date.now(), by: getCurrentUser() || "", text: opts.commentText }] : []
+    };
+    return nextTaskNumber().then(function (num) {
+      taskData.number = num;
+      return saveFormData(taskData, null);
+    }).catch(function (e) {
+      console.error("auto task creation failed", e);
+      showToast("Заказ/образец сохранён, но автоматическую задачу поставить не удалось.", true);
+    });
+  }
+  function createOrderAutoTask(order) {
+    var lines = ["Автоматически поставлено по новому заказу — подготовить договор и счёт."];
+    if (order.item) lines.push("Что: " + order.item);
+    if (order.supplier) lines.push("У кого купить: " + order.supplier);
+    if (order.purchaseCost) lines.push("Стоимость закупки: " + formatMoney(Number(order.purchaseCost)) + " ₽");
+    if (order.buyer) lines.push("Кому продать: " + order.buyer);
+    if (order.contact) lines.push("Контактное лицо: " + order.contact);
+    return createAutoTask({
+      title: "Заказ: " + (order.item || "без описания"),
+      direction: order.direction,
+      entity: order.entity,
+      dueDate: order.dueDate,
+      type: "document",
+      responsibleId: order.responsible,
+      commentText: lines.join("\n")
+    });
+  }
+  function createSampleMovementAutoTask(sampleName, direction, entity, movement) {
+    var typeLabel = byId(MOVEMENT_TYPES, movement.type).label;
+    var qtyLabel = (Number(movement.qty) || 0) + " шт.";
+    var partyLabel = movement.party ? (movement.type === "return" ? " от «" + movement.party + "»" : " для «" + movement.party + "»") : "";
+    return createAutoTask({
+      title: "Образцы: " + typeLabel.toLowerCase() + " — " + sampleName,
+      direction: direction,
+      entity: entity,
+      dueDate: todayStr(),
+      type: "task",
+      responsibleId: movement.by,
+      commentText: "Автоматически создано по движению образца «" + sampleName + "»: " + typeLabel.toLowerCase() + " " + qtyLabel + partyLabel + "."
+    });
+  }
+
+  // ---------- «Заказы» (CRM v2 Часть 23, 23 сент.) ----------
+  // По просьбе Никиты: персонально приходящие ему/Жене заказы по каждому
+  // Проекту — что купить, у кого, по какой цене, кому продать, срок,
+  // контактное лицо, и кто из менеджеров ведёт заказ (выбирается вручную —
+  // не автоматизировано, см. обсуждение). Тот же паттерн, что «Протоколы»:
+  // список карточек новыми сверху + фильтр-пилюли по направлению (как у
+  // «Образцы», не выпадающий список — направлений в заказах обычно немного).
+  function findOrder(id) { return orders.filter(function (o) { return o.id === id; })[0]; }
+  function refreshOrdersDirFilter() {
+    var el = document.getElementById("ordersDirFilter");
+    if (!el) return;
+    var items = [{ id: "", label: "Все" }].concat(scopedDirections().map(function (d) { return { id: d, label: d }; }));
+    var keepValue = items.some(function (i) { return i.id === ordersFilterDirection; }) ? ordersFilterDirection : "";
+    ordersFilterDirection = keepValue;
+    buildPillRow(el, items, keepValue, function (id) { ordersFilterDirection = id; renderOrders(); });
+  }
+  function renderOrders() {
+    var base = ordersShowDeleted ? orders : orders.filter(function (o) { return !o.deleted; });
+    // Часть 23: тот же принцип доступа, что и у остальных разделов — заказ по
+    // направлению вне допуска сотрудника просто не показывается.
+    base = base.filter(function (o) { return isDirectionAllowed(o.direction); });
+    var visible = ordersFilterDirection ? base.filter(function (o) { return o.direction === ordersFilterDirection; }) : base;
+    visible = visible.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+    var list = document.getElementById("orderList");
+    if (!list) return;
+    if (!visible.length) {
+      list.innerHTML = '<div class="subtask-empty">Пока нет заказов' + (ordersFilterDirection ? " по направлению «" + escapeHtml(ordersFilterDirection) + "»" : "") + '.</div>';
+      return;
+    }
+    list.innerHTML = visible.map(orderHtml).join("");
+    Array.prototype.forEach.call(list.querySelectorAll(".order-card"), function (card) {
+      card.addEventListener("click", function (e) {
+        if (e.target.closest("[data-restore]")) return;
+        openOrderModal(card.getAttribute("data-id"));
+      });
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-restore]"), function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        restoreOrder(btn.getAttribute("data-restore"));
+      });
+    });
+  }
+  function orderHtml(o) {
+    var deleted = !!o.deleted;
+    var tags = "";
+    if (o.direction) tags += '<span class="order-card-tag">' + escapeHtml(o.direction) + '</span>';
+    if (o.entity) tags += '<span class="order-card-tag">' + escapeHtml(o.entity) + '</span>';
+    var lines = [];
+    if (o.supplier) lines.push("У кого купить: " + escapeHtml(o.supplier));
+    if (o.purchaseCost) lines.push("Закупка: " + formatMoney(Number(o.purchaseCost)) + " ₽");
+    if (o.buyer) lines.push("Кому продать: " + escapeHtml(o.buyer));
+    if (o.contact) lines.push("Контакт: " + escapeHtml(o.contact));
+    var metaBits = [];
+    if (o.responsible) metaBits.push("Ответственный: " + escapeHtml(responsibleLabel(o.responsible)));
+    if (o.createdBy) metaBits.push("Завёл: " + escapeHtml(responsibleLabel(o.createdBy)));
+    return '<div class="order-card' + (deleted ? " deleted" : "") + '" data-id="' + o.id + '">' +
+      '<div class="order-card-head">' +
+        '<span class="order-card-due">' + escapeHtml(shortDate(o.dueDate)) + '</span>' +
+        '<span class="order-card-title">' + escapeHtml(o.item || "(без описания)") + '</span>' +
+        '<span class="order-card-tags">' + tags + '</span>' +
+      '</div>' +
+      (lines.length ? '<div class="order-card-line">' + lines.join(" · ") + '</div>' : '') +
+      (metaBits.length ? '<div class="order-card-meta">' + metaBits.join(" · ") + '</div>' : '') +
+      (deleted ? '<button type="button" class="btn-secondary order-card-restore" data-restore="' + o.id + '">Восстановить</button>' : "") +
+    '</div>';
+  }
+  var orderDeleteArmed = false;
+  var orderDeleteArmTimer = null;
+  function resetOrderDeleteBtn() {
+    orderDeleteArmed = false;
+    clearTimeout(orderDeleteArmTimer);
+    var btn = document.getElementById("orderDeleteBtn");
+    if (btn) btn.textContent = "Удалить";
+  }
+  function openOrderModal(id) {
+    if (!getCurrentUser()) {
+      showToast("Сначала выберите, кто вы, вверху страницы.", true);
+      return;
+    }
+    var o = id ? findOrder(id) : null;
+    orderEditingId = id || null;
+    resetOrderDeleteBtn();
+    document.getElementById("orderModalTitle").textContent = o ? "Редактировать заказ" : "Новый заказ";
+    document.getElementById("orderDeleteBtn").classList.toggle("hidden", !o);
+    document.getElementById("orItem").value = o ? (o.item || "") : "";
+    var scopedDirs = scopedDirections().filter(function (d) { return d !== "Личное"; });
+    if (!scopedDirs.length) scopedDirs = scopedDirections();
+    var initialDirection = o ? o.direction : scopedDirs[0];
+    buildPillRow(document.getElementById("orDirectionRow"), scopedDirs.map(function (d) { return { id: d, label: d }; }), initialDirection, function (dirId) {
+      document.getElementById("orEntity").value = DIRECTION_ENTITY[dirId] || "Не применимо";
+    });
+    fillSelect(document.getElementById("orEntity"), ENTITIES, null, false, false);
+    document.getElementById("orEntity").value = o ? (o.entity || "") : (DIRECTION_ENTITY[initialDirection] || "Не применимо");
+    document.getElementById("orDueDate").value = o ? (o.dueDate || "") : "";
+    document.getElementById("orSupplier").value = o ? (o.supplier || "") : "";
+    document.getElementById("orPurchaseCost").value = o && o.purchaseCost ? o.purchaseCost : "";
+    document.getElementById("orBuyer").value = o ? (o.buyer || "") : "";
+    document.getElementById("orContact").value = o ? (o.contact || "") : "";
+    buildPillRow(document.getElementById("orRespRow"), RESPONSIBLE, o ? (o.responsible || getCurrentUser()) : (getCurrentUser() || RESPONSIBLE[0].id), null);
+    // Заметная подсказка про автосоздание задачи — только для нового заказа,
+    // у уже сохранённого редактирование задачу повторно не ставит.
+    document.getElementById("orNewOrderNotice").classList.toggle("hidden", !!o);
+    var metaField = document.getElementById("orderMetaField");
+    if (o && o.createdAt) {
+      metaField.classList.remove("hidden");
+      document.getElementById("orderMetaText").textContent = "Завёл: " + responsibleLabel(o.createdBy) + " · " + new Date(o.createdAt).toLocaleString("ru-RU", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    } else {
+      metaField.classList.add("hidden");
+    }
+    document.getElementById("orderModal").classList.remove("hidden");
+  }
+  function closeOrderModal() {
+    document.getElementById("orderModal").classList.add("hidden");
+    orderEditingId = null;
+    resetOrderDeleteBtn();
+  }
+  function persistOrder(data, id) {
+    if (db) {
+      var col = db.collection("orders");
+      if (id) {
+        return col.doc(id).update(data).then(function () { return id; }).catch(function (e) {
+          console.error("orders write failed", e);
+          showToast("Не удалось сохранить заказ. Попробуйте ещё раз.", true);
+          throw e;
+        });
+      }
+      return col.add(Object.assign({ createdAt: Date.now(), createdBy: getCurrentUser() || "" }, data)).then(function (ref) { return ref.id; }).catch(function (e) {
+        console.error("orders write failed", e);
+        showToast("Не удалось сохранить заказ. Попробуйте ещё раз.", true);
+        throw e;
+      });
+    }
+    if (id) {
+      var i = orders.map(function (o) { return o.id; }).indexOf(id);
+      if (i > -1) orders[i] = Object.assign({}, orders[i], data);
+      renderOrders();
+      return Promise.resolve(id);
+    }
+    var newId = "local" + Date.now();
+    orders.push(Object.assign({ id: newId, createdAt: Date.now(), createdBy: getCurrentUser() || "" }, data));
+    renderOrders();
+    return Promise.resolve(newId);
+  }
+  function softDeleteOrder(id) {
+    var data = { deleted: true, deletedAt: Date.now() };
+    if (db) { db.collection("orders").doc(id).update(data).catch(function (e) { console.error(e); }); return; }
+    var i = orders.map(function (o) { return o.id; }).indexOf(id);
+    if (i > -1) orders[i] = Object.assign({}, orders[i], data);
+    renderOrders();
+  }
+  function restoreOrder(id) {
+    var data = { deleted: false, deletedAt: null };
+    if (db) { db.collection("orders").doc(id).update(data).catch(function (e) { console.error(e); }); return; }
+    var i = orders.map(function (o) { return o.id; }).indexOf(id);
+    if (i > -1) orders[i] = Object.assign({}, orders[i], data);
+    renderOrders();
+  }
+  function onOrderSubmit(e) {
+    e.preventDefault();
+    var data = {
+      item: document.getElementById("orItem").value.trim(),
+      direction: document.getElementById("orDirectionRow").getAttribute("data-value") || defaultDirectionForCurrentUser(),
+      entity: document.getElementById("orEntity").value,
+      dueDate: document.getElementById("orDueDate").value,
+      supplier: document.getElementById("orSupplier").value.trim(),
+      purchaseCost: Number(document.getElementById("orPurchaseCost").value) || 0,
+      buyer: document.getElementById("orBuyer").value.trim(),
+      contact: document.getElementById("orContact").value.trim(),
+      responsible: document.getElementById("orRespRow").getAttribute("data-value") || ""
+    };
+    if (!data.item) { showToast("Укажите, что за заказ.", true); return; }
+    if (!data.dueDate) { showToast("Укажите срок.", true); return; }
+    if (!data.responsible) { showToast("Выберите ответственного менеджера.", true); return; }
+    var wasNew = !orderEditingId;
+    persistOrder(data, orderEditingId).then(function (id) {
+      if (wasNew) {
+        return createOrderAutoTask(data).then(function () {
+          showToast("Заказ сохранён, задача поставлена менеджеру «" + responsibleLabel(data.responsible) + "».");
+        });
+      }
+      showToast("Заказ сохранён.");
+    }).catch(function () {});
+    closeOrderModal();
+  }
+
+  // ---------- Сотрудники / доступ (Часть 22, админ-панель) ----------
+  // customResponsible уже существовал (люди, добавленные через "+
+  // Добавить…" у поля "Ответственный") — здесь тот же массив просто
+  // дополняется полями password/allowedDirections, которые задаёт
+  // администратор через эту панель. Никита/Женя (BASE_RESPONSIBLE) сюда
+  // не попадают — они не "сотрудники", а администраторы.
+  function updateCustomResponsible(id, patch) {
+    customResponsible = customResponsible.map(function (r) { return r.id === id ? Object.assign({}, r, patch) : r; });
+    if (db) db.collection("customResponsible").doc(id).update(patch).catch(function (e) { console.error(e); });
+    mergeCustomLists();
+  }
+  function deleteCustomResponsible(id) {
+    customResponsible = customResponsible.filter(function (r) { return r.id !== id; });
+    if (db) db.collection("customResponsible").doc(id).delete().catch(function (e) { console.error(e); });
+    mergeCustomLists();
+  }
+  function employeeCardHtml(e) {
+    var dirs = e.allowedDirections || [];
+    var dirsHtml = dirs.length
+      ? dirs.map(function (d) { return '<span class="meta-tag">' + escapeHtml(d) + '</span>'; }).join("")
+      : '<span class="employee-no-access">Доступ не настроен</span>';
+    var pwOk = !!e.password;
+    return (
+      '<button type="button" class="employee-card" data-id="' + e.id + '">' +
+        '<div class="employee-card-name">' + escapeHtml(e.label) + '</div>' +
+        '<div class="employee-card-pw' + (pwOk ? "" : " employee-card-pw-warn") + '">' + (pwOk ? "Пароль задан" : "Пароль не задан — войти пока не может") + '</div>' +
+        '<div class="card-meta">' + dirsHtml + '</div>' +
+      '</button>'
+    );
+  }
+  function renderEmployees() {
+    var list = document.getElementById("employeeList");
+    if (!list) return;
+    if (!customResponsible.length) {
+      list.innerHTML = '<div class="subtask-empty">Пока нет сотрудников — нажмите «+ Сотрудник», чтобы добавить первого.</div>';
+      return;
+    }
+    list.innerHTML = customResponsible.map(employeeCardHtml).join("");
+    Array.prototype.forEach.call(list.querySelectorAll(".employee-card"), function (card) {
+      card.addEventListener("click", function () { openEmployeeModal(card.getAttribute("data-id")); });
+    });
+  }
+  function renderEmpDirChecks(selected) {
+    var el = document.getElementById("empDirChecks");
+    if (!el) return;
+    var sel = selected || [];
+    // "Личное" не показываем чекбоксом — оно и так всегда доступно каждому
+    // (см. allowedDirectionsForCurrentUser).
+    el.innerHTML = DIRECTIONS.filter(function (d) { return d !== "Личное"; }).map(function (d) {
+      var checked = sel.indexOf(d) !== -1 ? " checked" : "";
+      return '<label class="employee-dir-row"><input type="checkbox" value="' + escapeHtml(d) + '"' + checked + '><span>' + escapeHtml(d) + '</span></label>';
+    }).join("");
+  }
+  var employeeEditingId = null;
+  var employeeDeleteArmed = false;
+  var employeeDeleteArmTimer = null;
+  function resetEmployeeDeleteBtn() {
+    employeeDeleteArmed = false;
+    var b = document.getElementById("employeeDeleteBtn");
+    if (b) b.textContent = "Удалить";
+  }
+  function openEmployeeModal(id) {
+    employeeEditingId = id || null;
+    resetEmployeeDeleteBtn();
+    var e = id ? customResponsible.filter(function (r) { return r.id === id; })[0] : null;
+    document.getElementById("employeeModalTitle").textContent = e ? "Сотрудник: " + e.label : "Новый сотрудник";
+    document.getElementById("empName").value = e ? e.label : "";
+    document.getElementById("empPassword").value = e ? (e.password || "") : "";
+    renderEmpDirChecks(e ? e.allowedDirections : []);
+    document.getElementById("employeeDeleteBtn").classList.toggle("hidden", !e);
+    document.getElementById("employeeModal").classList.remove("hidden");
+    setTimeout(function () { document.getElementById("empName").focus(); }, 30);
+  }
+  function closeEmployeeModal() {
+    document.getElementById("employeeModal").classList.add("hidden");
+    employeeEditingId = null;
+  }
+  function onEmployeeSubmit(e) {
+    e.preventDefault();
+    var name = document.getElementById("empName").value.trim();
+    if (!name) { showToast("Введите имя.", true); return; }
+    var password = document.getElementById("empPassword").value.trim();
+    var dirs = Array.prototype.map.call(document.querySelectorAll("#empDirChecks input:checked"), function (cb) { return cb.value; });
+    if (employeeEditingId) {
+      var existing = customResponsible.filter(function (r) { return r.id === employeeEditingId; })[0];
+      var patch = { allowedDirections: dirs, password: password };
+      if (existing && existing.label !== name) patch.label = name;
+      updateCustomResponsible(employeeEditingId, patch);
+      showToast("Сотрудник обновлён.");
+    } else {
+      var newId = addCustomResponsible(name);
+      updateCustomResponsible(newId, { allowedDirections: dirs, password: password });
+      showToast("Сотрудник добавлен.");
+    }
+    closeEmployeeModal();
+  }
+
+  // ---------- Google Calendar (Часть 24) ----------
+  // Конфигурация — GCAL_CLIENT_ID/GCAL_CALENDAR_ID — в начале скрипта.
+  // Общий принцип: синхронизация никогда не блокирует сохранение самой
+  // задачи/встречи в Firestore — это отдельный, необязательный шаг поверх
+  // (см. gcalRequest/gcalUpsertEvent — ошибки только логируются в консоль).
+  function gcalConfigured() {
+    return GCAL_CLIENT_ID.indexOf("ЗАМЕНИТЕ_НА_СВОЙ") === -1;
+  }
+  function getGcalToken() {
+    try {
+      var raw = localStorage.getItem(GCAL_TOKEN_KEY);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      // 30 секунд запаса, чтобы не отправить запрос токеном, который
+      // истечёт прямо во время самого запроса.
+      if (!obj || !obj.access_token || !obj.expiresAt || obj.expiresAt < Date.now() + 30000) return null;
+      return obj.access_token;
+    } catch (e) { return null; }
+  }
+  function setGcalToken(accessToken, expiresInSec) {
+    try { localStorage.setItem(GCAL_TOKEN_KEY, JSON.stringify({ access_token: accessToken, expiresAt: Date.now() + (Number(expiresInSec) || 3600) * 1000 })); } catch (e) {}
+  }
+  function clearGcalToken() {
+    try { localStorage.removeItem(GCAL_TOKEN_KEY); } catch (e) {}
+  }
+  function gcalWantConnected() {
+    try { return localStorage.getItem(GCAL_WANT_KEY) === "1"; } catch (e) { return false; }
+  }
+  function setGcalWantConnected(v) {
+    try { if (v) localStorage.setItem(GCAL_WANT_KEY, "1"); else localStorage.removeItem(GCAL_WANT_KEY); } catch (e) {}
+  }
+  function gcalIsConnected() { return !!getGcalToken(); }
+  function gcalReady() { return gcalConfigured() && gcalIsConnected(); }
+
+  var gcalTokenClient = null;
+  var gcalConnecting = false;
+  var gcalPendingBackfill = false;
+  function ensureGcalTokenClient() {
+    if (gcalTokenClient) return gcalTokenClient;
+    // typeof google, а не просто "google" — скрипт accounts.google.com/gsi/
+    // client грузится async и может быть заблокирован сетью/блокировщиком;
+    // без него подключение просто недоступно, остальной сайт не страдает.
+    if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) return null;
+    gcalTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GCAL_CLIENT_ID,
+      scope: GCAL_SCOPE,
+      callback: function (resp) {
+        gcalConnecting = false;
+        if (resp && resp.access_token) {
+          setGcalToken(resp.access_token, resp.expires_in);
+          setGcalWantConnected(true);
+          updateGcalStatusUi();
+          if (gcalPendingBackfill) {
+            gcalPendingBackfill = false;
+            showToast("Google Calendar подключен — переносим уже существующие задачи и встречи.");
+            gcalBackfillAll();
+          } else {
+            showToast("Google Calendar подключен.");
+          }
+        } else {
+          updateGcalStatusUi();
+          if (resp && resp.error && resp.error !== "immediate_failed" && resp.error !== "user_logged_out") {
+            showToast("Не удалось подключить Google Calendar.", true);
+          }
+        }
+      },
+      error_callback: function () {
+        gcalConnecting = false;
+        gcalPendingBackfill = false;
+        updateGcalStatusUi();
+      }
+    });
+    return gcalTokenClient;
+  }
+  // Тихая попытка восстановить токен без всплывающего окна — один раз при
+  // загрузке страницы, только если человек уже подключался раньше в этом же
+  // браузере (см. GCAL_WANT_KEY). Может не сработать без предупреждения
+  // (например, браузер блокирует сторонние куки/хранилище) — тогда просто
+  // остаётся кнопка "Подключить" как обычно, без всплывающей ошибки.
+  function gcalTrySilentReconnect() {
+    if (!gcalConfigured() || !gcalWantConnected() || gcalIsConnected()) { updateGcalStatusUi(); return; }
+    var client = ensureGcalTokenClient();
+    if (!client) { updateGcalStatusUi(); return; }
+    gcalConnecting = true;
+    gcalPendingBackfill = false;
+    updateGcalStatusUi();
+    try { client.requestAccessToken({ prompt: "" }); } catch (e) { gcalConnecting = false; updateGcalStatusUi(); }
+  }
+  function connectGcal() {
+    if (!gcalConfigured()) { showToast("Google Calendar ещё не настроен администратором сайта.", true); return; }
+    var client = ensureGcalTokenClient();
+    if (!client) { showToast("Google Calendar сейчас недоступен — не загрузился скрипт Google (нет сети?).", true); return; }
+    gcalConnecting = true;
+    gcalPendingBackfill = true;
+    updateGcalStatusUi();
+    client.requestAccessToken({ prompt: "consent" });
+  }
+  function disconnectGcal() {
+    var token = getGcalToken();
+    clearGcalToken();
+    setGcalWantConnected(false);
+    if (token && typeof google !== "undefined" && google.accounts && google.accounts.oauth2) {
+      try { google.accounts.oauth2.revoke(token, function () {}); } catch (e) {}
+    }
+    updateGcalStatusUi();
+    showToast("Google Calendar отключен для этого браузера.");
+  }
+  function updateGcalStatusUi() {
+    var btn = document.getElementById("gcalConnectBtn");
+    var text = document.getElementById("gcalConnectBtnText");
+    if (!btn || !text) return;
+    if (gcalIsConnected()) {
+      text.textContent = "Google Calendar подключен";
+      btn.classList.add("active");
+    } else if (gcalConnecting) {
+      text.textContent = "Подключение…";
+      btn.classList.remove("active");
+    } else {
+      text.textContent = "Подключить Google Calendar";
+      btn.classList.remove("active");
+    }
+  }
+  function gcalRequest(method, path, body) {
+    var token = getGcalToken();
+    if (!token) return Promise.reject(new Error("gcal-not-connected"));
+    var opts = { method: method, headers: { "Authorization": "Bearer " + token } };
+    if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+    return fetch("https://www.googleapis.com/calendar/v3/" + path, opts).then(function (r) {
+      if (r.status === 204) return null;
+      return r.json().catch(function () { return null; }).then(function (data) {
+        if (!r.ok) {
+          var err = new Error((data && data.error && data.error.message) || ("gcal request failed: " + r.status));
+          err.status = r.status;
+          throw err;
+        }
+        return data;
+      });
+    });
+  }
+  // Событие на весь день — end.date у Google Calendar НЕ включает последний
+  // день диапазона, поэтому +1 день к дате окончания (обычная особенность
+  // Calendar API, не баг).
+  function gcalAllDayEvent(title, startIso, endIso, description) {
+    return { summary: title, description: description || "", start: { date: startIso }, end: { date: addDaysStr(endIso, 1) } };
+  }
+  function gcalAddMinutesIso(dateIso, timeHHMM, minutes) {
+    var d = new Date(dateIso + "T" + timeHHMM + ":00");
+    d.setMinutes(d.getMinutes() + minutes);
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":00";
+  }
+  function gcalTimedEvent(title, dateIso, timeHHMM, description) {
+    return {
+      summary: title, description: description || "",
+      start: { dateTime: dateIso + "T" + timeHHMM + ":00", timeZone: GCAL_TIMEZONE },
+      end: { dateTime: gcalAddMinutesIso(dateIso, timeHHMM, 30), timeZone: GCAL_TIMEZONE }
+    };
+  }
+  // "Личное" сознательно исключено — календарь общий (или, пока
+  // GCAL_CALENDAR_ID не настроен на общий, всё равно чужой для других
+  // потенциальный просмотр), а личная задача по определению видна только
+  // автору внутри самой CRM (см. isPersonalHidden) — нельзя, чтобы она же
+  // "утекала" через календарь.
+  function shouldSyncTaskToGcal(t) {
+    if (!gcalReady()) return false;
+    if (!t || t.deleted || !t.dueDate) return false;
+    if (t.direction === "Личное") return false;
+    return true;
+  }
+  function shouldSyncMeetingToGcal(m) {
+    if (!gcalReady()) return false;
+    if (!m || m.deleted || !m.date) return false;
+    if (m.direction === "Личное") return false;
+    return true;
+  }
+  function taskGcalEventBody(t) {
+    var title = (t.status === "done" ? "✓ " : "") + (t.title || "Задача") + (t.number ? " (№" + t.number + ")" : "");
+    var lines = [];
+    if (t.direction) lines.push("Проект: " + t.direction);
+    if (t.entity && t.entity !== "Не применимо") lines.push("Юрлицо: " + t.entity);
+    if (Array.isArray(t.responsible) && t.responsible.length) lines.push("Ответственный: " + t.responsible.map(responsibleLabel).join(", "));
+    lines.push("Из CRM" + (t.number ? " · задача №" + t.number : "") + ".");
+    if (t.time) return gcalTimedEvent(title, t.dueDate, t.time, lines.join("\n"));
+    var range = taskDateRange(t);
+    return gcalAllDayEvent(title, range.start || t.dueDate, range.end || t.dueDate, lines.join("\n"));
+  }
+  function meetingGcalEventBody(m) {
+    var title = (m.title || "Встреча") + " — CRM";
+    var lines = [];
+    if (m.direction) lines.push("Проект: " + m.direction);
+    lines.push("Участники: " + meetingParticipantsLabel(m));
+    if (m.notes) lines.push("", m.notes);
+    return gcalAllDayEvent(title, m.date, m.date, lines.join("\n"));
+  }
+  function gcalSaveEventId(docId, collectionName, eventId) {
+    if (db) { db.collection(collectionName).doc(docId).update({ gcalEventId: eventId }).catch(function (e) { console.error("gcal id save failed", e); }); return; }
+    if (collectionName === "tasks") {
+      var i = findIndex(docId);
+      if (i > -1) tasks[i] = Object.assign({}, tasks[i], { gcalEventId: eventId });
+    } else if (collectionName === "meetings") {
+      var j = meetings.map(function (x) { return x.id; }).indexOf(docId);
+      if (j > -1) meetings[j] = Object.assign({}, meetings[j], { gcalEventId: eventId });
+    }
+  }
+  function gcalUpsertEvent(docId, collectionName, existingEventId, body) {
+    var path = "calendars/" + encodeURIComponent(GCAL_CALENDAR_ID) + "/events" + (existingEventId ? "/" + encodeURIComponent(existingEventId) : "");
+    gcalRequest(existingEventId ? "PATCH" : "POST", path, body).then(function (ev) {
+      if (ev && ev.id && ev.id !== existingEventId) gcalSaveEventId(docId, collectionName, ev.id);
+    }).catch(function (e) {
+      // Событие могли удалить прямо в Google Calendar руками — вместо того
+      // чтобы просто промолчать, пробуем один раз создать заново.
+      if (existingEventId && e && (e.status === 404 || e.status === 410)) {
+        gcalRequest("POST", "calendars/" + encodeURIComponent(GCAL_CALENDAR_ID) + "/events", body).then(function (ev2) {
+          if (ev2 && ev2.id) gcalSaveEventId(docId, collectionName, ev2.id);
+        }).catch(function (e2) { console.error("gcal recreate failed", e2); });
+        return;
+      }
+      console.error("gcal sync failed", e);
+    });
+  }
+  function gcalDeleteEvent(docId, collectionName, eventId) {
+    gcalRequest("DELETE", "calendars/" + encodeURIComponent(GCAL_CALENDAR_ID) + "/events/" + encodeURIComponent(eventId)).then(function () {
+      gcalSaveEventId(docId, collectionName, null);
+    }).catch(function (e) {
+      // 404/410 значит событие и так уже не существует — это не ошибка.
+      if (e && (e.status === 404 || e.status === 410)) { gcalSaveEventId(docId, collectionName, null); return; }
+      console.error("gcal delete failed", e);
+    });
+  }
+  function syncTaskToGcal(t) {
+    if (!t) return;
+    if (!shouldSyncTaskToGcal(t)) {
+      if (t.gcalEventId && gcalReady()) gcalDeleteEvent(t.id, "tasks", t.gcalEventId);
+      return;
+    }
+    gcalUpsertEvent(t.id, "tasks", t.gcalEventId, taskGcalEventBody(t));
+  }
+  function syncMeetingToGcal(m) {
+    if (!m) return;
+    if (!shouldSyncMeetingToGcal(m)) {
+      if (m.gcalEventId && gcalReady()) gcalDeleteEvent(m.id, "meetings", m.gcalEventId);
+      return;
+    }
+    gcalUpsertEvent(m.id, "meetings", m.gcalEventId, meetingGcalEventBody(m));
+  }
+  // Разовый перенос уже существующих задач/встреч — только сразу после
+  // явного нажатия "Подключить" (см. gcalPendingBackfill), не при каждой
+  // тихой перезагрузке токена — иначе на каждой загрузке страницы улетало
+  // бы по запросу на каждую из ~90 существующих задач без всякой пользы
+  // (уже перенесённые просто обновились бы теми же данными).
+  function gcalBackfillAll() {
+    tasks.filter(function (t) { return !t.deleted; }).forEach(syncTaskToGcal);
+    meetings.filter(function (m) { return !m.deleted; }).forEach(syncMeetingToGcal);
+  }
+
   // ---------- Wire up ----------
   function wire() {
     updateBrandDate();
@@ -6776,7 +7885,15 @@
     // CRM v2 п.1: смена "Кто вы" сразу же должна скрыть/показать личные
     // задачи — раньше переключатель ничего не перерисовывал, пока
     // это было не важно, но теперь от него зависит видимость карточек.
-    document.getElementById("whoAmI").addEventListener("change", function (e) { setCurrentUser(e.target.value); render(); });
+    document.getElementById("whoAmI").addEventListener("change", function (e) { setCurrentUser(e.target.value); mergeCustomLists(); });
+
+    // Часть 24: подключение Google Calendar — клик по уже подключённому
+    // статусу отключает (проще, чем отдельная кнопка "Отключить").
+    updateGcalStatusUi();
+    document.getElementById("gcalConnectBtn").addEventListener("click", function () {
+      if (gcalIsConnected()) disconnectGcal(); else connectGcal();
+    });
+    gcalTrySilentReconnect();
 
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
       b.addEventListener("click", function () { setView(b.getAttribute("data-view")); });
@@ -6972,7 +8089,7 @@
     // CRM v2 Часть 20/21.1: «Протоколы встреч/звонков» — фильтр по
     // Направлению/Юрлицу как выпадающий список (не пилюли — направлений
     // 10, а юрлиц 8, пилюлями это две строки на весь экран, см. 21.1).
-    fillSelect(document.getElementById("meetingsDirFilter"), DIRECTIONS, "Все проекты", false, false);
+    refreshMeetingsDirFilter();
     document.getElementById("meetingsDirFilter").addEventListener("change", function (e) {
       meetingsFilterDirection = e.target.value;
       renderMeetings();
@@ -7007,11 +8124,7 @@
     });
 
     // CRM v2 Часть 3: «Образцы».
-    var samplesDirFilterItems = [{ id: "", label: "Все" }].concat(SAMPLE_DIRECTIONS);
-    buildPillRow(document.getElementById("samplesDirFilter"), samplesDirFilterItems, "", function (id) {
-      samplesFilterDirection = id;
-      renderSamples();
-    });
+    refreshSamplesDirFilter();
     document.getElementById("samplesShowDeletedBtn").addEventListener("click", function (e) {
       samplesShowDeleted = !samplesShowDeleted;
       e.target.classList.toggle("active", samplesShowDeleted);
@@ -7038,6 +8151,52 @@
       closeSampleModal();
     });
 
+    // CRM v2 Часть 23: «Заказы».
+    refreshOrdersDirFilter();
+    document.getElementById("ordersShowDeletedBtn").addEventListener("click", function (e) {
+      ordersShowDeleted = !ordersShowDeleted;
+      e.target.classList.toggle("active", ordersShowDeleted);
+      renderOrders();
+    });
+    document.getElementById("addOrderBtn").addEventListener("click", function () { openOrderModal(null); });
+    document.getElementById("closeOrderModal").addEventListener("click", closeOrderModal);
+    document.getElementById("orderCancelBtn").addEventListener("click", closeOrderModal);
+    document.getElementById("orderModal").addEventListener("click", function (e) { if (e.target.id === "orderModal") closeOrderModal(); });
+    document.getElementById("orderForm").addEventListener("submit", onOrderSubmit);
+    document.getElementById("orderDeleteBtn").addEventListener("click", function (e) {
+      if (!orderEditingId) return;
+      if (!orderDeleteArmed) {
+        orderDeleteArmed = true;
+        e.target.textContent = "Точно удалить?";
+        clearTimeout(orderDeleteArmTimer);
+        orderDeleteArmTimer = setTimeout(resetOrderDeleteBtn, 4000);
+        return;
+      }
+      softDeleteOrder(orderEditingId);
+      showToast("Заказ перемещён в удалённые.");
+      closeOrderModal();
+    });
+
+    // Часть 22: «Сотрудники» — админ-панель.
+    document.getElementById("addEmployeeBtn").addEventListener("click", function () { openEmployeeModal(null); });
+    document.getElementById("closeEmployeeModal").addEventListener("click", closeEmployeeModal);
+    document.getElementById("employeeCancelBtn").addEventListener("click", closeEmployeeModal);
+    document.getElementById("employeeModal").addEventListener("click", function (e) { if (e.target.id === "employeeModal") closeEmployeeModal(); });
+    document.getElementById("employeeForm").addEventListener("submit", onEmployeeSubmit);
+    document.getElementById("employeeDeleteBtn").addEventListener("click", function (e) {
+      if (!employeeEditingId) return;
+      if (!employeeDeleteArmed) {
+        employeeDeleteArmed = true;
+        e.target.textContent = "Точно удалить?";
+        clearTimeout(employeeDeleteArmTimer);
+        employeeDeleteArmTimer = setTimeout(resetEmployeeDeleteBtn, 4000);
+        return;
+      }
+      deleteCustomResponsible(employeeEditingId);
+      showToast("Сотрудник удалён.");
+      closeEmployeeModal();
+    });
+
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape") return;
       if (!document.getElementById("addItemModal").classList.contains("hidden")) closeAddItemModal();
@@ -7046,6 +8205,8 @@
       else if (!document.getElementById("dayDetailModal").classList.contains("hidden")) closeDayDetailModal();
       else if (!document.getElementById("sampleModal").classList.contains("hidden")) closeSampleModal();
       else if (!document.getElementById("meetingModal").classList.contains("hidden")) closeMeetingModal();
+      else if (!document.getElementById("orderModal").classList.contains("hidden")) closeOrderModal();
+      else if (!document.getElementById("employeeModal").classList.contains("hidden")) closeEmployeeModal();
       else closeModal();
     });
   }
@@ -7170,13 +8331,22 @@
           meetings = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
           if (currentView === "meetings") renderMeetings();
         }, function (err) { console.error("meetings subscribe error", err); });
+        // CRM v2 Часть 23: «Заказы» — тот же паттерн живой подписки.
+        ordersUnsub = db.collection("orders").onSnapshot(function (snap) {
+          orders = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+          if (currentView === "orders") renderOrders();
+        }, function (err) { console.error("orders subscribe error", err); });
         subscribeCustomLists();
       }).catch(function (err) {
         console.error("auth/init failed", err);
+        // Часть 22: раз Firestore не поднялся, списка сотрудников из базы не
+        // будет — заслонке входа незачем ждать (см. customResponsibleReady).
+        customResponsibleReady = true;
         if (!tasks.length) { seedLocal(); render(); }
       });
     } catch (e) {
       console.error("firebase init failed", e);
+      customResponsibleReady = true;
       seedLocal(); render();
     }
   }
