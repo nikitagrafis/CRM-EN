@@ -830,7 +830,7 @@
      out explicitly for the hidden attribute to actually hide the field. */
   #commentsField[hidden] { display: none; }
   .history-list { display: flex; flex-direction: column; gap: 5px; max-height: 130px; overflow-y: auto; overflow-x: hidden; padding: 8px 10px; background: var(--surface-2); border-radius: var(--radius-s); }
-  .history-row { font-size: 11.5px; color: var(--ink-soft); display: flex; gap: 7px; align-items: baseline; }
+  .history-row { font-size: 11.5px; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 7px; align-items: baseline; }
   .history-row .history-who { font-weight: 700; color: var(--ink); flex: none; }
   .history-row .history-when { color: var(--ink-faint); flex: none; font-family: var(--font-mono); font-size: 10.5px; }
   /* CRM v2 п.10: системные события (смена статуса, создание и т.д.) идут
@@ -844,6 +844,16 @@
   .comment-add-row { display: flex; gap: 7px; margin-bottom: 8px; align-items: flex-start; }
   .comment-add-row textarea { flex: 1; resize: vertical; min-height: 38px; }
   .comment-add-row .btn-secondary { flex: none; }
+  .comment-add-actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
+  .comment-attach-btn { padding: 6px 10px; font-size: 14px; line-height: 1; }
+  .comment-attach-preview { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); background: var(--surface-2); border-radius: var(--radius-s); padding: 5px 9px; margin: -3px 0 8px; }
+  .comment-attach-preview[hidden], .comment-attach-preview.hidden { display: none; }
+  .comment-attach-preview span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .comment-attach-preview button { flex: none; border: none; background: none; cursor: pointer; color: var(--ink-faint); font-size: 12px; }
+  .comment-attach-preview button:hover { color: var(--danger); }
+  .comment-attachments { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; flex-basis: 100%; }
+  .comment-attachment-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--accent); text-decoration: none; background: var(--surface-2); border-radius: var(--radius-s); padding: 2px 7px; }
+  .comment-attachment-link:hover { text-decoration: underline; }
   .clarify-badge {
     display: flex; align-items: center; justify-content: center; flex: none;
     width: 17px; height: 17px; border-radius: 50%; background: var(--u-month-soft); color: var(--u-month);
@@ -3124,9 +3134,9 @@
          disconnectGcal(). Кнопка одна на все состояния (текст/цвет меняет
          updateGcalStatusUi), клик по уже подключённому статусу отключает. -->
     <div class="topbar-right">
-      <button type="button" class="chip-toggle" id="gcalConnectBtn" title="Задачи и встречи (кроме «Личное») будут появляться в вашем Google Calendar">
+      <button type="button" class="chip-toggle" id="gcalConnectBtn" title="Задачи и встречи (кроме «Личное») — в вашем Google Calendar; вложения к комментариям грузятся в ваш Google Drive">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5 2v2.4M11 2v2.4"/></svg>
-        <span id="gcalConnectBtnText">Подключить Google Calendar</span>
+        <span id="gcalConnectBtnText">Подключить Google</span>
       </button>
     </div>
   </header>
@@ -3416,7 +3426,18 @@
       <span class="field-label">Комментарии</span>
       <div class="comment-add-row">
         <textarea id="commentInput" placeholder="Написать комментарий…" rows="2"></textarea>
-        <button type="button" class="btn-secondary" id="commentAddBtn">Отправить</button>
+        <div class="comment-add-actions">
+          <input type="file" id="commentFileInput" class="hidden">
+          <button type="button" class="btn-secondary comment-attach-btn" id="commentAttachBtn" title="Прикрепить файл (загрузится в ваш Google Drive)">📎</button>
+          <button type="button" class="btn-secondary" id="commentAddBtn">Отправить</button>
+        </div>
+      </div>
+      <!-- Часть 25: выбранный, но ещё не отправленный файл — превью с
+           возможностью убрать (✕), сама загрузка на Google Drive происходит
+           только при нажатии "Отправить"/Cmd+Enter, не сразу при выборе. -->
+      <div class="comment-attach-preview hidden" id="commentAttachPreview">
+        <span id="commentAttachName"></span>
+        <button type="button" id="commentAttachRemove" aria-label="Убрать файл">✕</button>
       </div>
       <div class="history-list" id="commentsList"></div>
     </div>
@@ -4300,6 +4321,14 @@
   var GCAL_CLIENT_ID = "487269026021-f2sg44o8844mk0j973b0ois84vkpl056.apps.googleusercontent.com";
   var GCAL_CALENDAR_ID = "primary";
   var GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+  // Часть 25: та же кнопка/то же подключение теперь запрашивает ещё и
+  // доступ к Google Drive (только к файлам, которые создаёт сама CRM, не ко
+  // всему Диску) — нужен для вложений к комментариям (см. gdriveUploadFile).
+  // Никите нужно один раз добавить этот scope в Data Access в Google Cloud
+  // Console — так же, как раньше добавляли calendar.events (см. спецификацию,
+  // Часть 25) — иначе кнопка подключит только календарь, без вложений.
+  var GDRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+  var GOOGLE_SCOPES = GCAL_SCOPE + " " + GDRIVE_SCOPE;
   // Часовой пояс для событий с точным временем (задачи типа "Звонок"/
   // "Встреча", у которых заполнено поле "Время") — у протоколов встреч
   // отдельного поля времени нет, они всегда идут как события на весь день.
@@ -4923,9 +4952,14 @@
   // CRM v2 п.10: реальный комментарий, а не системная запись — виден всем,
   // хранится прямо на задаче (как и history), пишется без ожидания
   // основного сохранения формы, сразу при отправке.
-  function postComment(id, text) {
+  // Часть 25: третий параметр attachments — необязательный массив
+  // [{name, url}] (уже загруженные на Google Drive файлы, см.
+  // gdriveUploadFile) — комментарий можно отправить и с пустым текстом,
+  // если приложен хотя бы один файл (иначе отправлять было бы нечего).
+  function postComment(id, text, attachments) {
     text = (text || "").trim();
-    if (!text) return;
+    attachments = Array.isArray(attachments) ? attachments : [];
+    if (!text && !attachments.length) return;
     if (!getCurrentUser()) {
       showToast("Сначала выберите, кто вы, вверху страницы, чтобы оставить комментарий.", true);
       return;
@@ -4933,6 +4967,7 @@
     var prev = findTask(id);
     var prevComments = (prev && Array.isArray(prev.comments)) ? prev.comments : [];
     var entry = { id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), by: getCurrentUser(), text: text };
+    if (attachments.length) entry.attachments = attachments;
     var comments = prevComments.concat([entry]);
     if (db) {
       db.collection("tasks").doc(id).update({ comments: comments }).catch(function (e) {
@@ -6048,7 +6083,7 @@
       return { at: h.at, by: h.by, text: h.summary || "", system: true };
     });
     var commentEntries = (Array.isArray(t.comments) ? t.comments : []).map(function (c) {
-      return { at: c.at, by: c.by, text: c.text, system: false, id: c.id, deletedAt: c.deletedAt };
+      return { at: c.at, by: c.by, text: c.text, system: false, id: c.id, deletedAt: c.deletedAt, attachments: c.attachments };
     });
     var all = histEntries.concat(commentEntries).sort(function (a, b) { return b.at - a.at; });
     var listEl = document.getElementById("commentsList");
@@ -6070,11 +6105,19 @@
       var authorRec = (!e.system && !isDeleted) ? RESPONSIBLE.filter(function (r) { return r.id === e.by; })[0] : null;
       var rowStyle = authorRec ? ' style="border-left:3px solid ' + authorRec.color + '; padding-left:7px;"' : '';
       var whoStyle = authorRec ? ' style="color:' + authorRec.color + '"' : '';
+      // Часть 25: вложения (файлы на Google Drive) — только у настоящих,
+      // неудалённых комментариев; ссылки открываются в новой вкладке.
+      var attachmentsHtml = (!e.system && !isDeleted && Array.isArray(e.attachments) && e.attachments.length)
+        ? '<div class="comment-attachments">' + e.attachments.map(function (a) {
+            return '<a class="comment-attachment-link" href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener">📎 ' + escapeHtml(a.name || "файл") + '</a>';
+          }).join("") + '</div>'
+        : '';
       return '<div class="history-row' + (e.system || isDeleted ? " history-row-system" : "") + '"' + rowStyle + '>' +
         '<span class="history-when">' + when + '</span>' +
         '<span class="history-who"' + whoStyle + '>' + escapeHtml(who) + ':</span>' +
         '<span>' + textHtml + '</span>' +
         (canDelete ? '<button type="button" class="comment-del" data-id="' + e.id + '" aria-label="Удалить комментарий">✕</button>' : '') +
+        attachmentsHtml +
       '</div>';
     }).join("");
     Array.prototype.forEach.call(listEl.querySelectorAll(".comment-del"), function (b) {
@@ -6360,6 +6403,7 @@
       }
       return;
     }
+    clearPendingCommentFile();
     var t = id ? findTask(id) : null;
     // CRM v2 п.1: страховка на случай, если что-то попытается открыть чужую
     // личную задачу в обход UI-фильтров выше — прямого пути к деталям нет.
@@ -6454,7 +6498,7 @@
     modal.classList.remove("hidden");
     setTimeout(function () { document.getElementById("fTitle").focus(); }, 30);
   }
-  function closeModal() { document.getElementById("taskModal").classList.add("hidden"); editingId = null; resetDeleteBtn(); }
+  function closeModal() { document.getElementById("taskModal").classList.add("hidden"); editingId = null; resetDeleteBtn(); clearPendingCommentFile(); }
   // "Удалить" needs its own confirmation, but window.confirm() is silently
   // blocked inside the artifact sandbox — the same reason prompt() had to be
   // replaced earlier. Instead the button arms itself in place: first click
@@ -6466,6 +6510,56 @@
   // задача (даже если уже тихо автосохранилась под капотом), false — как
   // только это уже существующая, ранее сохранённая задача.
   var modalIsNewTask = false;
+  // Часть 25: файл, выбранный через 📎 для следующего комментария, ещё не
+  // загруженный на Google Drive — загрузка происходит только по факту
+  // отправки (см. submitCommentFromForm), не сразу при выборе файла.
+  var pendingCommentFile = null;
+  function clearPendingCommentFile() {
+    pendingCommentFile = null;
+    var fi = document.getElementById("commentFileInput");
+    if (fi) fi.value = "";
+    var preview = document.getElementById("commentAttachPreview");
+    if (preview) preview.classList.add("hidden");
+  }
+  // Общий путь отправки комментария (кнопка "Отправить" и Cmd/Ctrl+Enter) —
+  // раньше это был просто postComment(), теперь дополнительно: если выбран
+  // файл (📎), он сначала грузится на Google Drive, и только после успешной
+  // загрузки сам комментарий уходит со ссылкой на файл. Текст и файл можно
+  // отправить и по отдельности (см. postComment — пустой текст с вложением
+  // разрешён).
+  function submitCommentFromForm() {
+    var inp = document.getElementById("commentInput");
+    var text = inp.value;
+    var file = pendingCommentFile;
+    if (!text.trim() && !file) return;
+    ensureSavedAndGetId().then(function (id) {
+      if (!id) return;
+      if (!file) {
+        postComment(id, text);
+        inp.value = "";
+        return;
+      }
+      if (!gdriveReady()) {
+        showToast("Чтобы прикреплять файлы, сначала подключите Google (кнопка в шапке сайта).", true);
+        return;
+      }
+      var btn = document.getElementById("commentAddBtn");
+      if (btn) { btn.disabled = true; btn.textContent = "Загрузка…"; }
+      gdriveUploadFile(file).then(function (att) {
+        postComment(id, text, [att]);
+        inp.value = "";
+        clearPendingCommentFile();
+      }).catch(function (e) {
+        console.error("gdrive attach upload failed", e);
+        showToast("Не удалось загрузить файл на Google Drive. Попробуйте переподключить Google.", true);
+      }).then(function () {
+        if (btn) { btn.disabled = false; btn.textContent = "Отправить"; }
+      });
+    }).catch(function (e) {
+      console.error("autosave before comment failed", e);
+      showToast("Не удалось сохранить задачу. Попробуйте ещё раз.", true);
+    });
+  }
   function resetDeleteBtn() {
     deleteArmed = false;
     clearTimeout(deleteArmTimer);
@@ -7665,7 +7759,7 @@
     if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) return null;
     gcalTokenClient = google.accounts.oauth2.initTokenClient({
       client_id: GCAL_CLIENT_ID,
-      scope: GCAL_SCOPE,
+      scope: GOOGLE_SCOPES,
       callback: function (resp) {
         gcalConnecting = false;
         if (resp && resp.access_token) {
@@ -7674,10 +7768,10 @@
           updateGcalStatusUi();
           if (gcalPendingBackfill) {
             gcalPendingBackfill = false;
-            showToast("Google Calendar подключен — переносим уже существующие задачи и встречи.");
+            showToast("Google подключен — переносим уже существующие задачи и встречи в календарь.");
             gcalBackfillAll();
           } else {
-            showToast("Google Calendar подключен.");
+            showToast("Google подключен.");
           }
         } else {
           updateGcalStatusUi();
@@ -7709,9 +7803,9 @@
     try { client.requestAccessToken({ prompt: "" }); } catch (e) { gcalConnecting = false; updateGcalStatusUi(); }
   }
   function connectGcal() {
-    if (!gcalConfigured()) { showToast("Google Calendar ещё не настроен администратором сайта.", true); return; }
+    if (!gcalConfigured()) { showToast("Google ещё не настроен администратором сайта.", true); return; }
     var client = ensureGcalTokenClient();
-    if (!client) { showToast("Google Calendar сейчас недоступен — не загрузился скрипт Google (нет сети?).", true); return; }
+    if (!client) { showToast("Google сейчас недоступен — не загрузился скрипт Google (нет сети?).", true); return; }
     gcalConnecting = true;
     gcalPendingBackfill = true;
     updateGcalStatusUi();
@@ -7725,20 +7819,20 @@
       try { google.accounts.oauth2.revoke(token, function () {}); } catch (e) {}
     }
     updateGcalStatusUi();
-    showToast("Google Calendar отключен для этого браузера.");
+    showToast("Google отключен для этого браузера.");
   }
   function updateGcalStatusUi() {
     var btn = document.getElementById("gcalConnectBtn");
     var text = document.getElementById("gcalConnectBtnText");
     if (!btn || !text) return;
     if (gcalIsConnected()) {
-      text.textContent = "Google Calendar подключен";
+      text.textContent = "Google подключен";
       btn.classList.add("active");
     } else if (gcalConnecting) {
       text.textContent = "Подключение…";
       btn.classList.remove("active");
     } else {
-      text.textContent = "Подключить Google Calendar";
+      text.textContent = "Подключить Google";
       btn.classList.remove("active");
     }
   }
@@ -7874,6 +7968,84 @@
     meetings.filter(function (m) { return !m.deleted; }).forEach(syncMeetingToGcal);
   }
 
+  // ---------- Google Drive — вложения к комментариям (Часть 25) ----------
+  // Переиспользует то же подключение/токен, что и Google Calendar (Часть 24)
+  // — единственная разница в том, что при запросе токена (см.
+  // ensureGcalTokenClient/GOOGLE_SCOPES) запрашивается ещё и scope
+  // drive.file. Это узкий scope: даёт доступ только к файлам, которые
+  // создало само это приложение, а не ко всему Google Drive человека —
+  // сознательный выбор именно этого scope вместо более широкого "drive".
+  // Кто подключался ДО этой части (только calendar.events) — не сможет
+  // прикреплять файлы, пока не переподключится (см. gdriveUploadFile ниже,
+  // ошибка загрузки трактуется как "нужно переподключить Google").
+  var gdriveFolderIdCache = null;
+  function gdriveReady() { return gcalReady(); }
+  function gdriveRequest(method, path, body) {
+    var token = getGcalToken();
+    if (!token) return Promise.reject(new Error("gdrive-not-connected"));
+    var opts = { method: method, headers: { "Authorization": "Bearer " + token } };
+    if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+    return fetch("https://www.googleapis.com/drive/v3/" + path, opts).then(function (r) {
+      if (r.status === 204) return null;
+      return r.json().catch(function () { return null; }).then(function (data) {
+        if (!r.ok) {
+          var err = new Error((data && data.error && data.error.message) || ("gdrive request failed: " + r.status));
+          err.status = r.status;
+          throw err;
+        }
+        return data;
+      });
+    });
+  }
+  // Все вложения CRM складываются в одну папку на Google Drive того, кто их
+  // грузит — чтобы не засорять корень Диска. Папка создаётся один раз (по
+  // имени, а не по id — так что если её случайно переименовать/перенести на
+  // Диске, при следующей загрузке просто создастся новая), id кэшируется на
+  // время сессии в памяти (не в localStorage — папка своя у каждого Google-
+  // аккаунта, а токен/аккаунт в этом браузере может со временем смениться).
+  function gdriveEnsureFolder() {
+    if (gdriveFolderIdCache) return Promise.resolve(gdriveFolderIdCache);
+    var q = "mimeType='application/vnd.google-apps.folder' and name='CRM — Вложения' and trashed=false";
+    return gdriveRequest("GET", "files?q=" + encodeURIComponent(q) + "&fields=files(id)").then(function (res) {
+      if (res && res.files && res.files.length) { gdriveFolderIdCache = res.files[0].id; return gdriveFolderIdCache; }
+      return gdriveRequest("POST", "files?fields=id", { name: "CRM — Вложения", mimeType: "application/vnd.google-apps.folder" }).then(function (f) {
+        gdriveFolderIdCache = f.id;
+        return gdriveFolderIdCache;
+      });
+    });
+  }
+  // Загрузка файла (multipart: JSON-метаданные + сам файл одним запросом) +
+  // сразу открытие доступа по ссылке "любой, у кого есть ссылка — только
+  // просмотр". Без этого шага ссылку смог бы открыть только владелец файла
+  // (тот, кто его загрузил) — а вложение в комментарии должно быть видно
+  // и партнёру/сотруднику, у которого свой отдельный Google-аккаунт.
+  function gdriveUploadFile(file) {
+    return gdriveEnsureFolder().then(function (folderId) {
+      var metadata = { name: file.name, parents: [folderId] };
+      var boundary = "crmgd" + Date.now() + Math.random().toString(36).slice(2);
+      var head = "--" + boundary + "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" + JSON.stringify(metadata) +
+        "\r\n--" + boundary + "\r\nContent-Type: " + (file.type || "application/octet-stream") + "\r\n\r\n";
+      var tail = "\r\n--" + boundary + "--";
+      var bodyBlob = new Blob([head, file, tail]);
+      var token = getGcalToken();
+      if (!token) return Promise.reject(new Error("gdrive-not-connected"));
+      return fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "multipart/related; boundary=" + boundary },
+        body: bodyBlob
+      }).then(function (r) {
+        if (!r.ok) return r.text().then(function (t) { var e = new Error("Drive upload " + r.status + ": " + t); e.status = r.status; throw e; });
+        return r.json();
+      });
+    }).then(function (created) {
+      return gdriveRequest("POST", "files/" + created.id + "/permissions", { role: "reader", type: "anyone" }).catch(function (e) {
+        console.error("gdrive permission set failed", e);
+      }).then(function () {
+        return { id: created.id, name: created.name, url: created.webViewLink || ("https://drive.google.com/file/d/" + created.id + "/view") };
+      });
+    });
+  }
+
   // ---------- Wire up ----------
   function wire() {
     updateBrandDate();
@@ -7919,33 +8091,30 @@
     // же, не дожидаясь основного "Сохранить" формы — как обычный чат под
     // задачей. Для ещё не сохранённой новой задачи ensureSavedAndGetId()
     // сначала тихо сохраняет её той же нумерацией/валидацией, что и обычное
-    // "Сохранить", и только потом отправляет комментарий.
-    document.getElementById("commentAddBtn").addEventListener("click", function () {
-      var inp = document.getElementById("commentInput");
-      if (!inp.value.trim()) return;
-      ensureSavedAndGetId().then(function (id) {
-        if (!id) return;
-        postComment(id, inp.value);
-        inp.value = "";
-      }).catch(function (e) {
-        console.error("autosave before comment failed", e);
-        showToast("Не удалось сохранить задачу. Попробуйте ещё раз.", true);
-      });
-    });
+    // "Сохранить", и только потом отправляет комментарий. Часть 25: сама
+    // отправка (включая необязательный файл-вложение) — в
+    // submitCommentFromForm().
+    document.getElementById("commentAddBtn").addEventListener("click", submitCommentFromForm);
     document.getElementById("commentInput").addEventListener("keydown", function (e) {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        if (!e.target.value.trim()) return;
-        ensureSavedAndGetId().then(function (id) {
-          if (!id) return;
-          postComment(id, e.target.value);
-          e.target.value = "";
-        }).catch(function (err) {
-          console.error("autosave before comment failed", err);
-          showToast("Не удалось сохранить задачу. Попробуйте ещё раз.", true);
-        });
+        submitCommentFromForm();
       }
     });
+    // Часть 25: 📎 открывает системный выбор файла; после выбора файл не
+    // грузится сразу — просто показывается превью с именем и кнопкой "✕"
+    // убрать, сама загрузка на Google Drive — по факту отправки комментария.
+    document.getElementById("commentAttachBtn").addEventListener("click", function () {
+      document.getElementById("commentFileInput").click();
+    });
+    document.getElementById("commentFileInput").addEventListener("change", function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      pendingCommentFile = file;
+      document.getElementById("commentAttachName").textContent = "📎 " + file.name;
+      document.getElementById("commentAttachPreview").classList.remove("hidden");
+    });
+    document.getElementById("commentAttachRemove").addEventListener("click", clearPendingCommentFile);
     // Часть 5, п.4 (повторная правка 15 сент.): "Задача завершена" — кнопка
     // внизу формы, видна только для уже существующей задачи (см.
     // updateModalDoneBtn), поэтому автосохранение здесь больше не нужно —
