@@ -4787,7 +4787,14 @@
   //    видят одно и то же). Пока не заменено — id "primary" значит "личный
   //    календарь того, кто сейчас подключён" (у каждого будет СВОЙ набор
   //    событий, не общий).
-  var GCAL_CLIENT_ID = "487269026021-f2sg44o8844mk0j973b0ois84vkpl056.apps.googleusercontent.com";
+  // Этап A, шаг 2: тот же OAuth-клиент, что использует вход Firebase через
+  // Google (созданный Firebase «Web client»), — одно окно Google даёт и вход в
+  // CRM, и доступ к Календарю/Диску. Старый клиент «CRM EN» (…f2sg…) больше
+  // не используется.
+  var GCAL_CLIENT_ID = "487269026021-jtan929nml6pig23t8o73fmg1dusjiro.apps.googleusercontent.com";
+  // Серверная функция: хранит refresh-токен зашифрованным и выдаёт свежий
+  // доступ к Календарю/Диску тому, кто вошёл (см. functions/lib/googleAuth.js).
+  var GOOGLE_AUTH_FN = "https://europe-west1-crm-en-56646.cloudfunctions.net/googleAuth";
   var GCAL_CALENDAR_ID = "primary";
   var GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events";
   // Часть 25: та же кнопка/то же подключение теперь запрашивает ещё и
@@ -4832,9 +4839,23 @@
       other.classList.toggle("hidden", !offerOther);
     }
     btn.addEventListener("click", function () {
+      btn.disabled = true;
+      // Этап A, шаг 2: одно окно Google — вход + Календарь + Диск. Если скрипт
+      // Google (GIS) не загрузился, входим по-старому, только ради личности.
+      if (googleCodeClientAvailable()) {
+        googleSignInWithCode().catch(function (e) {
+          btn.disabled = false;
+          if (e && e.noAccess) {
+            show("У аккаунта " + e.email + " нет доступа к CRM. Попросите администратора добавить эту почту во вкладке «Сотрудники».", true, true);
+            return;
+          }
+          if (e && (e.message === "popup_closed" || e.message === "access_denied")) return;
+          show("Не удалось войти: " + ((e && e.message) || "ошибка"), true, false);
+        });
+        return;
+      }
       var provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
-      btn.disabled = true;
       auth.signInWithPopup(provider).catch(function (e) {
         btn.disabled = false;
         var code = e && e.code;
@@ -4903,7 +4924,7 @@
           ' <button type="button" class="who-logout" id="logoutBtn">Выйти</button>';
         label.classList.remove("hidden");
         var lb = document.getElementById("logoutBtn");
-        if (lb) lb.addEventListener("click", function () { firebase.auth().signOut(); });
+        if (lb) lb.addEventListener("click", function () { clearGcalToken(); firebase.auth().signOut(); });
       } else {
         label.classList.add("hidden");
       }
@@ -9002,86 +9023,152 @@
   function setGcalWantConnected(v) {
     try { if (v) localStorage.setItem(GCAL_WANT_KEY, "1"); else localStorage.removeItem(GCAL_WANT_KEY); } catch (e) {}
   }
-  function gcalIsConnected() { return !!getGcalToken(); }
-  function gcalReady() { return gcalConfigured() && gcalIsConnected(); }
-
-  var gcalTokenClient = null;
+  // Этап A, шаг 2: подключение Google живёт на сервере. gcalServerConnected —
+  // сервер подтвердил, что у этого человека сохранён доступ; gcalNeedConsent —
+  // доступа нет (не давал или отозвал), нужна кнопка «Подключить Google».
+  var gcalServerConnected = false;
+  var gcalNeedConsent = false;
   var gcalConnecting = false;
   var gcalPendingBackfill = false;
-  function ensureGcalTokenClient() {
-    if (gcalTokenClient) return gcalTokenClient;
-    // typeof google, а не просто "google" — скрипт accounts.google.com/gsi/
-    // client грузится async и может быть заблокирован сетью/блокировщиком;
-    // без него подключение просто недоступно, остальной сайт не страдает.
-    if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) return null;
-    gcalTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: GCAL_CLIENT_ID,
-      scope: GOOGLE_SCOPES,
-      callback: function (resp) {
-        gcalConnecting = false;
-        if (resp && resp.access_token) {
-          setGcalToken(resp.access_token, resp.expires_in);
-          setGcalWantConnected(true);
-          updateGcalStatusUi();
-          // Часть 25 (доп.): раз только что подключились/тихо переподключились —
-          // самое время проверить, не пора ли обновить дайджест (если данные уже
-          // готовы и прошло достаточно времени с прошлого экспорта).
-          maybeAutoExportDigest();
-          if (gcalPendingBackfill) {
-            gcalPendingBackfill = false;
-            showToast("Google подключен — переносим уже существующие задачи и встречи в календарь.");
-            gcalBackfillAll();
-          } else {
-            showToast("Google подключен.");
-          }
-        } else {
-          updateGcalStatusUi();
-          if (resp && resp.error && resp.error !== "immediate_failed" && resp.error !== "user_logged_out") {
-            showToast("Не удалось подключить Google Calendar.", true);
-          }
-        }
-      },
-      error_callback: function () {
-        gcalConnecting = false;
-        gcalPendingBackfill = false;
-        updateGcalStatusUi();
-      }
+  var gTokenInflight = null;
+  var gTokenRefreshTimer = null;
+  function gcalIsConnected() { return !!getGcalToken() || gcalServerConnected; }
+  function gcalReady() { return gcalConfigured() && gcalIsConnected(); }
+  function googleCodeClientAvailable() {
+    return typeof google !== "undefined" && google.accounts && google.accounts.oauth2 && !!google.accounts.oauth2.initCodeClient;
+  }
+  // Окно Google (ux_mode popup) → одноразовый код. Должно вызываться прямо из
+  // клика пользователя, иначе браузер заблокирует всплывающее окно.
+  function googleRequestCode() {
+    return new Promise(function (resolve, reject) {
+      var client = google.accounts.oauth2.initCodeClient({
+        client_id: GCAL_CLIENT_ID,
+        scope: "openid email profile " + GOOGLE_SCOPES,
+        ux_mode: "popup",
+        select_account: true,
+        callback: function (r) {
+          if (r && r.code) resolve(r.code);
+          else reject(new Error((r && r.error) || "no_code"));
+        },
+        error_callback: function (e) { reject(new Error(e && e.type === "popup_closed" ? "popup_closed" : ((e && e.type) || "popup_failed"))); }
+      });
+      client.requestCode();
     });
-    return gcalTokenClient;
   }
-  // Тихая попытка восстановить токен без всплывающего окна — один раз при
-  // загрузке страницы, только если человек уже подключался раньше в этом же
-  // браузере (см. GCAL_WANT_KEY). Может не сработать без предупреждения
-  // (например, браузер блокирует сторонние куки/хранилище) — тогда просто
-  // остаётся кнопка "Подключить" как обычно, без всплывающей ошибки.
-  function gcalTrySilentReconnect() {
-    if (!gcalConfigured() || !gcalWantConnected() || gcalIsConnected()) { updateGcalStatusUi(); return; }
-    var client = ensureGcalTokenClient();
-    if (!client) { updateGcalStatusUi(); return; }
-    gcalConnecting = true;
-    gcalPendingBackfill = false;
+  function googleSendCode(code) {
+    return fetch(GOOGLE_AUTH_FN + "/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code })
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (r.status === 403 && d.error === "no_access") {
+          var err = new Error("no_access"); err.noAccess = true; err.email = d.email; throw err;
+        }
+        if (!r.ok) throw new Error(d.error || ("signin " + r.status));
+        return d;
+      });
+    });
+  }
+  function applyServerGoogleResult(d) {
+    if (d.access_token) setGcalToken(d.access_token, d.expires_in);
+    gcalServerConnected = !!d.googleConnected;
+    gcalNeedConsent = !d.googleConnected;
+    if (d.access_token && d.expires_in) scheduleGoogleTokenRefresh(d.expires_in);
     updateGcalStatusUi();
-    try { client.requestAccessToken({ prompt: "" }); } catch (e) { gcalConnecting = false; updateGcalStatusUi(); }
   }
+  // Кнопка «Войти через Google» на экране входа.
+  function googleSignInWithCode() {
+    return googleRequestCode().then(googleSendCode).then(function (d) {
+      applyServerGoogleResult(d);
+      if (!d.googleConnected && d.access_token === null && d.missingScopes && d.missingScopes.length) {
+        showToast("Вход выполнен, но Google не дал доступ к Календарю/Диску — их можно подключить позже кнопкой «Подключить Google».", true);
+      }
+      return firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(d.id_token));
+    });
+  }
+  // Свежий доступ к Календарю/Диску с сервера (по Firebase-входу).
+  function fetchServerGoogleToken() {
+    var user = firebase.auth().currentUser;
+    if (!user) return Promise.reject(new Error("not-signed-in"));
+    return user.getIdToken().then(function (idt) {
+      return fetch(GOOGLE_AUTH_FN + "/token", { method: "POST", headers: { "Authorization": "Bearer " + idt } });
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (r.status === 409) {
+          gcalServerConnected = false; gcalNeedConsent = true; clearGcalToken(); updateGcalStatusUi();
+          throw new Error("gcal-need-consent");
+        }
+        if (!r.ok) throw new Error(d.error || ("token " + r.status));
+        gcalServerConnected = true; gcalNeedConsent = false;
+        setGcalToken(d.access_token, d.expires_in);
+        scheduleGoogleTokenRefresh(d.expires_in);
+        updateGcalStatusUi();
+        return d.access_token;
+      });
+    });
+  }
+  // Обновляем токен заранее, за 5 минут до конца его часа, — чтобы запросы к
+  // Календарю/Диску не упирались в истёкший токен.
+  function scheduleGoogleTokenRefresh(expiresInSec) {
+    clearTimeout(gTokenRefreshTimer);
+    var ms = Math.max(60, (Number(expiresInSec) || 3600) - 300) * 1000;
+    gTokenRefreshTimer = setTimeout(function () { fetchServerGoogleToken().catch(function () {}); }, ms);
+  }
+  function ensureGoogleToken() {
+    var t = getGcalToken();
+    if (t) return Promise.resolve(t);
+    if (!gTokenInflight) {
+      gTokenInflight = fetchServerGoogleToken();
+      gTokenInflight.then(function () { gTokenInflight = null; }, function () { gTokenInflight = null; });
+    }
+    return gTokenInflight;
+  }
+  // Кнопка «Подключить Google» — только если сервер сказал, что доступа нет.
   function connectGcal() {
-    if (!gcalConfigured()) { showToast("Google ещё не настроен администратором сайта.", true); return; }
-    var client = ensureGcalTokenClient();
-    if (!client) { showToast("Google сейчас недоступен — не загрузился скрипт Google (нет сети?).", true); return; }
+    if (!googleCodeClientAvailable()) { showToast("Google сейчас недоступен — не загрузился скрипт Google (нет сети?).", true); return; }
     gcalConnecting = true;
-    gcalPendingBackfill = true;
     updateGcalStatusUi();
-    client.requestAccessToken({ prompt: "consent" });
+    googleRequestCode().then(googleSendCode).then(function (d) {
+      gcalConnecting = false;
+      var me = currentStaff && currentStaff.email;
+      applyServerGoogleResult(d);
+      if (d.googleConnected) {
+        showToast("Google подключен — переносим задачи и встречи в календарь.");
+        gcalBackfillAll();
+        maybeAutoExportDigest();
+      } else if (d.missingScopes && d.missingScopes.length) {
+        showToast("Нужно отметить галочки «Календарь» и «Диск» в окне Google — попробуйте ещё раз.", true);
+      } else {
+        // Google не выдал refresh-токен (такое бывает, если доступ уже был
+        // выдан раньше): отзываем старое разрешение — следующее подключение
+        // будет «первым» и токен придёт.
+        if (d.access_token) { try { google.accounts.oauth2.revoke(d.access_token, function () {}); } catch (e) {} }
+        clearGcalToken();
+        showToast("Google попросил подтвердить заново — нажмите «Подключить Google» ещё раз.", true);
+      }
+      void me;
+    }).catch(function (e) {
+      gcalConnecting = false;
+      updateGcalStatusUi();
+      if (e && (e.message === "popup_closed" || e.message === "access_denied")) return;
+      showToast("Не удалось подключить Google.", true);
+    });
   }
   function disconnectGcal() {
-    var token = getGcalToken();
+    var user = firebase.auth().currentUser;
     clearGcalToken();
-    setGcalWantConnected(false);
-    if (token && typeof google !== "undefined" && google.accounts && google.accounts.oauth2) {
-      try { google.accounts.oauth2.revoke(token, function () {}); } catch (e) {}
-    }
+    gcalServerConnected = false;
+    gcalNeedConsent = true;
     updateGcalStatusUi();
-    showToast("Google отключен для этого браузера.");
+    if (!user) return;
+    user.getIdToken().then(function (idt) {
+      return fetch(GOOGLE_AUTH_FN + "/disconnect", { method: "POST", headers: { "Authorization": "Bearer " + idt } });
+    }).then(function () { showToast("Google отключен."); }).catch(function () {});
   }
+  // Раньше при загрузке пробовали тихо переподключиться в браузере; теперь
+  // токен берётся с сервера сразу после входа (см. boot → onReady).
+  function gcalTrySilentReconnect() { updateGcalStatusUi(); }
   function updateGcalStatusUi() {
     // Часть 31: кнопка выбора папки на Диске видна/скрыта в такт с тем же
     // статусом подключения Google, что и сама кнопка "Подключить Google".
@@ -9089,10 +9176,10 @@
     var btn = document.getElementById("gcalConnectBtn");
     var text = document.getElementById("gcalConnectBtnText");
     if (!btn || !text) return;
-    if (gcalIsConnected()) {
-      text.textContent = "Google подключен";
-      btn.classList.add("active");
-    } else if (gcalConnecting) {
+    // Этап A, шаг 2: когда Google подключён через сервер, кнопка не нужна —
+    // прячем её совсем; показываем, только если нужно (пере)подключить.
+    btn.classList.toggle("hidden", gcalIsConnected() && !gcalNeedConsent);
+    if (gcalConnecting) {
       text.textContent = "Подключение…";
       btn.classList.remove("active");
     } else {
@@ -9101,8 +9188,7 @@
     }
   }
   function gcalRequest(method, path, body) {
-    var token = getGcalToken();
-    if (!token) return Promise.reject(new Error("gcal-not-connected"));
+    return ensureGoogleToken().then(function (token) {
     var opts = { method: method, headers: { "Authorization": "Bearer " + token } };
     if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
     return fetch("https://www.googleapis.com/calendar/v3/" + path, opts).then(function (r) {
@@ -9111,10 +9197,12 @@
         if (!r.ok) {
           var err = new Error((data && data.error && data.error.message) || ("gcal request failed: " + r.status));
           err.status = r.status;
+          if (r.status === 401) clearGcalToken();
           throw err;
         }
         return data;
       });
+    });
     });
   }
   // Событие на весь день — end.date у Google Calendar НЕ включает последний
@@ -9245,8 +9333,7 @@
   var gdriveFolderIdCache = null;
   function gdriveReady() { return gcalReady(); }
   function gdriveRequest(method, path, body) {
-    var token = getGcalToken();
-    if (!token) return Promise.reject(new Error("gdrive-not-connected"));
+    return ensureGoogleToken().then(function (token) {
     var opts = { method: method, headers: { "Authorization": "Bearer " + token } };
     if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
     return fetch("https://www.googleapis.com/drive/v3/" + path, opts).then(function (r) {
@@ -9255,10 +9342,12 @@
         if (!r.ok) {
           var err = new Error((data && data.error && data.error.message) || ("gdrive request failed: " + r.status));
           err.status = r.status;
+          if (r.status === 401) clearGcalToken();
           throw err;
         }
         return data;
       });
+    });
     });
   }
   // Все вложения CRM складываются в одну папку на Google Drive того, кто их
@@ -9771,9 +9860,7 @@
     // Часть 24: подключение Google Calendar — клик по уже подключённому
     // статусу отключает (проще, чем отдельная кнопка "Отключить").
     updateGcalStatusUi();
-    document.getElementById("gcalConnectBtn").addEventListener("click", function () {
-      if (gcalIsConnected()) disconnectGcal(); else connectGcal();
-    });
+    document.getElementById("gcalConnectBtn").addEventListener("click", function () { connectGcal(); });
     document.getElementById("gdrivePickFolderBtn").addEventListener("click", openGdriveFolderPicker);
     gcalTrySilentReconnect();
 
@@ -10219,6 +10306,7 @@
       initAuthGate(function () {
       renderWhoAmI();
       subscribeStaff();
+      fetchServerGoogleToken().catch(function () {});
       Promise.resolve().then(function () {
       return ensureSeeded(); }).then(function () {
       return runOneTimeMigrations(); }).then(function () {
