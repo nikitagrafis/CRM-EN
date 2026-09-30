@@ -633,6 +633,13 @@
   .sample-card-stock.negative { color: var(--danger); }
   .sample-card-cost { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); }
   .sample-card-restore { font-size: 11.5px; }
+
+  /* Часть 29: стоимость остатка, последнее движение и пометка "давно без
+     движений" — по просьбе Никиты и Жени, чтобы было видно, не заморожены
+     ли деньги в образце, который никто не трогает. */
+  .sample-card-value { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .sample-card-move { font-size: 11px; color: var(--ink-soft); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .sample-card-stale { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 5px; background: var(--u-month-soft); color: var(--u-month); margin-top: 8px; }
   .sample-stock-readout { font-family: var(--font-mono); font-weight: 700; font-size: 22px; }
   .sample-stock-readout.zero { color: var(--ink-faint); }
   .sample-stock-readout.negative { color: var(--danger); }
@@ -672,6 +679,16 @@
   .meeting-card-notes { font-size: 12.5px; color: var(--ink); white-space: pre-wrap; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .meeting-card-meta { font-size: 10.5px; color: var(--ink-faint); margin-top: 2px; }
   .meeting-card-restore { font-size: 11.5px; align-self: flex-start; }
+
+  /* Часть 30: тип протокола, "Следующий шаг" отдельно от общих
+     договорённостей и кнопка превращения его в задачу — по просьбе Никиты и
+     Жени, чтобы главное (что делать дальше) не тонуло в тексте заметок. */
+  .meeting-card-type { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: var(--surface-2); color: var(--ink-soft); flex: none; }
+  .meeting-card-next { margin-top: 4px; padding: 8px 11px; background: var(--accent-soft); border-radius: var(--radius-s); font-size: 12px; color: var(--ink); }
+  .meeting-card-next b { color: var(--accent); }
+  .meeting-card-mktask { font-size: 11px; font-weight: 700; color: var(--accent); background: none; border: none; padding: 0; margin-top: 2px; cursor: pointer; text-align: left; align-self: flex-start; }
+  .meeting-card-mktask:hover { text-decoration: underline; }
+  .meeting-card-next-done { font-size: 11px; font-weight: 600; color: var(--s-done); margin-top: 2px; }
   .meeting-participants-row { display: flex; gap: 6px; flex-wrap: wrap; }
 
   /* ---------- Сотрудники / доступ (Часть 22) — админ-панель, видна только
@@ -719,6 +736,25 @@
   .order-card-meta { font-size: 10.5px; color: var(--ink-faint); margin-top: 2px; }
   .order-card-restore { font-size: 11.5px; align-self: flex-start; }
 
+  /* Часть 28: статус сделки и блок "купить/продать" с авторасчётом маржи —
+     по просьбе Никиты и Жени, самое важное в заказе (перекупе) — заработали
+     ли на нём и сколько, а не только не забыть про срок. */
+  .order-card-status { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 5px; flex: none; }
+  .order-card-status.wait { background: var(--u-month-soft); color: var(--u-month); }
+  .order-card-status.bought { background: var(--accent-soft); color: var(--accent); }
+  .order-card-status.sold { background: var(--s-done-soft); color: var(--s-done); }
+  .order-card-status.paid { background: var(--s-done); color: #fff; }
+  .order-card-deal { display: flex; gap: 14px; padding: 9px 11px; background: var(--surface-2); border-radius: var(--radius-s); font-size: 12px; }
+  .order-card-deal-side { flex: 1; min-width: 0; }
+  .order-card-deal-label { color: var(--ink-faint); font-size: 10px; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .order-card-deal-val { font-family: var(--font-mono); font-weight: 700; font-size: 13px; }
+  .order-card-deal-arrow { color: var(--ink-faint); align-self: center; font-size: 15px; flex: none; }
+  .order-card-margin { font-family: var(--font-mono); font-weight: 700; font-size: 12px; }
+  .order-card-margin.pos { color: var(--s-done); }
+  .order-card-margin.neg { color: var(--danger); }
+  /* Часть 31: папка на Диске по направлению/клиенту/заказу. */
+  .order-card-drive { font-size: 11.5px; align-self: flex-start; }
+
   /* ---------- Analytics ---------- */
   .analytics { flex: 1; padding: 16px 20px 40px; max-width: 900px; width: 100%; margin: 0 auto; }
   .an-summary {
@@ -755,6 +791,10 @@
   .an-stackbar-seg { height: 100%; }
   .an-stackbar-seg.good { background: var(--s-done); }
   .an-stackbar-seg.bad { background: var(--danger); }
+  /* Доп. к дашборду (см. ниже): "переносилось" — тот же янтарный, что уже
+     используется для срочности "в этом месяце" (--u-month), чтобы не
+     заводить отдельный цвет ради одного нового сегмента. */
+  .an-stackbar-seg.warn { background: var(--u-month); }
   .an-stackbar-seg.rest { background: var(--ink-faint); opacity: .35; }
   .an-stackbar-val { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); width: 64px; text-align: right; flex: none; }
   .an-empty { font-size: 12.5px; color: var(--ink-faint); }
@@ -769,7 +809,58 @@
   .an-person-stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; font-weight: 600; }
   .an-person-stat.good { color: var(--s-done); }
   .an-person-stat.bad { color: var(--danger); }
-  .an-person-stat.warn { color: var(--accent); }
+  .an-person-stat.warn { color: var(--u-month); }
+  .an-person-stat.neutral { color: var(--ink-faint); }
+  .an-person-caption { font-size: 11.5px; font-weight: 600; display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  /* Часть 25 (доп.): ссылка на автоматически обновляемый дайджест в Google
+     Sheets — появляется, как только таблица создана хоть раз (см.
+     renderDigestLink/gsheetSpreadsheetId), даже если сейчас Google не
+     подключен в этом браузере — ссылка "любой, у кого есть ссылка" всё
+     равно открывается. */
+  .an-digest-row { margin-bottom: 20px; font-size: 12.5px; }
+  .an-digest-row:empty { display: none; }
+  .an-digest-link { font-weight: 600; }
+  .an-digest-when { color: var(--ink-faint); margin-left: 4px; }
+
+  /* Часть 26: "дашборд"-вид Аналитики (по просьбе Никиты) — плитки KPI,
+     график нагрузки по неделям, "Между вами" в виде полосок вместо чисел,
+     "Проблемные зоны". Существующие разделы ниже (донат, разбивки по
+     проектам/юрлицам/типу/ответственному) не тронуты — просто теперь идут
+     после нового блока. */
+  /* Часть 28: auto-fit вместо фиксированных 4 колонок — добавили 5-ю плитку
+     "Маржа по заказам", и так и раньше, и дальше плитки не завязаны на
+     конкретное число. */
+  .an-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .an-kpi-tile { background: var(--surface); border-radius: var(--radius-m); padding: 14px 16px; box-shadow: var(--shadow-1); }
+  .an-kpi-label { font-size: 11px; font-weight: 600; color: var(--ink-faint); margin-bottom: 7px; }
+  .an-kpi-value { font-family: var(--font-display); font-size: 22px; font-weight: 600; line-height: 1; }
+  .an-kpi-value.bad { color: var(--danger); }
+  .an-kpi-value.good { color: var(--s-done); }
+  .an-kpi-sub { font-size: 11px; font-weight: 600; margin-top: 5px; }
+  .an-kpi-sub.bad { color: var(--danger); }
+
+  .an-dashrow { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-bottom: 14px; align-items: start; }
+  .an-card { background: var(--surface); border-radius: var(--radius-m); padding: 16px 18px; box-shadow: var(--shadow-1); }
+  .an-card h3 { font-family: var(--font-display); font-weight: 600; font-size: 13px; margin: 0 0 3px; }
+  .an-card .an-card-hint { font-size: 11px; color: var(--ink-faint); margin: 0 0 12px; }
+
+  .an-trend-legend { display: flex; gap: 14px; font-size: 11px; font-weight: 600; flex-wrap: wrap; margin-bottom: 8px; }
+  .an-trend-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .an-trend-legend .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
+
+  .an-zone-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .an-zone-row:last-child { border-bottom: none; }
+  .an-zone-rank {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--danger-soft); color: var(--danger);
+    font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .an-zone-name { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .an-zone-meta { color: var(--ink-faint); font-size: 11px; flex: none; }
+
+  @media (max-width: 980px) {
+    .an-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .an-dashrow { grid-template-columns: 1fr; }
+  }
 
   /* ---------- Modal ---------- */
   .modal-backdrop {
@@ -1054,6 +1145,14 @@
     .an-summary { flex-direction: column; align-items: flex-start; }
     .an-person-name { font-size: 17px; }
     .an-person-stats { font-size: 16px; gap: 10px; }
+    .an-person-caption { font-size: 14px; }
+    .an-digest-row { font-size: 15px; }
+    .an-kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .an-kpi-tile { padding: 11px 12px; }
+    .an-kpi-value { font-size: 19px; }
+    .an-dashrow { grid-template-columns: 1fr; gap: 8px; }
+    .an-card { padding: 13px 14px; }
+    .an-zone-row { font-size: 15px; }
     /* Nothing on the page should be allowed to force it wider than the
        screen — any element that would (a long select, a wide date input)
        shrinks to fit instead of pushing the page sideways. */
@@ -3152,6 +3251,13 @@
          disconnectGcal(). Кнопка одна на все состояния (текст/цвет меняет
          updateGcalStatusUi), клик по уже подключённому статусу отключает. -->
     <div class="topbar-right">
+      <!-- Часть 31: выбор папки на Диске для авто-создаваемых папок
+           клиентов/заказов — см. openGdriveFolderPicker()/updateGdrivePickBtnUi().
+           Видна только когда Google уже подключен (иначе нет токена для Picker). -->
+      <button type="button" class="chip-toggle hidden" id="gdrivePickFolderBtn" title="Выбрать папку на Диске для заказов/клиентов">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4.5a1 1 0 0 1 1-1h3l1.2 1.6H13a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4.5Z"/></svg>
+        <span id="gdrivePickFolderBtnText">Папка на Диске</span>
+      </button>
       <button type="button" class="chip-toggle" id="gcalConnectBtn" title="Задачи и встречи (кроме «Личное») — в вашем Google Calendar; вложения к комментариям грузятся в ваш Google Drive">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5 2v2.4M11 2v2.4"/></svg>
         <span id="gcalConnectBtnText">Подключить Google</span>
@@ -3166,6 +3272,12 @@
     <button type="button" class="chip-toggle" id="filtersToggle" aria-expanded="false">Фильтры<span class="filters-count hidden" id="filtersCount">0</span></button>
     <div class="filters-spacer"></div>
     <span id="taskCount"></span>
+    <!-- По просьбе Никиты (29 сент.): опциональный альтернативный вид доски —
+         вместо пяти цветных колонок по срочности (Просрочено/Сегодня/...) все
+         открытые задачи одним списком, новые сверху. Выбор запоминается в
+         localStorage браузера (см. loadBoardLayout/saveBoardLayout) и виден
+         только на самой доске — на Календаре кнопка прячется (см. setView). -->
+    <button type="button" class="chip-toggle" id="boardLayoutToggle">☰ Списком</button>
   </div>
   <!-- Everything here still works exactly like the row above — it's just
        tucked behind "Фильтры" on a phone screen so the bar above doesn't
@@ -3245,28 +3357,60 @@
   </main>
 
   <main class="analytics hidden" id="analyticsView">
-    <div class="an-summary">
-      <div class="an-donut-wrap">
-        <svg id="anDonut" class="an-donut" viewBox="0 0 120 120" role="img" aria-label="Задачи по статусам"></svg>
-        <div class="an-donut-center">
-          <div class="an-donut-total" id="anTotal">0</div>
-          <div class="an-donut-total-label">задач</div>
+    <div class="an-digest-row" id="anDigestRow"></div>
+
+    <!-- Часть 26: дашборд-сетка — по просьбе Никиты и Жени, "больше данных и
+         графиков, полезных для работы" наверху, одним взглядом без
+         скроллинга. Ниже, ПОСЛЕ этого блока — прежние разделы без изменений
+         (донат, "Между вами", разбивки по проектам/юрлицам/типу/
+         ответственному). -->
+    <div class="an-kpi-grid" id="anKpiGrid"></div>
+
+    <div class="an-dashrow">
+      <div class="an-card">
+        <h3>Нагрузка по неделям</h3>
+        <p class="an-card-hint">Создано vs выполнено задач — видно, копится долг или успеваете разгребать</p>
+        <div class="an-trend-legend">
+          <span><i class="dot" style="background:var(--accent)"></i>Создано</span>
+          <span><i class="dot" style="background:var(--s-done)"></i>Выполнено</span>
+          <span><i class="dot" style="background:var(--danger)"></i>Просрочено на конец недели</span>
+        </div>
+        <div id="anTrendChart"></div>
+      </div>
+      <div class="an-card">
+        <div class="an-person-header" style="margin-bottom:12px">
+          <h3 style="margin:0">Между вами</h3>
+          <div class="an-period-toggle" id="anPersonPeriodToggle">
+            <button type="button" class="chip-toggle" data-period="week">Неделя</button>
+            <button type="button" class="chip-toggle" data-period="month">Месяц</button>
+            <button type="button" class="chip-toggle" data-period="all">Всё время</button>
+          </div>
+        </div>
+        <div class="an-person-rows" id="anByPerson"></div>
+      </div>
+    </div>
+
+    <div class="an-dashrow">
+      <div class="an-card">
+        <div class="an-summary" style="margin:0">
+          <div class="an-donut-wrap">
+            <svg id="anDonut" class="an-donut" viewBox="0 0 120 120" role="img" aria-label="Задачи по статусам"></svg>
+            <div class="an-donut-center">
+              <div class="an-donut-total" id="anTotal">0</div>
+              <div class="an-donut-total-label">задач</div>
+            </div>
+          </div>
+          <div class="an-legend" id="anLegend"></div>
         </div>
       </div>
-      <div class="an-legend" id="anLegend"></div>
+      <div class="an-card">
+        <h3>Проблемные зоны</h3>
+        <p class="an-card-hint">На что стоит посмотреть в первую очередь</p>
+        <div id="anProblemZones"></div>
+      </div>
     </div>
+
     <div class="an-breakdown-caption">Полоски ниже: <span style="color:var(--s-done); font-weight:600">зелёным</span> — доля выполненных, <span style="color:var(--danger); font-weight:600">красным</span> — доля просроченных.</div>
-    <div class="an-section">
-      <div class="an-person-header">
-        <h3>Между вами: вовремя / просрочено / перенесено</h3>
-        <div class="an-period-toggle" id="anPersonPeriodToggle">
-          <button type="button" class="chip-toggle" data-period="week">Неделя</button>
-          <button type="button" class="chip-toggle" data-period="month">Месяц</button>
-          <button type="button" class="chip-toggle" data-period="all">Всё время</button>
-        </div>
-      </div>
-      <div class="an-person-rows" id="anByPerson"></div>
-    </div>
     <div class="an-section">
       <h3>По проектам</h3>
       <div class="an-rows" id="anByDirection"></div>
@@ -3396,6 +3540,10 @@
     <div class="field">
       <span class="field-label">Ответственный</span>
       <div class="pill-row" id="respRow"></div>
+      <!-- Часть 27: "подсказка ответственного" — только для новой задачи,
+           см. applyResponsibleSuggestion(). Пусто, если истории по проекту
+           ещё нет или между Никитой/Евгением ничья. -->
+      <p class="field-hint" id="respSuggestHint"></p>
     </div>
 
     <div class="field">
@@ -3605,6 +3753,13 @@
       <button type="button" class="btn-ghost" id="closeMeetingModal" aria-label="Закрыть">✕</button>
     </div>
 
+    <!-- Часть 30: тип протокола — по просьбе Никиты и Жени, видно на
+         карточке, звонок это был или личная встреча. -->
+    <div class="field">
+      <span class="field-label">Тип</span>
+      <div class="pill-row" id="mTypeRow"></div>
+    </div>
+
     <div class="grid-2">
       <div class="field">
         <label class="field-label" for="mDate">Дата</label>
@@ -3636,6 +3791,15 @@
     <div class="field">
       <label class="field-label" for="mNotes">Договорённости</label>
       <textarea id="mNotes" rows="5" placeholder="О чём договорились — можно списком, каждый пункт с новой строки"></textarea>
+    </div>
+
+    <!-- Часть 30: следующий шаг — отдельно от общих договорённостей, чтобы
+         сразу быть видным на карточке, не читая весь протокол; кнопка
+         "Создать задачу" на карточке (не здесь) превращает его в задачу. -->
+    <div class="field">
+      <label class="field-label" for="mNextStep">Следующий шаг (необязательно)</label>
+      <input type="text" id="mNextStep" placeholder="Например: согласовать договор до 4 окт.">
+      <p class="field-hint">Если указать — на карточке протокола появится кнопка «Создать задачу из этого шага».</p>
     </div>
 
     <div class="field hidden" id="meetingMetaField">
@@ -3759,9 +3923,21 @@
         <input type="text" id="orBuyer">
       </div>
       <div class="field">
-        <label class="field-label" for="orContact">Контактное лицо</label>
-        <input type="text" id="orContact">
+        <label class="field-label" for="orSalePrice">Цена продажи, ₽</label>
+        <input type="number" id="orSalePrice" inputmode="decimal" min="0" step="0.01" placeholder="0">
       </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="orContact">Контактное лицо</label>
+      <input type="text" id="orContact">
+    </div>
+
+    <!-- Часть 28: статус сделки — по просьбе Никиты и Жени, видно на какой
+         стадии перекуп (Ожидание/Куплено/Продано/Оплачено), не только срок. -->
+    <div class="field">
+      <span class="field-label">Статус сделки</span>
+      <div class="pill-row" id="orStatusRow"></div>
     </div>
 
     <div class="field">
@@ -3853,6 +4029,22 @@
   var MOVEMENT_TYPES = [
     { id: "issue",  label: "Выдача" },
     { id: "return", label: "Возврат" }
+  ];
+  // Часть 28: статус сделки заказа — по просьбе Никиты и Жени, чтобы на
+  // карточке было видно не только срок, но и на каком этапе перекупа
+  // находится сделка. "Ожидание" — дефолт для нового заказа.
+  var DEAL_STATUSES = [
+    { id: "wait",   label: "Ожидание" },
+    { id: "bought", label: "Куплено" },
+    { id: "sold",   label: "Продано" },
+    { id: "paid",   label: "Оплачено" }
+  ];
+  // Часть 30: тип протокола — по просьбе Никиты и Жени, "Встреча" — дефолт
+  // для нового протокола (сам раздел называется "Протоколы встреч/звонков",
+  // встреча — более общий случай).
+  var MEETING_TYPES = [
+    { id: "meeting", label: "Встреча" },
+    { id: "call",    label: "Звонок" }
   ];
   var TYPES = [
     { id: "letter",   label: "Письмо",   icon: 'M2 4h12v8H2z M2 4l6 5 6-5' },
@@ -4129,6 +4321,10 @@
   // this modal session, the title-based auto-detection below stops
   // overriding their choice on further typing.
   var typeManuallySet = false;
+  // Часть 27: то же самое для "Ответственный" — как только человек сам
+  // кликнул по пилюле, автоподсказка по проекту больше не трогает выбор для
+  // этой открытой формы (сбрасывается заново при следующем openModal).
+  var responsibleManuallySet = false;
   var calCursor = new Date();
   var finCursor = new Date();
   var finData = {}; // entity label -> { revenue, costs }
@@ -4142,6 +4338,26 @@
   // раньше было одно строковое значение на поле, как у обычного <select>.
   // Пустой массив = "без фильтра по этому полю", как раньше пустая строка.
   var filters = { direction: [], entity: [], responsible: [], type: [], due: [], search: "" };
+  // Часть 5, п.25 (по просьбе Никиты, 29 сент.): вид доски — "buckets"
+  // (по умолчанию, пять колонок по срочности) или "flat" (все открытые
+  // задачи одним списком, сортировка — новые сверху, см. byNewestFirst).
+  // Хранится в localStorage браузера, а не в Firestore — это личная
+  // настройка отображения, а не общие данные CRM; если localStorage
+  // недоступен (приватный режим и т. п.) — тихо остаёмся на "buckets".
+  function loadBoardLayout() {
+    try { return localStorage.getItem("crmBoardLayout") === "flat" ? "flat" : "buckets"; }
+    catch (e) { return "buckets"; }
+  }
+  function saveBoardLayout(v) {
+    try { localStorage.setItem("crmBoardLayout", v); } catch (e) {}
+  }
+  var boardLayout = loadBoardLayout();
+  function refreshBoardLayoutBtn() {
+    var btn = document.getElementById("boardLayoutToggle");
+    if (!btn) return;
+    btn.textContent = boardLayout === "flat" ? "🗂 По срокам" : "☰ Списком";
+    btn.classList.toggle("active", boardLayout === "flat");
+  }
   var selectMode = false;
   var selectedIds = {}; // task id -> true, while selectMode is on
   // По просьбе Никиты (15 сент.): секция "Удалённые" на доске свёрнута по
@@ -4259,6 +4475,48 @@
   function responsibleLabel(id) {
     var r = RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
     return r ? r.label : (id || "?");
+  }
+  // ---------- Часть 27: подсказка ответственного по истории проекта ----------
+  // По просьбе Никиты и Жени (тот же разговор, что "Между вами"/дайджест) —
+  // при создании НОВОЙ задачи CRM сама предлагает, на кого обычно вешают
+  // задачи в этом же "Проекте", вместо того чтобы всегда по умолчанию
+  // подставлять текущего пользователя. Форма "Ответственный" сознательно
+  // предлагает только Никита/Евгений (см. комментарий у openModal) — подсказка
+  // считает только по ним же, сотрудники, добавленные через "+", в неё не
+  // входят.
+  function suggestResponsibleForDirection(direction) {
+    if (!direction) return null;
+    var counts = { nikita: 0, evgeniy: 0 };
+    var total = 0;
+    tasks.forEach(function (t) {
+      if (t.deleted || t.direction !== direction) return;
+      total++;
+      respIds(t).forEach(function (id) {
+        if (counts[id] !== undefined) counts[id]++;
+      });
+    });
+    if (!total || counts.nikita === counts.evgeniy) return null; // нет истории или ничья — подсказывать нечего
+    var winnerId = counts.nikita > counts.evgeniy ? "nikita" : "evgeniy";
+    return { id: winnerId, count: counts[winnerId], total: total };
+  }
+  // Обновляет подпись-подсказку под пилюлями и (пока человек ничего не
+  // выбрал руками в ЭТОЙ форме, см. responsibleManuallySet) саму подсветку
+  // пилюли. Вызывается при открытии формы новой задачи и при каждой смене
+  // "Проекта" в ней (см. wire()); для уже существующей задачи ничего не
+  // делает — там respRow и так показывает настоящего ответственного.
+  function applyResponsibleSuggestion() {
+    var hintEl = document.getElementById("respSuggestHint");
+    if (!hintEl) return;
+    if (!modalIsNewTask) { hintEl.textContent = ""; return; }
+    var direction = document.getElementById("fDirection").value;
+    var suggestion = suggestResponsibleForDirection(direction);
+    if (!suggestion) { hintEl.textContent = ""; return; }
+    var person = byId(BASE_RESPONSIBLE, suggestion.id);
+    hintEl.textContent = "Подсказка: в «" + direction + "» обычно отвечает " + person.label +
+      " (" + suggestion.count + " из " + suggestion.total + " задач)";
+    if (!responsibleManuallySet) {
+      buildMultiPillRow(document.getElementById("respRow"), BASE_RESPONSIBLE, [suggestion.id], false);
+    }
   }
   // CRM v2 Часть 5, п.8/11: "Личное" — задача видна целиком только тому, кто
   // её создал; остальные видят только «Занято», без названия и деталей.
@@ -4641,6 +4899,13 @@
     if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return "задачи";
     return "задач";
   }
+  // Часть 28: для "N сделок/сделки/сделка" в KPI-плитке маржи заказов.
+  function ruDealWord(n) {
+    var n10 = n % 10, n100 = n % 100;
+    if (n10 === 1 && n100 !== 11) return "сделка";
+    if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return "сделки";
+    return "сделок";
+  }
   function mondayOfWeek(d) {
     var x = new Date(d); var day = x.getDay() || 7;
     if (day !== 1) x.setDate(x.getDate() - (day - 1));
@@ -4917,6 +5182,10 @@
         supplier: "ООО Рубинтрейд", purchaseCost: 45000, buyer: "Кофейня «Утро»", contact: "Мария, +7 900 000-00-00",
         dueDate: addDaysStr(t, 7), responsible: "nikita", createdBy: "nikita", createdAt: new Date(t + "T00:00:00").getTime() }
     ];
+    // Часть 25 (доп.): раз все четыре коллекции только что заполнены локально
+    // (Firestore недоступен), для дайджеста они тоже "готовы" — см.
+    // digestDataReady/maybeAutoExportDigest выше по файлу.
+    digestDataReady.tasks = true; digestDataReady.samples = true; digestDataReady.meetings = true; digestDataReady.orders = true;
   }
 
   // A short, human-readable log of what changed and who changed it — "who"
@@ -5846,6 +6115,20 @@
         return byUrgencyRank(a, b);
       });
       html += columnSectionHtml({ label: "Результаты поиска", varc: "--accent" }, searchResults);
+    } else if (boardLayout === "flat") {
+      // Альтернативный вид (Часть 5, п.25): те же самые задачи, что попали бы
+      // в колонки ниже (due-фильтр по-прежнему работает — просто на уровне
+      // отдельной карточки, а не целой секции), но одним списком без деления
+      // на Просрочено/Сегодня/Неделя/Месяц/Позже, отсортированным по дате
+      // создания (новые сверху) — как и попросил Никита.
+      var flatList = openTasks.filter(function (t) {
+        var id = overdueIds[t.id] ? "overdue" : computeUrgencyId(t);
+        return showSection(id);
+      }).sort(function (a, b) {
+        var sr = searchExactRank(a) - searchExactRank(b);
+        return sr || byNewestFirst(a, b);
+      });
+      html += columnSectionHtml({ label: "Все задачи", varc: "--accent" }, flatList);
     } else {
       if (showSection("overdue")) {
         html += columnSectionHtml({ label: "Просрочено", varc: "--u-overdue" }, overdueTasks);
@@ -6553,7 +6836,13 @@
     // custom people (added via the filter bar's "+") aren't offered here.
     var curUser = getCurrentUser();
     var defaultResp = (curUser === "nikita" || curUser === "evgeniy") ? curUser : "nikita";
+    responsibleManuallySet = false;
     buildMultiPillRow(document.getElementById("respRow"), BASE_RESPONSIBLE, t ? respIds(t) : [defaultResp], false);
+    // Часть 27: подсказка ответственного — только для НОВОЙ задачи (у уже
+    // существующей respRow и так показывает настоящего ответственного, его
+    // незачем "подсказывать"); applyResponsibleSuggestion сама проверяет
+    // modalIsNewTask и может переопределить выбор выше подходящей подсказкой.
+    applyResponsibleSuggestion();
     updateUrgencyReadout();
 
     pendingParentId = t ? (t.parentId || "") : (presets.parentId || "");
@@ -6808,6 +7097,10 @@
     var hideTaskFilters = v === "finance" || v === "analytics" || v === "meetings" || v === "samples" || v === "orders" || v === "employees";
     document.getElementById("filters").classList.toggle("hidden", hideTaskFilters);
     document.getElementById("filtersExtra").classList.toggle("hidden", hideTaskFilters);
+    // Переключатель "По срокам"/"Списком" имеет смысл только на самой доске —
+    // на Календаре задачи и так показаны по-другому, кнопка там просто
+    // пряталась бы без дела.
+    document.getElementById("boardLayoutToggle").classList.toggle("hidden", v !== "board");
     if (v !== "board") document.getElementById("bulkBar").classList.add("hidden");
     if (v === "finance") subscribeFinance(); else render();
   }
@@ -6887,23 +7180,61 @@
     });
     return stats;
   }
+  // Часть 26: та же выборка задач, что computePersonStats (тот же период/
+  // исключения "Личное"/удалённых), но раскладывает каждую задачу РОВНО в
+  // ОДНУ из четырёх корзин — нужно для полоски-диаграммы ниже, где сегменты
+  // обязаны в сумме давать 100% (computePersonStats так не умеет: там
+  // "moved" и "overdueNow" могут пересекаться на одной и той же задаче —
+  // это нормально для текстовых счётчиков, но ломает полоску). Отдельная
+  // функция, а не переделка computePersonStats — чтобы не трогать её и её
+  // юнит-тест (unit_person_stats.js), computePersonStats остаётся как есть.
+  function computePersonBarBuckets(periodKey) {
+    var buckets = {};
+    RESPONSIBLE.forEach(function (r) { buckets[r.id] = { total: 0, onTime: 0, overdueNow: 0, movedRest: 0, inProgress: 0 }; });
+    tasks.forEach(function (t) {
+      if (t.deleted || t.direction === "Личное") return;
+      if (!personStatInPeriod(t, periodKey)) return;
+      var moved = dueDateChangeCount(t) > 0;
+      var done = t.status === "done";
+      var overdue = !done && isOverdue(t);
+      var key;
+      if (done && !moved) key = "onTime";
+      else if (overdue) key = "overdueNow";
+      else if (moved) key = "movedRest";
+      else key = "inProgress";
+      respIds(t).forEach(function (id) {
+        if (!buckets[id]) buckets[id] = { total: 0, onTime: 0, overdueNow: 0, movedRest: 0, inProgress: 0 };
+        buckets[id].total++;
+        buckets[id][key]++;
+      });
+    });
+    return buckets;
+  }
   function renderPersonStatsSection() {
     var toggle = document.getElementById("anPersonPeriodToggle");
     Array.prototype.forEach.call(toggle.querySelectorAll(".chip-toggle"), function (btn) {
       btn.classList.toggle("active", btn.getAttribute("data-period") === anPersonPeriod);
     });
-    var stats = computePersonStats(anPersonPeriod);
-    var people = RESPONSIBLE.filter(function (r) { return stats[r.id] && stats[r.id].total > 0; });
+    var buckets = computePersonBarBuckets(anPersonPeriod);
+    var people = RESPONSIBLE.filter(function (r) { return buckets[r.id] && buckets[r.id].total > 0; });
     var el = document.getElementById("anByPerson");
     if (!people.length) { el.innerHTML = '<div class="an-empty">Пока нет данных за этот период</div>'; return; }
     el.innerHTML = people.map(function (r) {
-      var s = stats[r.id];
+      var s = buckets[r.id];
+      var pct = function (n) { return Math.round(n / s.total * 100); };
       return '<div class="an-person-card">' +
         '<div class="an-person-name">' + escapeHtml(r.label) + '<span class="an-row-count">' + s.total + ' ' + ruTaskWord(s.total) + '</span></div>' +
-        '<div class="an-person-stats">' +
+        '<div class="an-stackbar"><div class="an-stackbar-track">' +
+          (s.onTime ? '<div class="an-stackbar-seg good" style="width:' + pct(s.onTime) + '%"></div>' : '') +
+          (s.overdueNow ? '<div class="an-stackbar-seg bad" style="width:' + pct(s.overdueNow) + '%"></div>' : '') +
+          (s.movedRest ? '<div class="an-stackbar-seg warn" style="width:' + pct(s.movedRest) + '%"></div>' : '') +
+          (s.inProgress ? '<div class="an-stackbar-seg rest" style="width:' + pct(s.inProgress) + '%"></div>' : '') +
+        '</div></div>' +
+        '<div class="an-person-caption">' +
           '<span class="an-person-stat good">✓ Вовремя: ' + s.onTime + '</span>' +
-          '<span class="an-person-stat bad">⚠ Просрочено сейчас: ' + s.overdueNow + '</span>' +
-          '<span class="an-person-stat warn">↻ Переносилось: ' + s.moved + '</span>' +
+          '<span class="an-person-stat bad">⚠ Просрочено: ' + s.overdueNow + '</span>' +
+          '<span class="an-person-stat warn">↻ Перенесено: ' + s.movedRest + '</span>' +
+          (s.inProgress ? '<span class="an-person-stat neutral">⏳ В работе: ' + s.inProgress + '</span>' : '') +
         '</div>' +
       '</div>';
     }).join("");
@@ -6986,10 +7317,238 @@
         '<span class="an-legend-label">'+b.label+'</span><span class="an-legend-val">'+count+' · '+pct+'%</span></div>';
     }).join("");
   }
+  // ---------- Часть 26: дашборд-плитки/график/проблемные зоны ----------
+  // По просьбе Никиты и Жени — больше полезной для работы информации на
+  // вкладке "Аналитика", одним взглядом сверху, без необходимости листать.
+  function ruOverdueWord(n) {
+    var n10 = n % 10, n100 = n % 100;
+    if (n10 === 1 && n100 !== 11) return "просрочка";
+    if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return "просрочки";
+    return "просрочек";
+  }
+  // Простой счётчик дней "сегодня минус срок" — в отличие от overdueDays(t)
+  // (которая для задач сознательно считает от originalDueDate), заказам
+  // originalDueDate не нужен — у них всегда одна дата, менять её через
+  // историю переносов заказы не умеют.
+  function daysOverdueSimple(dueDate) {
+    var d1 = new Date(todayStr() + "T00:00:00");
+    var d2 = new Date(dueDate + "T00:00:00");
+    return Math.round((d1 - d2) / 86400000);
+  }
+  // "Вовремя за период" на уровне всей компании (не по человеку, как
+  // computePersonStats) — задача считается один раз, даже если ответственных
+  // двое, в отличие от разбивки "Между вами", где так и задумано.
+  function computeOnTimeRate(periodKey) {
+    var total = 0, onTime = 0;
+    tasks.forEach(function (t) {
+      if (t.deleted || t.direction === "Личное") return;
+      if (!personStatInPeriod(t, periodKey)) return;
+      total++;
+      if (t.status === "done" && dueDateChangeCount(t) === 0) onTime++;
+    });
+    return total ? Math.round(onTime / total * 100) : null;
+  }
+  // Средний срок от создания до завершения — только по задачам, завершённым
+  // внутри периода (иначе средняя "поедет" от древних задач, закрытых давно).
+  function computeAvgCloseDays(periodKey) {
+    var days = periodKey === "week" ? 7 : 30;
+    var today = new Date(todayStr() + "T00:00:00");
+    var cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - days);
+    var samples = [];
+    tasks.forEach(function (t) {
+      if (t.deleted || t.direction === "Личное") return;
+      if (t.status !== "done" || !t.completedAt || !t.createdAt) return;
+      var completedDate = new Date(t.completedAt);
+      if (completedDate < cutoff || completedDate > today) return;
+      var diffDays = (t.completedAt - t.createdAt) / 86400000;
+      if (diffDays >= 0) samples.push(diffDays);
+    });
+    if (!samples.length) return null;
+    return samples.reduce(function (a, b) { return a + b; }, 0) / samples.length;
+  }
+  function computeKpis() {
+    var overdueNow = tasks.filter(function (t) { return !t.deleted && t.direction !== "Личное" && isOverdue(t); }).length;
+    var activeOrders = orders.filter(function (o) { return !o.deleted; });
+    var overdueOrders = activeOrders.filter(function (o) { return o.dueDate && o.dueDate < todayStr(); }).length;
+    // Часть 28: маржа по заказам — сумма по ВСЕМ активным заказам, где
+    // заданы обе цены (см. orderMargin); за всё время, а не за период — это
+    // просто "сколько всего заработали на перекупах", а не скорость.
+    var marginDeals = activeOrders.map(orderMargin).filter(Boolean);
+    var marginTotal = marginDeals.reduce(function (s, m) { return s + m.abs; }, 0);
+    return {
+      overdueNow: overdueNow,
+      onTimeRate: computeOnTimeRate("month"),
+      avgClose: computeAvgCloseDays("month"),
+      ordersTotal: activeOrders.length,
+      ordersOverdue: overdueOrders,
+      marginTotal: marginTotal,
+      marginDealsCount: marginDeals.length
+    };
+  }
+  function renderKpiTiles() {
+    var el = document.getElementById("anKpiGrid");
+    if (!el) return;
+    var k = computeKpis();
+    var onTimeText = k.onTimeRate === null ? "—" : k.onTimeRate + "%";
+    var avgCloseText = k.avgClose === null ? "—" : (k.avgClose.toFixed(1).replace(".", ",") + " дня");
+    el.innerHTML =
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Просрочено сейчас</div>' +
+        '<div class="an-kpi-value' + (k.overdueNow ? ' bad' : '') + '">' + k.overdueNow + '</div></div>' +
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Вовремя за 30 дней</div>' +
+        '<div class="an-kpi-value' + (k.onTimeRate !== null && k.onTimeRate >= 70 ? ' good' : '') + '">' + onTimeText + '</div></div>' +
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Средний срок закрытия</div>' +
+        '<div class="an-kpi-value">' + avgCloseText + '</div></div>' +
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Активных заказов</div>' +
+        '<div class="an-kpi-value">' + k.ordersTotal + '</div>' +
+        (k.ordersOverdue ? '<div class="an-kpi-sub bad">' + k.ordersOverdue + ' ' + (k.ordersOverdue === 1 ? "просрочен" : "просрочены") + '</div>' : '') +
+      '</div>' +
+      // Часть 28: маржа по заказам — "—", если ещё ни у одного заказа не
+      // заполнены обе цены (закупка и продажа), а не 0 ₽ (это не то же самое,
+      // что "сработали в ноль").
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Маржа по заказам</div>' +
+        '<div class="an-kpi-value' + (k.marginDealsCount ? (k.marginTotal >= 0 ? ' good' : ' bad') : '') + '">' +
+          (k.marginDealsCount ? (k.marginTotal >= 0 ? '+' : '') + formatMoney(k.marginTotal) + ' ₽' : '—') + '</div>' +
+        (k.marginDealsCount ? '<div class="an-kpi-sub">' + k.marginDealsCount + ' ' + ruDealWord(k.marginDealsCount) + '</div>' : '') +
+      '</div>';
+  }
+  // Нагрузка по неделям (понедельник-старт, см. mondayOfWeek) — создано /
+  // выполнено / просрочено-на-конец-недели. "Просрочено на конец недели" —
+  // приближение по ТЕКУЩЕМУ dueDate (истории переносов дат по неделям CRM не
+  // хранит) — если срок переносили, прошлые недели пересчитываются так,
+  // будто срок был таким всегда. Осознанное упрощение, как и у "Между вами".
+  function buildWeeklyLoadTrend(weeksCount) {
+    weeksCount = weeksCount || 8;
+    var liveTasks = tasks.filter(function (t) { return !t.deleted && t.direction !== "Личное"; });
+    var thisMonday = mondayOfWeek(new Date());
+    var weeks = [];
+    for (var i = weeksCount - 1; i >= 0; i--) {
+      var start = new Date(thisMonday); start.setDate(start.getDate() - i * 7);
+      var weekEnd = new Date(start); weekEnd.setDate(weekEnd.getDate() + 6); weekEnd.setHours(23, 59, 59, 999);
+      var effectiveEnd = (i === 0) ? new Date() : weekEnd;
+      var startMs = start.getTime(), endMs = effectiveEnd.getTime();
+      var endDateStr = isoDate(effectiveEnd);
+      var created = 0, completed = 0, overdueAtEnd = 0;
+      liveTasks.forEach(function (t) {
+        if (t.createdAt && t.createdAt >= startMs && t.createdAt <= endMs) created++;
+        if (t.status === "done" && t.completedAt && t.completedAt >= startMs && t.completedAt <= endMs) completed++;
+        if (t.dueDate && t.dueDate < endDateStr) {
+          var stillOpenAtEnd = t.status !== "done" || (t.completedAt && t.completedAt > endMs);
+          if (stillOpenAtEnd) overdueAtEnd++;
+        }
+      });
+      weeks.push({ label: start.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }), created: created, completed: completed, overdueAtEnd: overdueAtEnd });
+    }
+    return weeks;
+  }
+  function renderTrendChart() {
+    var el = document.getElementById("anTrendChart");
+    if (!el) return;
+    var weeks = buildWeeklyLoadTrend(8);
+    var maxVal = 1;
+    weeks.forEach(function (w) { maxVal = Math.max(maxVal, w.created, w.completed, w.overdueAtEnd); });
+    var W = 560, H = 160, padTop = 10, padBottom = 22, padX = 6;
+    var innerH = H - padTop - padBottom;
+    var stepX = weeks.length > 1 ? (W - padX * 2) / (weeks.length - 1) : 0;
+    function xAt(i) { return padX + i * stepX; }
+    function yAt(v) { return padTop + innerH - (v / maxVal) * innerH; }
+    function pointsFor(key) { return weeks.map(function (w, i) { return xAt(i) + "," + yAt(w[key]); }).join(" "); }
+    function dotsFor(key, colorVar, label) {
+      return weeks.map(function (w, i) {
+        return '<circle cx="' + xAt(i) + '" cy="' + yAt(w[key]) + '" r="2.6" fill="' + colorVar + '"><title>' + escapeHtml(w.label) + ' — ' + label + ': ' + w[key] + '</title></circle>';
+      }).join("");
+    }
+    var gridLines = [0.33, 0.66, 1].map(function (f) {
+      var y = padTop + innerH * (1 - f);
+      return '<line x1="' + padX + '" y1="' + y + '" x2="' + (W - padX) + '" y2="' + y + '" stroke="var(--line)" stroke-width="1"></line>';
+    }).join("");
+    var labelEvery = Math.max(1, Math.ceil(weeks.length / 4));
+    var xLabels = weeks.map(function (w, i) {
+      if (i % labelEvery !== 0 && i !== weeks.length - 1) return "";
+      return '<text x="' + xAt(i) + '" y="' + (H - 4) + '" font-size="9" fill="var(--ink-faint)" text-anchor="middle">' + escapeHtml(w.label) + '</text>';
+    }).join("");
+    el.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="160">' +
+        gridLines +
+        '<polyline points="' + pointsFor("created") + '" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>' +
+        '<polyline points="' + pointsFor("completed") + '" fill="none" stroke="var(--s-done)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>' +
+        '<polyline points="' + pointsFor("overdueAtEnd") + '" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 5"></polyline>' +
+        dotsFor("created", "var(--accent)", "Создано") +
+        dotsFor("completed", "var(--s-done)", "Выполнено") +
+        dotsFor("overdueAtEnd", "var(--danger)", "Просрочено на конец недели") +
+        xLabels +
+      '</svg>';
+  }
+  // "Проблемные зоны" — до трёх подсказок, на что смотреть в первую очередь:
+  // самый проблемный проект (просрочки весят вдвое больше переносов), самый
+  // просроченный заказ, человек с наибольшим числом переносов за неделю.
+  // Каждый пункт показывается, только если по нему вообще есть о чём
+  // сказать (счёт > 0) — иначе просто не попадает в список.
+  function buildProblemZones() {
+    var zones = [];
+    var byDirection = {};
+    tasks.forEach(function (t) {
+      if (t.deleted || !t.direction || t.direction === "Личное") return;
+      if (!byDirection[t.direction]) byDirection[t.direction] = { overdue: 0, moved: 0 };
+      if (isOverdue(t)) byDirection[t.direction].overdue++;
+      if (t.status !== "done" && dueDateChangeCount(t) > 0) byDirection[t.direction].moved++;
+    });
+    var worstDirection = null, worstScore = 0;
+    Object.keys(byDirection).forEach(function (dir) {
+      var g = byDirection[dir];
+      var score = g.overdue * 2 + g.moved;
+      if (score > worstScore) { worstScore = score; worstDirection = dir; }
+    });
+    if (worstDirection) {
+      var g = byDirection[worstDirection];
+      var parts = [];
+      if (g.overdue) parts.push(g.overdue + " " + ruOverdueWord(g.overdue));
+      if (g.moved) parts.push("переносилось " + ruTimes(g.moved));
+      zones.push({ name: worstDirection, meta: parts.join(", ") });
+    }
+
+    var worstOrder = null, worstOrderDays = 0;
+    orders.forEach(function (o) {
+      if (o.deleted || !o.dueDate || o.dueDate >= todayStr()) return;
+      var days = daysOverdueSimple(o.dueDate);
+      if (days > worstOrderDays) { worstOrderDays = days; worstOrder = o; }
+    });
+    if (worstOrder) {
+      zones.push({ name: "Заказ «" + (worstOrder.item || "без названия") + "»", meta: "просрочен на " + ruDays(worstOrderDays) });
+    }
+
+    var weekStats = computePersonStats("week");
+    var worstPerson = null, worstMoved = 0;
+    RESPONSIBLE.forEach(function (r) {
+      var s = weekStats[r.id];
+      if (s && s.moved > worstMoved) { worstMoved = s.moved; worstPerson = r; }
+    });
+    if (worstPerson) {
+      zones.push({ name: worstPerson.label, meta: "переносилось " + ruTimes(worstMoved) + " за неделю" });
+    }
+
+    return zones.slice(0, 3);
+  }
+  function renderProblemZones() {
+    var el = document.getElementById("anProblemZones");
+    if (!el) return;
+    var zones = buildProblemZones();
+    if (!zones.length) { el.innerHTML = '<div class="an-empty">Пока всё спокойно — проблемных зон нет</div>'; return; }
+    el.innerHTML = zones.map(function (z, i) {
+      return '<div class="an-zone-row">' +
+        '<span class="an-zone-rank">' + (i + 1) + '</span>' +
+        '<span class="an-zone-name">' + escapeHtml(z.name) + '</span>' +
+        '<span class="an-zone-meta">' + escapeHtml(z.meta) + '</span>' +
+      '</div>';
+    }).join("");
+  }
   function renderAnalytics() {
     var liveTasks = tasks.filter(function (t) { return !t.deleted; });
+    renderKpiTiles();
+    renderTrendChart();
     renderAnalyticsDonut(liveTasks);
     renderPersonStatsSection();
+    renderProblemZones();
+    renderDigestLink();
 
     // Include names removed from the dropdowns too — tasks that already used
     // them (and their history) still count in Analytics, they've just fallen
@@ -7086,6 +7645,27 @@
     return stock;
   }
   function stockClass(n) { return n < 0 ? "negative" : (n === 0 ? "zero" : ""); }
+  // Часть 29: последнее (неудалённое) движение образца — та же сортировка
+  // "новые сверху", что и в renderMovementList() модалки, вынесена в чистую
+  // функцию для карточки списка и для юнит-теста.
+  function computeSampleLastMovement(movements) {
+    var visible = (movements || []).filter(function (m) { return !m.deletedAt; });
+    if (!visible.length) return null;
+    visible = visible.slice().sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+    return visible[0];
+  }
+  // Стоимость остатка = остаток × цена/шт. — только когда есть и то, и
+  // другое, и остаток положительный (для нуля/минуса "стоимость остатка"
+  // не имеет смысла показывать).
+  function sampleValue(s) {
+    var stock = computeSampleStock(s.initialQty, s.movements);
+    if (!s.unitCost || stock <= 0) return null;
+    return stock * Number(s.unitCost);
+  }
+  // Порог "давно без движений" — по просьбе Никиты и Жени: образец, который
+  // никто не трогал 45+ дней, вероятно просто забыт у кого-то на руках, а
+  // деньги в нём заморожены.
+  var SAMPLE_STALE_DAYS = 45;
   function renderSamples() {
     var base = samplesShowDeleted ? samples : samples.filter(function (s) { return !s.deleted; });
     // Часть 22: id направлений в SAMPLE_DIRECTIONS — те же строки, что и в
@@ -7107,6 +7687,16 @@
       var stock = computeSampleStock(s.initialQty, s.movements);
       var cls = stockClass(stock);
       var deleted = !!s.deleted;
+      var value = sampleValue(s);
+      var lastMv = computeSampleLastMovement(s.movements);
+      var daysSinceLastMv = lastMv ? Math.round((Date.now() - lastMv.at) / 86400000) : null;
+      var isStale = daysSinceLastMv !== null && daysSinceLastMv >= SAMPLE_STALE_DAYS;
+      var moveLine = "";
+      if (lastMv) {
+        var mvLabel = byId(MOVEMENT_TYPES, lastMv.type).label;
+        var mvParty = lastMv.party ? " — " + escapeHtml(lastMv.party) : "";
+        moveLine = '<div class="sample-card-move">Последнее движение: ' + escapeHtml(mvLabel) + mvParty + ', ' + ruDays(Math.max(daysSinceLastMv, 0)) + ' назад</div>';
+      }
       return '<div class="sample-card' + (deleted ? " deleted" : "") + '" data-id="' + s.id + '">' +
         '<div class="sample-card-title">' + escapeHtml(s.name || "(без названия)") + '</div>' +
         '<div class="sample-card-tags">' +
@@ -7117,6 +7707,9 @@
           '<span class="sample-card-stock ' + cls + '">' + stock + ' шт.</span>' +
           (s.unitCost ? '<span class="sample-card-cost">' + formatMoney(Number(s.unitCost)) + ' ₽/шт.</span>' : "") +
         '</div>' +
+        (value !== null ? '<div class="sample-card-value">В остатке на ' + formatMoney(value) + ' ₽</div>' : "") +
+        moveLine +
+        (isStale ? '<span class="sample-card-stale">⏳ Без движений ' + ruDays(daysSinceLastMv) + '</span>' : "") +
         (deleted ? '<button type="button" class="btn-secondary sample-card-restore" data-restore="' + s.id + '">Восстановить</button>' : "") +
       '</div>';
     }).join("");
@@ -7330,7 +7923,7 @@
     list.innerHTML = visible.map(meetingHtml).join("");
     Array.prototype.forEach.call(list.querySelectorAll(".meeting-card"), function (card) {
       card.addEventListener("click", function (e) {
-        if (e.target.closest("[data-restore]")) return;
+        if (e.target.closest("[data-restore]") || e.target.closest("[data-mktask]")) return;
         openMeetingModal(card.getAttribute("data-id"));
       });
     });
@@ -7340,6 +7933,20 @@
         restoreMeeting(btn.getAttribute("data-restore"));
       });
     });
+    // Часть 30: "+ Создать задачу из этого шага" — прямо с карточки, без
+    // открытия модалки протокола.
+    Array.prototype.forEach.call(list.querySelectorAll("[data-mktask]"), function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var m = findMeeting(btn.getAttribute("data-mktask"));
+        if (m) createMeetingNextStepTask(m);
+      });
+    });
+  }
+  // Часть 30: тип протокола — у протоколов, созданных до этой доработки,
+  // поля ещё нет — дефолт тот же, что и у нового протокола ("Встреча").
+  function meetingTypeInfo(m) {
+    return byId(MEETING_TYPES, (m && m.meetingType) || "meeting");
   }
   function meetingHtml(m) {
     var deleted = !!m.deleted;
@@ -7349,14 +7956,24 @@
     var metaBits = [];
     if (m.createdBy) metaBits.push("Записал: " + escapeHtml(responsibleLabel(m.createdBy)));
     if (m.createdAt) metaBits.push(new Date(m.createdAt).toLocaleString("ru-RU", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }));
+    var typeInfo = meetingTypeInfo(m);
+    var nextStepBlock = "";
+    if (m.nextStep) {
+      nextStepBlock = '<div class="meeting-card-next"><b>Далее:</b> ' + escapeHtml(m.nextStep) + '</div>' +
+        (m.nextStepTaskCreated
+          ? '<div class="meeting-card-next-done">✓ Задача создана</div>'
+          : '<button type="button" class="meeting-card-mktask" data-mktask="' + m.id + '">+ Создать задачу из этого шага</button>');
+    }
     return '<div class="meeting-card' + (deleted ? " deleted" : "") + '" data-id="' + m.id + '">' +
       '<div class="meeting-card-head">' +
+        '<span class="meeting-card-type">' + escapeHtml(typeInfo.label) + '</span>' +
         '<span class="meeting-card-date">' + escapeHtml(shortDate(m.date)) + '</span>' +
         '<span class="meeting-card-title">' + escapeHtml(m.title || "(без темы)") + '</span>' +
         '<span class="meeting-card-tags">' + tags + '</span>' +
       '</div>' +
       '<div class="meeting-card-participants">' + escapeHtml(meetingParticipantsLabel(m)) + '</div>' +
       (m.notes ? '<div class="meeting-card-notes">' + escapeHtml(m.notes) + '</div>' : '') +
+      nextStepBlock +
       (metaBits.length ? '<div class="meeting-card-meta">' + metaBits.join(" · ") + '</div>' : '') +
       (deleted ? '<button type="button" class="btn-secondary meeting-card-restore" data-restore="' + m.id + '">Восстановить</button>' : "") +
     '</div>';
@@ -7402,6 +8019,7 @@
     resetMeetingDeleteBtn();
     document.getElementById("meetingModalTitle").textContent = m ? "Редактировать протокол" : "Новый протокол";
     document.getElementById("meetingDeleteBtn").classList.toggle("hidden", !m);
+    buildPillRow(document.getElementById("mTypeRow"), MEETING_TYPES, m ? (m.meetingType || "meeting") : "meeting", null);
     document.getElementById("mDate").value = m ? (m.date || todayStr()) : todayStr();
     document.getElementById("mTitle").value = m ? (m.title || "") : "";
     buildMeetingParticipantsRow(m ? (m.participants || []) : (getCurrentUser() ? [getCurrentUser()] : []));
@@ -7412,6 +8030,7 @@
     fillSelect(document.getElementById("mEntity"), ENTITIES, "—", false, false);
     document.getElementById("mEntity").value = m ? (m.entity || "") : "";
     document.getElementById("mNotes").value = m ? (m.notes || "") : "";
+    document.getElementById("mNextStep").value = m ? (m.nextStep || "") : "";
     var metaField = document.getElementById("meetingMetaField");
     if (m && m.createdAt) {
       metaField.classList.remove("hidden");
@@ -7475,6 +8094,8 @@
   }
   function onMeetingSubmit(e) {
     e.preventDefault();
+    var nextStep = document.getElementById("mNextStep").value.trim();
+    var prev = meetingEditingId ? findMeeting(meetingEditingId) : null;
     var data = {
       date: document.getElementById("mDate").value,
       title: document.getElementById("mTitle").value.trim(),
@@ -7482,7 +8103,13 @@
       participantsExternal: document.getElementById("mExternal").value.trim(),
       direction: document.getElementById("mDirection").value,
       entity: document.getElementById("mEntity").value,
-      notes: document.getElementById("mNotes").value
+      notes: document.getElementById("mNotes").value,
+      meetingType: document.getElementById("mTypeRow").getAttribute("data-value") || "meeting",
+      nextStep: nextStep,
+      // Часть 30: если следующий шаг поменяли текстом — кнопка "Создать
+      // задачу" на карточке должна появиться снова (старая задача была про
+      // старый текст); если текст тот же — сохраняем, была ли уже создана.
+      nextStepTaskCreated: (prev && prev.nextStep === nextStep) ? !!prev.nextStepTaskCreated : false
     };
     if (!data.date) { showToast("Укажите дату.", true); return; }
     if (!data.title) { showToast("Укажите тему встречи/звонка.", true); return; }
@@ -7556,6 +8183,28 @@
       commentText: "Автоматически создано по движению образца «" + sampleName + "»: " + typeLabel.toLowerCase() + " " + qtyLabel + partyLabel + "."
     });
   }
+  // Часть 30: "+ Создать задачу из этого шага" на карточке протокола — без
+  // разбора даты из текста (см. обсуждение в спеке — свободный текст,
+  // распознавание дат было бы хрупким), срок по умолчанию — сегодня,
+  // ответственный — тот, кто нажал кнопку; и то, и другое легко поправить,
+  // открыв созданную задачу. После успешного создания помечаем протокол
+  // nextStepTaskCreated, чтобы кнопку нельзя было случайно нажать повторно
+  // (см. onMeetingSubmit — правка текста шага сбрасывает эту пометку).
+  function createMeetingNextStepTask(m) {
+    if (!m.nextStep) return;
+    return createAutoTask({
+      title: m.nextStep,
+      direction: m.direction,
+      entity: m.entity,
+      dueDate: todayStr(),
+      type: "task",
+      responsibleId: getCurrentUser(),
+      commentText: "Автоматически создано из протокола «" + (m.title || "без темы") + "» (" + shortDate(m.date) + ")."
+    }).then(function () {
+      persistMeeting({ nextStepTaskCreated: true }, m.id);
+      showToast("Задача создана.");
+    });
+  }
 
   // ---------- «Заказы» (CRM v2 Часть 23, 23 сент.) ----------
   // По просьбе Никиты: персонально приходящие ему/Жене заказы по каждому
@@ -7589,7 +8238,7 @@
     list.innerHTML = visible.map(orderHtml).join("");
     Array.prototype.forEach.call(list.querySelectorAll(".order-card"), function (card) {
       card.addEventListener("click", function (e) {
-        if (e.target.closest("[data-restore]")) return;
+        if (e.target.closest("[data-restore]") || e.target.closest("[data-drivefolder]")) return;
         openOrderModal(card.getAttribute("data-id"));
       });
     });
@@ -7599,16 +8248,38 @@
         restoreOrder(btn.getAttribute("data-restore"));
       });
     });
+    // Часть 31: папка на Диске — см. onOrderDriveFolderClick.
+    Array.prototype.forEach.call(list.querySelectorAll("[data-drivefolder]"), function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var o = findOrder(btn.getAttribute("data-drivefolder"));
+        if (o) onOrderDriveFolderClick(o);
+      });
+    });
+  }
+  // Часть 28: маржа сделки — считается только когда заданы ОБЕ цены (нет
+  // смысла показывать "маржу" по одной закупке без продажи или наоборот).
+  // Отдельная чистая функция — используется и на карточке заказа, и в KPI
+  // Аналитики (computeKpis), поэтому легко покрывается одним юнит-тестом.
+  function orderMargin(o) {
+    if (!o || !o.purchaseCost || !o.salePrice) return null;
+    var abs = Number(o.salePrice) - Number(o.purchaseCost);
+    return { abs: abs, pct: abs / Number(o.purchaseCost) * 100 };
+  }
+  // Старые заказы (созданные до Части 28) статуса не имеют — считаем это
+  // "Ожидание", тем же дефолтом, что и у нового заказа.
+  function orderDealStatusInfo(o) {
+    return byId(DEAL_STATUSES, (o && o.dealStatus) || "wait");
   }
   function orderHtml(o) {
     var deleted = !!o.deleted;
     var tags = "";
     if (o.direction) tags += '<span class="order-card-tag">' + escapeHtml(o.direction) + '</span>';
     if (o.entity) tags += '<span class="order-card-tag">' + escapeHtml(o.entity) + '</span>';
+    var statusInfo = orderDealStatusInfo(o);
+    var hasDeal = !!(o.supplier || o.purchaseCost || o.buyer || o.salePrice);
+    var margin = orderMargin(o);
     var lines = [];
-    if (o.supplier) lines.push("У кого купить: " + escapeHtml(o.supplier));
-    if (o.purchaseCost) lines.push("Закупка: " + formatMoney(Number(o.purchaseCost)) + " ₽");
-    if (o.buyer) lines.push("Кому продать: " + escapeHtml(o.buyer));
     if (o.contact) lines.push("Контакт: " + escapeHtml(o.contact));
     var metaBits = [];
     if (o.responsible) metaBits.push("Ответственный: " + escapeHtml(responsibleLabel(o.responsible)));
@@ -7617,10 +8288,23 @@
       '<div class="order-card-head">' +
         '<span class="order-card-due">' + escapeHtml(shortDate(o.dueDate)) + '</span>' +
         '<span class="order-card-title">' + escapeHtml(o.item || "(без описания)") + '</span>' +
-        '<span class="order-card-tags">' + tags + '</span>' +
+        '<span class="order-card-status ' + statusInfo.id + '">' + escapeHtml(statusInfo.label) + '</span>' +
       '</div>' +
+      (tags ? '<div class="order-card-tags">' + tags + '</div>' : '') +
+      (hasDeal ?
+        '<div class="order-card-deal">' +
+          '<div class="order-card-deal-side"><div class="order-card-deal-label">Купить у ' + escapeHtml(o.supplier || "—") + '</div>' +
+            '<div class="order-card-deal-val">' + (o.purchaseCost ? formatMoney(Number(o.purchaseCost)) + ' ₽' : '—') + '</div></div>' +
+          '<div class="order-card-deal-arrow">→</div>' +
+          '<div class="order-card-deal-side"><div class="order-card-deal-label">Продать: ' + escapeHtml(o.buyer || "—") + '</div>' +
+            '<div class="order-card-deal-val">' + (o.salePrice ? formatMoney(Number(o.salePrice)) + ' ₽' : '—') + '</div></div>' +
+        '</div>' : '') +
+      (margin ? '<div class="order-card-margin ' + (margin.abs >= 0 ? 'pos' : 'neg') + '">' +
+        'Маржа: ' + (margin.abs >= 0 ? '+' : '') + formatMoney(margin.abs) + ' ₽ (' + (margin.abs >= 0 ? '+' : '') + Math.round(margin.pct) + '%)</div>' : '') +
       (lines.length ? '<div class="order-card-line">' + lines.join(" · ") + '</div>' : '') +
       (metaBits.length ? '<div class="order-card-meta">' + metaBits.join(" · ") + '</div>' : '') +
+      (deleted ? "" : '<button type="button" class="btn-secondary order-card-drive" data-drivefolder="' + o.id + '">' +
+        (o.driveFolderUrl ? "📁 Папка на Диске" : "📁 Создать папку на Диске") + '</button>') +
       (deleted ? '<button type="button" class="btn-secondary order-card-restore" data-restore="' + o.id + '">Восстановить</button>' : "") +
     '</div>';
   }
@@ -7655,7 +8339,11 @@
     document.getElementById("orSupplier").value = o ? (o.supplier || "") : "";
     document.getElementById("orPurchaseCost").value = o && o.purchaseCost ? o.purchaseCost : "";
     document.getElementById("orBuyer").value = o ? (o.buyer || "") : "";
+    document.getElementById("orSalePrice").value = o && o.salePrice ? o.salePrice : "";
     document.getElementById("orContact").value = o ? (o.contact || "") : "";
+    // Часть 28: статус сделки — у старых заказов (до этой доработки) поля
+    // ещё нет, дефолт тот же, что на карточке (см. orderDealStatusInfo).
+    buildPillRow(document.getElementById("orStatusRow"), DEAL_STATUSES, orderDealStatusInfo(o).id, null);
     buildPillRow(document.getElementById("orRespRow"), RESPONSIBLE, o ? (o.responsible || getCurrentUser()) : (getCurrentUser() || RESPONSIBLE[0].id), null);
     // Заметная подсказка про автосоздание задачи — только для нового заказа,
     // у уже сохранённого редактирование задачу повторно не ставит.
@@ -7725,7 +8413,9 @@
       supplier: document.getElementById("orSupplier").value.trim(),
       purchaseCost: Number(document.getElementById("orPurchaseCost").value) || 0,
       buyer: document.getElementById("orBuyer").value.trim(),
+      salePrice: Number(document.getElementById("orSalePrice").value) || 0,
       contact: document.getElementById("orContact").value.trim(),
+      dealStatus: document.getElementById("orStatusRow").getAttribute("data-value") || "wait",
       responsible: document.getElementById("orRespRow").getAttribute("data-value") || ""
     };
     if (!data.item) { showToast("Укажите, что за заказ.", true); return; }
@@ -7892,6 +8582,10 @@
           setGcalToken(resp.access_token, resp.expires_in);
           setGcalWantConnected(true);
           updateGcalStatusUi();
+          // Часть 25 (доп.): раз только что подключились/тихо переподключились —
+          // самое время проверить, не пора ли обновить дайджест (если данные уже
+          // готовы и прошло достаточно времени с прошлого экспорта).
+          maybeAutoExportDigest();
           if (gcalPendingBackfill) {
             gcalPendingBackfill = false;
             showToast("Google подключен — переносим уже существующие задачи и встречи в календарь.");
@@ -7948,6 +8642,9 @@
     showToast("Google отключен для этого браузера.");
   }
   function updateGcalStatusUi() {
+    // Часть 31: кнопка выбора папки на Диске видна/скрыта в такт с тем же
+    // статусом подключения Google, что и сама кнопка "Подключить Google".
+    updateGdrivePickBtnUi();
     var btn = document.getElementById("gcalConnectBtn");
     var text = document.getElementById("gcalConnectBtnText");
     if (!btn || !text) return;
@@ -8131,6 +8828,12 @@
   // аккаунта, а токен/аккаунт в этом браузере может со временем смениться).
   function gdriveEnsureFolder() {
     if (gdriveFolderIdCache) return Promise.resolve(gdriveFolderIdCache);
+    // Часть 31: если человек один раз явно выбрал корневую папку через
+    // Google Picker (см. openGdriveFolderPicker) — используем её вместо
+    // поиска/создания по имени. Это даёт приложению доступ и к вложенным
+    // папкам, которые создали не через само приложение (drive.file scope).
+    var picked = gdrivePickedRoot();
+    if (picked) { gdriveFolderIdCache = picked.id; return Promise.resolve(picked.id); }
     var q = "mimeType='application/vnd.google-apps.folder' and name='CRM — Вложения' and trashed=false";
     return gdriveRequest("GET", "files?q=" + encodeURIComponent(q) + "&fields=files(id)").then(function (res) {
       if (res && res.files && res.files.length) { gdriveFolderIdCache = res.files[0].id; return gdriveFolderIdCache; }
@@ -8172,6 +8875,446 @@
     });
   }
 
+  // ---------- Google Drive — папки по направлениям/клиентам/заказам (Часть 31) ----------
+  // По просьбе Никиты: у каждого Заказа теперь есть кнопка "Папка на Диске",
+  // которая создаёт (при первом клике) или открывает (при следующих) папку
+  // вида <корень>/<Направление>/Заказы/<название заказа>, и заодно, если
+  // указан покупатель, — <корень>/<Направление>/Клиенты/<покупатель>.
+  //
+  // "Корень" по умолчанию — та же папка "CRM — Вложения", что и у вложений/
+  // дайджеста (см. gdriveEnsureFolder выше). Но у неё есть нюанс: если внутри
+  // неё вручную (не через это приложение) создать вложенные папки — как это
+  // сделано один раз 28 сент. 2026 для каркаса по направлениям, — то из-за
+  // узкого scope drive.file приложение эти чужие папки может не увидеть (оно
+  // видит только то, что создало само, либо то, что человек явно открыл
+  // через Google Picker). Поэтому ниже добавлена кнопка "Папка на Диске" в
+  // шапке (см. openGdriveFolderPicker) — один раз выбрать через Picker ту
+  // самую корневую папку, и приложению будет явно открыт доступ ко всему,
+  // что внутри неё, включая уже существующие вложенные папки. Без этого шага
+  // всё тоже будет работать, просто создаст рядом свою параллельную
+  // структуру внутри "CRM — Вложения" — тоже нормально, но задваивает папки.
+  //
+  // Никита: чтобы кнопка выбора папки заработала, один раз в Google Cloud
+  // Console (в том же проекте, где заведён GCAL_CLIENT_ID выше по файлу)
+  // нужно: 1) включить API "Google Picker API" (APIs & Services -> Library);
+  // 2) создать API-ключ (APIs & Services -> Credentials -> Create credentials
+  // -> API key), ограничить его по HTTP referrer (https://nikitagrafis.github.io/*)
+  // и по API (только Google Picker API), и подставить его сюда — это
+  // публично-безопасное значение, как и Firebase apiKey/GCAL_CLIENT_ID выше.
+  // Новый OAuth-scope Google для этого НЕ нужен — Picker работает на уже
+  // выданном доступе drive.file (том же, что у вложений и календаря).
+  var GOOGLE_PICKER_API_KEY = "AIzaSyCAo7a_YXNI-gJreN_TX_rXv0OKMZFeI1A";
+  var GDRIVE_ROOT_KEY = "crmGdriveRootFolderId";
+  var GDRIVE_ROOT_NAME_KEY = "crmGdriveRootFolderName";
+  var gdriveSubfolderCache = {};
+  function gdrivePickedRoot() {
+    try {
+      var id = localStorage.getItem(GDRIVE_ROOT_KEY);
+      return id ? { id: id, name: localStorage.getItem(GDRIVE_ROOT_NAME_KEY) || "выбранная папка" } : null;
+    } catch (e) { return null; }
+  }
+  function setGdrivePickedRoot(id, name) {
+    try {
+      localStorage.setItem(GDRIVE_ROOT_KEY, id);
+      localStorage.setItem(GDRIVE_ROOT_NAME_KEY, name || "");
+    } catch (e) {}
+    gdriveFolderIdCache = id;
+    gdriveSubfolderCache = {};
+  }
+  // Экранирование одинарных кавычек в имени для Drive-запроса (q=...) — по
+  // синтаксису Drive API одинарная кавычка внутри строкового литерала
+  // экранируется обратным слэшем.
+  function gdriveEscapeQ(s) { return String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
+  // Общий помощник: найти вложенную папку с таким именем внутри parentId,
+  // создать если не нашлась. Результат кэшируется в памяти на сессию (по
+  // parentId+имени) — заказов/клиентов может быть много, не имеет смысла
+  // спрашивать Diск заново на каждый клик по одной и той же папке направления.
+  function gdriveEnsureChildFolder(parentId, name) {
+    var key = parentId + "\u0001" + name;
+    if (gdriveSubfolderCache[key]) return Promise.resolve(gdriveSubfolderCache[key]);
+    var q = "'" + parentId + "' in parents and mimeType='application/vnd.google-apps.folder' and name='" + gdriveEscapeQ(name) + "' and trashed=false";
+    return gdriveRequest("GET", "files?q=" + encodeURIComponent(q) + "&fields=files(id)").then(function (res) {
+      if (res && res.files && res.files.length) { gdriveSubfolderCache[key] = res.files[0].id; return gdriveSubfolderCache[key]; }
+      return gdriveRequest("POST", "files?fields=id", { name: name, mimeType: "application/vnd.google-apps.folder", parents: [parentId] }).then(function (f) {
+        gdriveSubfolderCache[key] = f.id;
+        return f.id;
+      });
+    });
+  }
+  // <корень>/<направление>/<Клиенты|Заказы>
+  function gdriveEnsureDirectionKindFolder(direction, kind) {
+    return gdriveEnsureFolder().then(function (rootId) {
+      return gdriveEnsureChildFolder(rootId, direction || "Общее");
+    }).then(function (dirId) {
+      return gdriveEnsureChildFolder(dirId, kind);
+    });
+  }
+  function gdriveEnsureNamedFolder(direction, kind, label) {
+    return gdriveEnsureDirectionKindFolder(direction, kind).then(function (kindId) {
+      return gdriveEnsureChildFolder(kindId, label);
+    });
+  }
+  function driveFolderViewUrl(id) { return "https://drive.google.com/drive/folders/" + id; }
+  function ensureOrderDriveFolder(o) {
+    var label = (o.item || "Заказ").trim() || "Заказ";
+    return gdriveEnsureNamedFolder(o.direction, "Заказы", label).then(function (id) {
+      return { id: id, url: driveFolderViewUrl(id) };
+    });
+  }
+  function ensureClientDriveFolder(o) {
+    if (!o.buyer || !o.buyer.trim()) return Promise.resolve(null);
+    return gdriveEnsureNamedFolder(o.direction, "Клиенты", o.buyer.trim()).then(function (id) {
+      return { id: id, url: driveFolderViewUrl(id) };
+    });
+  }
+  // Клик по кнопке на карточке заказа: если папка уже создавалась раньше
+  // (ссылка сохранена на заказе) — просто открываем её без похода в Drive
+  // API. Иначе создаём папку заказа (и, если указан покупатель, — папку
+  // клиента рядом, не блокируя открытие) и запоминаем ссылку на заказе,
+  // чтобы повторный клик был мгновенным и не плодил дублей.
+  function onOrderDriveFolderClick(o) {
+    if (o.driveFolderUrl) { window.open(o.driveFolderUrl, "_blank"); return; }
+    if (!gdriveReady()) { showToast("Сначала подключите Google — кнопка вверху страницы.", true); return; }
+    showToast("Создаю папку на Диске…");
+    ensureOrderDriveFolder(o).then(function (folder) {
+      persistOrder({ driveFolderId: folder.id, driveFolderUrl: folder.url }, o.id);
+      window.open(folder.url, "_blank");
+      ensureClientDriveFolder(o).catch(function (e) { console.error("client drive folder failed", e); });
+    }).catch(function (e) {
+      console.error("order drive folder failed", e);
+      showToast("Не удалось создать папку на Диске. Проверьте подключение Google.", true);
+    });
+  }
+
+  // ---------- Google Picker — выбор корневой папки на Диске (Часть 31) ----------
+  var gpickerLibLoaded = false;
+  var gpickerLibLoading = false;
+  var gpickerLoadCbs = [];
+  function ensureGooglePickerLib(cb) {
+    if (gpickerLibLoaded) { cb(); return; }
+    gpickerLoadCbs.push(cb);
+    if (gpickerLibLoading) return;
+    gpickerLibLoading = true;
+    var s = document.createElement("script");
+    s.src = "https://apis.google.com/js/api.js";
+    s.onload = function () {
+      gapi.load("picker", function () {
+        gpickerLibLoaded = true;
+        var cbs = gpickerLoadCbs; gpickerLoadCbs = [];
+        cbs.forEach(function (f) { f(); });
+      });
+    };
+    s.onerror = function () {
+      gpickerLibLoading = false;
+      gpickerLoadCbs = [];
+      showToast("Не удалось загрузить Google Picker (нет сети?).", true);
+    };
+    document.head.appendChild(s);
+  }
+  function openGdriveFolderPicker() {
+    if (!gdriveReady()) { showToast("Сначала подключите Google — кнопка вверху страницы.", true); return; }
+    if (!GOOGLE_PICKER_API_KEY) { showToast("Google Picker ещё не настроен администратором сайта.", true); return; }
+    ensureGooglePickerLib(function () {
+      var token = getGcalToken();
+      if (!token) { showToast("Сначала подключите Google — кнопка вверху страницы.", true); return; }
+      var view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+        .setSelectFolderEnabled(true)
+        .setIncludeFolders(true);
+      var picker = new google.picker.PickerBuilder()
+        .addView(view)
+        .setOAuthToken(token)
+        .setDeveloperKey(GOOGLE_PICKER_API_KEY)
+        .setCallback(function (data) {
+          if (data.action === google.picker.Action.PICKED && data.docs && data.docs[0]) {
+            var doc = data.docs[0];
+            setGdrivePickedRoot(doc.id, doc.name);
+            updateGdrivePickBtnUi();
+            showToast("Папка «" + doc.name + "» выбрана — заказы и клиенты теперь будут сохраняться в неё.");
+          }
+        })
+        .build();
+      picker.setVisible(true);
+    });
+  }
+  function updateGdrivePickBtnUi() {
+    var btn = document.getElementById("gdrivePickFolderBtn");
+    if (!btn) return;
+    btn.classList.toggle("hidden", !gdriveReady());
+    var picked = gdrivePickedRoot();
+    btn.title = picked ? ("Папка для заказов/клиентов: " + picked.name + " — нажмите, чтобы выбрать другую") : "Выбрать папку на Диске для заказов/клиентов";
+  }
+
+  // ---------- Google Sheets — еженедельный дайджест (Часть 25, доп.) ----------
+  // Переиспользует то же Google-подключение/токен, что Calendar/Drive — тут
+  // же выяснилось (и подтвердилось на практике: создание файла проходит по
+  // тому же токену без ошибок), что Sheets API даёт доступ к таблицам,
+  // которые создало само приложение, по уже выданному ранее scope
+  // drive.file — то есть для этой фичи НЕ нужен ни новый scope, ни ещё один
+  // поход Никиты в Google Cloud Console.
+  //
+  // Идея: одна таблица на весь CRM (создаётся один раз под тем Google-
+  // аккаунтом, который первым окажется подключён к этому браузеру, id
+  // таблицы запоминается в localStorage — тот же принцип, что у
+  // GCAL_TOKEN_KEY/gdriveFolderIdCache), с пятью листами: "Сводка",
+  // "Задачи", "Встречи", "Заказы", "Образцы". Обновляется автоматически в
+  // фоне (без кнопки — по прямой просьбе Никиты), но не чаще, чем раз в
+  // ~20 часов (GSHEET_EXPORT_INTERVAL_MS) и только когда все четыре
+  // коллекции успели загрузиться из Firestore хотя бы раз (см.
+  // digestDataReady/markDigestReady) — иначе первый экспорт после захода на
+  // сайт мог бы улететь по ещё пустым/неполным данным.
+  //
+  // Важно про drive.file и общий доступ: т.к. у Никиты и Евгения РАЗНЫЕ
+  // Google-аккаунты, а drive.file не даёт видеть чужие файлы — таблица,
+  // созданная в аккаунте одного из них, для другого доступна только по
+  // ссылке "любой, у кого есть ссылка — просмотр" (тот же приём, что и у
+  // вложений, см. gdriveUploadFile выше), а не через список файлов на его
+  // собственном Google Диске. Ссылка показывается во вкладке "Аналитика"
+  // (см. renderDigestLink) — независимо от того, подключен ли Google в
+  // конкретном браузере прямо сейчас, т.к. сама ссылка не требует OAuth.
+  var GSHEET_ID_KEY = "crmDigestSheetId";
+  var GSHEET_LAST_EXPORT_KEY = "crmDigestLastExportAt";
+  var GSHEET_EXPORT_INTERVAL_MS = 20 * 60 * 60 * 1000;
+  var digestDataReady = { tasks: false, samples: false, meetings: false, orders: false };
+  function digestAllDataReady() {
+    return digestDataReady.tasks && digestDataReady.samples && digestDataReady.meetings && digestDataReady.orders;
+  }
+  // Вызывается из каждой из четырёх живых Firestore-подписок (см. boot()) при
+  // каждом их срабатывании — не только при первом. Флаг "готовности" нужен
+  // только чтобы не экспортировать раньше, чем данные вообще пришли; сама
+  // периодичность (не чаще раза в ~20 часов) регулируется ниже, в
+  // maybeAutoExportDigest/digestExportDue.
+  function markDigestReady(key) {
+    digestDataReady[key] = true;
+    maybeAutoExportDigest();
+  }
+  function gsheetSpreadsheetId() {
+    try { return localStorage.getItem(GSHEET_ID_KEY) || null; } catch (e) { return null; }
+  }
+  function setGsheetSpreadsheetId(id) {
+    try { localStorage.setItem(GSHEET_ID_KEY, id); } catch (e) {}
+  }
+  function gsheetLastExportAt() {
+    try { return Number(localStorage.getItem(GSHEET_LAST_EXPORT_KEY)) || 0; } catch (e) { return 0; }
+  }
+  function setGsheetLastExportAt(ts) {
+    try { localStorage.setItem(GSHEET_LAST_EXPORT_KEY, String(ts)); } catch (e) {}
+  }
+  function digestExportDue() {
+    return Date.now() - gsheetLastExportAt() > GSHEET_EXPORT_INTERVAL_MS;
+  }
+  function gsheetApiRequest(method, path, body) {
+    var token = getGcalToken();
+    if (!token) return Promise.reject(new Error("gsheet-not-connected"));
+    var opts = { method: method, headers: { "Authorization": "Bearer " + token } };
+    if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+    return fetch("https://sheets.googleapis.com/v4/" + path, opts).then(function (r) {
+      return r.json().catch(function () { return null; }).then(function (data) {
+        if (!r.ok) {
+          var err = new Error((data && data.error && data.error.message) || ("gsheet request failed: " + r.status));
+          err.status = r.status;
+          throw err;
+        }
+        return data;
+      });
+    });
+  }
+  function gsheetCreateSpreadsheet() {
+    var sheetNames = ["Сводка", "Задачи", "Встречи", "Заказы", "Образцы"];
+    return gsheetApiRequest("POST", "spreadsheets", {
+      properties: { title: "CRM — еженедельный дайджест" },
+      sheets: sheetNames.map(function (name) { return { properties: { title: name } }; })
+    }).then(function (created) {
+      setGsheetSpreadsheetId(created.spreadsheetId);
+      return gdriveRequest("POST", "files/" + created.spreadsheetId + "/permissions", { role: "reader", type: "anyone" }).catch(function (e) {
+        console.error("gsheet permission set failed", e);
+      }).then(function () {
+        showToast("Создан дайджест в Google Sheets — ссылка появилась во вкладке «Аналитика».");
+        return created.spreadsheetId;
+      });
+    });
+  }
+  // Кэшированный id таблицы мог "протухнуть" (например, таблицу удалили
+  // руками на Диске) — тогда просто создаём новую и заново кэшируем id.
+  function gsheetEnsureSpreadsheet() {
+    var cached = gsheetSpreadsheetId();
+    if (!cached) return gsheetCreateSpreadsheet();
+    return gsheetApiRequest("GET", "spreadsheets/" + cached + "?fields=spreadsheetId").then(function () {
+      return cached;
+    }).catch(function () { return gsheetCreateSpreadsheet(); });
+  }
+  function gsheetClearAll(id) {
+    var ranges = ["Сводка!A1:Z1000", "Задачи!A1:Z1000", "Встречи!A1:Z1000", "Заказы!A1:Z1000", "Образцы!A1:Z1000"];
+    return gsheetApiRequest("POST", "spreadsheets/" + id + "/values:batchClear", { ranges: ranges });
+  }
+  function gsheetWriteValues(id, sheetName, rows) {
+    if (!rows || !rows.length) return Promise.resolve();
+    var range = encodeURIComponent(sheetName + "!A1");
+    return gsheetApiRequest("PUT", "spreadsheets/" + id + "/values/" + range + "?valueInputOption=USER_ENTERED", { values: rows });
+  }
+  // Срочность по голой дате-строке + признаку "готово" — то же самое
+  // деление на 5 корзин, что и computeUrgencyId у задач (см. выше), но без
+  // завязки на многодневный период (taskDateRange) — заказам/остальным
+  // записям это не нужно, у них всегда одна дата.
+  function dueUrgencyId(dueDate, done) {
+    if (!dueDate) return "later";
+    var today = todayStr();
+    if (dueDate < today && !done) return "overdue";
+    if (dueDate === today) return "today";
+    if (isThisWeek(dueDate)) return "week";
+    if (isThisMonth(dueDate)) return "month";
+    return "later";
+  }
+  function buildSummaryDigestRows() {
+    var openTasks = tasks.filter(function (t) { return !t.deleted && t.direction !== "Личное" && t.status !== "done"; });
+    var taskBuckets = { overdue: 0, today: 0, week: 0, month: 0, later: 0 };
+    openTasks.forEach(function (t) { taskBuckets[computeUrgencyId(t)]++; });
+    var movedTasksCount = openTasks.filter(function (t) { return dueDateChangeCount(t) > 0; }).length;
+
+    var activeOrders = orders.filter(function (o) { return !o.deleted; });
+    var orderBuckets = { overdue: 0, today: 0, week: 0, month: 0, later: 0 };
+    activeOrders.forEach(function (o) { orderBuckets[dueUrgencyId(o.dueDate, false)]++; });
+
+    var activeMeetings = meetings.filter(function (m) { return !m.deleted; });
+    var recentMeetings = activeMeetings.filter(function (m) { return m.date && m.date >= addDaysStr(todayStr(), -7); }).length;
+
+    var activeSamples = samples.filter(function (s) { return !s.deleted; });
+    var totalStock = activeSamples.reduce(function (sum, s) { return sum + computeSampleStock(s.initialQty, s.movements); }, 0);
+
+    return [
+      ["Метрика", "Значение"],
+      ["Обновлено", new Date().toLocaleString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })],
+      ["Задачи — просрочено", taskBuckets.overdue],
+      ["Задачи — сделать сегодня", taskBuckets.today],
+      ["Задачи — сделать на этой неделе", taskBuckets.week],
+      ["Задачи — сделать в этом месяце", taskBuckets.month],
+      ["Задачи — сделать позже", taskBuckets.later],
+      ["Задачи — переносилось (среди открытых)", movedTasksCount],
+      ["Заказы — просрочено", orderBuckets.overdue],
+      ["Заказы — сделать сегодня", orderBuckets.today],
+      ["Заказы — сделать на этой неделе", orderBuckets.week],
+      ["Заказы — сделать в этом месяце", orderBuckets.month],
+      ["Заказы — сделать позже", orderBuckets.later],
+      ["Встречи — всего записей", activeMeetings.length],
+      ["Встречи — за последние 7 дней", recentMeetings],
+      ["Образцы — видов", activeSamples.length],
+      ["Образцы — суммарный остаток, шт.", totalStock]
+    ];
+  }
+  function buildTasksDigestRows() {
+    var header = ["№", "Название", "Срочность", "Проект", "Юрлицо", "Ответственные", "Срок", "Переносов", "Создана"];
+    var rows = tasks.filter(function (t) {
+      return !t.deleted && t.direction !== "Личное" && t.status !== "done";
+    }).slice().sort(function (a, b) {
+      var ra = URGENCY_RANK[computeUrgencyId(a)], rb = URGENCY_RANK[computeUrgencyId(b)];
+      if (ra !== rb) return ra - rb;
+      return (a.dueDate || "") < (b.dueDate || "") ? -1 : 1;
+    }).map(function (t) {
+      return [
+        t.number || "",
+        t.title || "",
+        taskUrgency(t).label,
+        t.direction || "",
+        (t.entity && t.entity !== "Не применимо") ? t.entity : "",
+        respIds(t).map(responsibleLabel).join(", "),
+        t.dueDate || "",
+        dueDateChangeCount(t),
+        t.createdAt ? new Date(t.createdAt).toLocaleDateString("ru-RU") : ""
+      ];
+    });
+    return [header].concat(rows);
+  }
+  function buildOrdersDigestRows() {
+    var header = ["Товар/позиция", "Срочность", "Проект", "Юрлицо", "Поставщик", "Стоимость закупки", "Покупатель", "Контакт", "Ответственный", "Срок", "Создан"];
+    var rows = orders.filter(function (o) { return !o.deleted; }).slice().sort(function (a, b) {
+      var ra = URGENCY_RANK[dueUrgencyId(a.dueDate, false)], rb = URGENCY_RANK[dueUrgencyId(b.dueDate, false)];
+      if (ra !== rb) return ra - rb;
+      return (a.dueDate || "") < (b.dueDate || "") ? -1 : 1;
+    }).map(function (o) {
+      return [
+        o.item || "",
+        byId(URGENCY, dueUrgencyId(o.dueDate, false)).label,
+        o.direction || "",
+        (o.entity && o.entity !== "Не применимо") ? o.entity : "",
+        o.supplier || "",
+        o.purchaseCost || "",
+        o.buyer || "",
+        o.contact || "",
+        o.responsible ? responsibleLabel(o.responsible) : "",
+        o.dueDate || "",
+        o.createdAt ? new Date(o.createdAt).toLocaleDateString("ru-RU") : ""
+      ];
+    });
+    return [header].concat(rows);
+  }
+  function buildMeetingsDigestRows() {
+    var header = ["Дата", "Название", "Проект", "Юрлицо", "Участники", "Внешние", "Заметки"];
+    var rows = meetings.filter(function (m) { return !m.deleted; }).slice().sort(function (a, b) {
+      return (b.date || "").localeCompare(a.date || "");
+    }).map(function (m) {
+      return [
+        m.date || "",
+        m.title || "",
+        m.direction || "",
+        (m.entity && m.entity !== "Не применимо") ? m.entity : "",
+        meetingParticipantsLabel(m),
+        m.participantsExternal || "",
+        m.notes || ""
+      ];
+    });
+    return [header].concat(rows);
+  }
+  function buildSamplesDigestRows() {
+    var header = ["Название", "Проект", "Юрлицо", "Себестоимость ед.", "Стартовый остаток", "Текущий остаток", "Движений"];
+    var rows = samples.filter(function (s) { return !s.deleted; }).map(function (s) {
+      return [
+        s.name || "",
+        s.direction || "",
+        (s.entity && s.entity !== "Не применимо") ? s.entity : "",
+        s.unitCost || "",
+        s.initialQty || 0,
+        computeSampleStock(s.initialQty, s.movements),
+        Array.isArray(s.movements) ? s.movements.length : 0
+      ];
+    });
+    return [header].concat(rows);
+  }
+  function gsheetExportDigest() {
+    return gsheetEnsureSpreadsheet().then(function (id) {
+      return gsheetClearAll(id).then(function () {
+        return Promise.all([
+          gsheetWriteValues(id, "Сводка", buildSummaryDigestRows()),
+          gsheetWriteValues(id, "Задачи", buildTasksDigestRows()),
+          gsheetWriteValues(id, "Встречи", buildMeetingsDigestRows()),
+          gsheetWriteValues(id, "Заказы", buildOrdersDigestRows()),
+          gsheetWriteValues(id, "Образцы", buildSamplesDigestRows())
+        ]);
+      }).then(function () {
+        setGsheetLastExportAt(Date.now());
+        renderDigestLink();
+      });
+    });
+  }
+  function maybeAutoExportDigest() {
+    if (!digestAllDataReady()) return;
+    if (!gcalReady()) return; // Google не подключен в этом браузере — нечем экспортировать.
+    if (!digestExportDue()) return;
+    gsheetExportDigest().catch(function (e) { console.error("digest auto-export failed", e); });
+  }
+  // Ссылка на дайджест — своя, отдельная от факта подключения Google:
+  // таблица открывается по ссылке "любой, у кого есть ссылка" даже тем, у
+  // кого сейчас не подключен Google в этом браузере (см. комментарий выше).
+  function renderDigestLink() {
+    var el = document.getElementById("anDigestRow");
+    if (!el) return;
+    var id = gsheetSpreadsheetId();
+    if (!id) { el.innerHTML = ""; return; }
+    var url = "https://docs.google.com/spreadsheets/d/" + id + "/edit";
+    var lastAt = gsheetLastExportAt();
+    var when = lastAt ? new Date(lastAt).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    el.innerHTML = '<a class="an-digest-link" href="' + url + '" target="_blank" rel="noopener">📊 Открыть дайджест в Google Sheets</a>' +
+      (when ? '<span class="an-digest-when">обновлён ' + when + '</span>' : '<span class="an-digest-when">ещё не обновлялся</span>');
+  }
+
   // ---------- Wire up ----------
   function wire() {
     updateBrandDate();
@@ -8191,6 +9334,7 @@
     document.getElementById("gcalConnectBtn").addEventListener("click", function () {
       if (gcalIsConnected()) disconnectGcal(); else connectGcal();
     });
+    document.getElementById("gdrivePickFolderBtn").addEventListener("click", openGdriveFolderPicker);
     gcalTrySilentReconnect();
 
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
@@ -8212,6 +9356,16 @@
         b.classList.toggle("selected", b.getAttribute("data-id") === detected);
       });
       updateTimeFieldVisibility(detected);
+    });
+    // Часть 27: смена "Проекта" в форме новой задачи пересчитывает подсказку
+    // ответственного (для уже существующей задачи applyResponsibleSuggestion
+    // сама ничего не делает — см. её код).
+    document.getElementById("fDirection").addEventListener("change", applyResponsibleSuggestion);
+    // Часть 27: ручной клик по пилюле "Ответственный" останавливает
+    // дальнейшую автоподстановку подсказки в этой открытой форме — тот же
+    // принцип, что typeManuallySet у "Типа" (см. fTitle-обработчик выше).
+    document.getElementById("respRow").addEventListener("click", function (e) {
+      if (e.target.closest(".pill-btn")) responsibleManuallySet = true;
     });
     // CRM v2 п.10, доработано в Часть 5 п.7: комментарий отправляется сразу
     // же, не дожидаясь основного "Сохранить" формы — как обычный чат под
@@ -8366,6 +9520,14 @@
       document.getElementById("filterSearch").value = "";
       closeAllMsFilterPops();
       initFilterBar();
+      render();
+    });
+
+    refreshBoardLayoutBtn();
+    document.getElementById("boardLayoutToggle").addEventListener("click", function () {
+      boardLayout = boardLayout === "flat" ? "buckets" : "flat";
+      saveBoardLayout(boardLayout);
+      refreshBoardLayoutBtn();
       render();
     });
 
@@ -8619,6 +9781,7 @@
         unsub = db.collection("tasks").onSnapshot(function (snap) {
           tasks = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
           render();
+          markDigestReady("tasks");
         }, function (err) {
           console.error("db subscribe error", err);
           if (!tasks.length) { seedLocal(); render(); }
@@ -8627,16 +9790,19 @@
         samplesUnsub = db.collection("samples").onSnapshot(function (snap) {
           samples = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
           if (currentView === "samples") renderSamples();
+          markDigestReady("samples");
         }, function (err) { console.error("samples subscribe error", err); });
         // CRM v2 Часть 20: «Протоколы встреч/звонков» — тот же паттерн живой подписки.
         meetingsUnsub = db.collection("meetings").onSnapshot(function (snap) {
           meetings = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
           if (currentView === "meetings") renderMeetings();
+          markDigestReady("meetings");
         }, function (err) { console.error("meetings subscribe error", err); });
         // CRM v2 Часть 23: «Заказы» — тот же паттерн живой подписки.
         ordersUnsub = db.collection("orders").onSnapshot(function (snap) {
           orders = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
           if (currentView === "orders") renderOrders();
+          markDigestReady("orders");
         }, function (err) { console.error("orders subscribe error", err); });
         subscribeCustomLists();
       }).catch(function (err) {
