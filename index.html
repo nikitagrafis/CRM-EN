@@ -1148,6 +1148,7 @@
     padding: 0 0 0 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
   }
   .employee-card-inactive { opacity: .55; }
+  .who-tg { color: var(--ink-soft); font-weight: 600; }
   .employee-card-email { font-size: 12.5px; color: var(--ink-soft); margin: 2px 0 6px; word-break: break-all; }
   .employee-role-tag { font-weight: 700; }
 
@@ -4908,6 +4909,7 @@
         var me = staffList.filter(function (x) { return x.email === currentStaff.email; })[0];
         if (!me || me.active === false) { firebase.auth().signOut(); return; }
         currentStaff = me;
+        renderWhoAmI();
       }
       customResponsibleReady = true;
       mergeCustomLists();
@@ -4920,9 +4922,16 @@
     if (sel) sel.classList.add("hidden");
     if (label) {
       if (currentStaff) {
-        label.innerHTML = "Вы: " + escapeHtml(currentStaff.label || currentStaff.email) +
+        // Этап A: привязка Telegram-бота к этому сотруднику (вместо кода
+        // доступа в самом боте). После привязки бот узнаёт человека сам.
+        var tgHtml = currentStaff.telegramId
+          ? ' <span class="who-tg" title="Telegram-бот привязан">· Telegram ✓</span>'
+          : ' <button type="button" class="who-logout" id="tgLinkBtn">Привязать Telegram</button>';
+        label.innerHTML = "Вы: " + escapeHtml(currentStaff.label || currentStaff.email) + tgHtml +
           ' <button type="button" class="who-logout" id="logoutBtn">Выйти</button>';
         label.classList.remove("hidden");
+        var tb = document.getElementById("tgLinkBtn");
+        if (tb) tb.addEventListener("click", linkTelegram);
         var lb = document.getElementById("logoutBtn");
         if (lb) lb.addEventListener("click", function () { clearGcalToken(); firebase.auth().signOut(); });
       } else {
@@ -4930,6 +4939,24 @@
       }
     }
     updateAdminNav();
+  }
+  // Одноразовая ссылка на бота (15 минут). Окно открываем сразу по клику —
+  // иначе браузер заблокирует всплывающее окно после ожидания ответа сервера.
+  function linkTelegram() {
+    var user = firebase.auth().currentUser;
+    if (!user) return;
+    var w = window.open("", "_blank");
+    user.getIdToken().then(function (idt) {
+      return fetch(GOOGLE_AUTH_FN + "/tglink", { method: "POST", headers: { "Authorization": "Bearer " + idt } });
+    }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || r.status); return d; }); })
+      .then(function (d) {
+        if (w) w.location.href = d.url; else location.href = d.url;
+        showToast("Открылся Telegram — нажмите «Запустить» (Start) в боте, и привязка завершится.");
+      }).catch(function (e) {
+        if (w) w.close();
+        console.error(e);
+        showToast("Не удалось получить ссылку на бота. Попробуйте ещё раз.", true);
+      });
   }
   // Экран «Кто вы» больше не нужен — личность задаёт вход через Google.
   function updateWhoGate() {
