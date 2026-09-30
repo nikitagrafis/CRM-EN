@@ -1149,6 +1149,10 @@
   }
   .employee-card-inactive { opacity: .55; }
   .who-tg { color: var(--ink-soft); font-weight: 600; }
+  .econ-in-finance { padding: 0; margin-bottom: 22px; }
+  .econ-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .econ-filter-note { margin: -4px 0 14px; }
+  .econ-filter-note.hidden { display: none; }
   .card-history-tag { font-size: 12px; color: var(--ink-faint); margin: 2px 0 4px; }
   .history-tag-deleted { color: var(--danger); font-weight: 700; }
   .history-tag-done { color: var(--s-done); font-weight: 700; }
@@ -3429,6 +3433,53 @@
   </main>
 
   <main class="finance hidden" id="financeView">
+    <!-- 1 окт. 2026: «Экономика» переехала сюда из Аналитики — наверх «Финансов». -->
+    <div class="analytics econ-in-finance">
+    <div class="an-group">
+      <div class="an-group-header">
+        <h2>💰 Экономика</h2>
+        <span class="an-group-hint">деньги: выручка/затраты/маржа, заказы, кофе в кг</span>
+      </div>
+      <!-- 1 окт. 2026, по просьбе Никиты: срез по проектам, как в Power BI —
+           по умолчанию «Все», можно отметить один или несколько. -->
+      <div class="econ-filter" id="econDirFilter"></div>
+      <p class="an-card-hint econ-filter-note hidden" id="econFilterNote"></p>
+
+      <div class="an-kpi-grid" id="anKpiGridEcon"></div>
+
+      <!-- По просьбе Никиты (30 сент.): главный управленческий график —
+           Выручка/Затраты/Маржа по месяцам, по всем юрлицам. Данные — из
+           той же коллекции finance, что и вкладка "Финансы" (Часть 1/п.6),
+           просто за все периоды сразу, а не только за текущий месяц
+           курсора. -->
+      <div class="an-dashrow an-dashrow-single">
+        <div class="an-card an-card-wide">
+          <h3>Выручка, затраты и маржа по месяцам</h3>
+          <p class="an-card-hint" id="econTrendHint">По всем юрлицам вместе — последние 6 месяцев с введёнными цифрами ниже</p>
+          <div class="an-trend-legend">
+            <span><i class="dot" style="background:var(--chart-revenue)"></i>Выручка</span>
+            <span><i class="dot" style="background:var(--chart-costs)"></i>Затраты</span>
+            <span><i class="dot" style="background:var(--chart-margin)"></i>Маржа</span>
+          </div>
+          <div id="anFinanceTrendChart"></div>
+        </div>
+      </div>
+
+      <!-- По просьбе Никиты (30 сент.): "реально выпитый кофе, в кг" —
+           точных данных с вендинговых аппаратов в CRM нет, поэтому это
+           ОЦЕНКА по весу в оформленных заказах (см. новое поле "Вес, кг" в
+           "Заказах"), в разрезе клиента/точки (поле "Кому продать"). Заказы
+           без указанного веса просто не участвуют в подсчёте — это не то же
+           самое, что "выпито 0 кг". -->
+      <div class="an-dashrow an-dashrow-single">
+        <div class="an-card an-card-wide">
+          <h3>☕ Кофе, кг (оценка по заказам)</h3>
+          <p class="an-card-hint">Сумма поля «Вес, кг» по оформленным заказам, в разрезе «Кому продать» — не показания аппаратов, а прикидка по факту продаж</p>
+          <div id="anCoffeeKg"></div>
+        </div>
+      </div>
+    </div>
+    </div>
     <div class="fin-intro">
       <p>Черновик финансового раздела: цифры пока вводятся вручную по каждому юрлицу, маржинальная прибыль считается сама. Когда договоримся об источнике данных и валюте по каждому направлению — заменим ручной ввод на реальные цифры.</p>
     </div>
@@ -3522,46 +3573,6 @@
       </div>
     </div>
 
-    <div class="an-group">
-      <div class="an-group-header">
-        <h2>💰 Экономика</h2>
-        <span class="an-group-hint">деньги: выручка/затраты/маржа, заказы, кофе в кг</span>
-      </div>
-
-      <div class="an-kpi-grid" id="anKpiGridEcon"></div>
-
-      <!-- По просьбе Никиты (30 сент.): главный управленческий график —
-           Выручка/Затраты/Маржа по месяцам, по всем юрлицам. Данные — из
-           той же коллекции finance, что и вкладка "Финансы" (Часть 1/п.6),
-           просто за все периоды сразу, а не только за текущий месяц
-           курсора. -->
-      <div class="an-dashrow an-dashrow-single">
-        <div class="an-card an-card-wide">
-          <h3>Выручка, затраты и маржа по месяцам</h3>
-          <p class="an-card-hint">По всем юрлицам вместе — последние 6 месяцев с введёнными цифрами во «Финансах»</p>
-          <div class="an-trend-legend">
-            <span><i class="dot" style="background:var(--chart-revenue)"></i>Выручка</span>
-            <span><i class="dot" style="background:var(--chart-costs)"></i>Затраты</span>
-            <span><i class="dot" style="background:var(--chart-margin)"></i>Маржа</span>
-          </div>
-          <div id="anFinanceTrendChart"></div>
-        </div>
-      </div>
-
-      <!-- По просьбе Никиты (30 сент.): "реально выпитый кофе, в кг" —
-           точных данных с вендинговых аппаратов в CRM нет, поэтому это
-           ОЦЕНКА по весу в оформленных заказах (см. новое поле "Вес, кг" в
-           "Заказах"), в разрезе клиента/точки (поле "Кому продать"). Заказы
-           без указанного веса просто не участвуют в подсчёте — это не то же
-           самое, что "выпито 0 кг". -->
-      <div class="an-dashrow an-dashrow-single">
-        <div class="an-card an-card-wide">
-          <h3>☕ Кофе, кг (оценка по заказам)</h3>
-          <p class="an-card-hint">Сумма поля «Вес, кг» по оформленным заказам, в разрезе «Кому продать» — не показания аппаратов, а прикидка по факту продаж</p>
-          <div id="anCoffeeKg"></div>
-        </div>
-      </div>
-    </div>
   </main>
 
   <!-- CRM v2 Часть 20: «Протоколы встреч/звонков» — по просьбе Никиты (17
@@ -7647,10 +7658,113 @@
   // коллекции finance, что и график ниже (см. buildFinanceTrend) — деньги
   // первым делом видны руководителю, ещё до операционных метрик (просрочки,
   // нагрузка), которые были в плитках раньше.
+  // ---------- Срез «Экономики» по проектам (1 окт. 2026) ----------
+  // Пустой список = «Все проекты». Выручка/затраты во «Финансах» ведутся по
+  // юрлицам, поэтому проект → юрлицо по DIRECTION_ENTITY; заказы привязаны
+  // к проекту напрямую. Выбор хранится в этом браузере (личная настройка).
+  var econDirs = (function () {
+    try { var v = JSON.parse(localStorage.getItem("crmEconDirs") || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+  })();
+  function saveEconDirs() { try { localStorage.setItem("crmEconDirs", JSON.stringify(econDirs)); } catch (e) {} }
+  function econEntitySet() {
+    if (!econDirs.length) return null;
+    var set = {};
+    econDirs.forEach(function (d) {
+      var e = DIRECTION_ENTITY[d];
+      if (e && e !== "Не применимо") set[e] = true;
+    });
+    return set;
+  }
+  function econFinanceRecords() {
+    var set = econEntitySet();
+    return set ? financeAll.filter(function (r) { return set[r.entity]; }) : financeAll;
+  }
+  function econOrders() {
+    var live = orders.filter(function (o) { return !o.deleted; });
+    return econDirs.length ? live.filter(function (o) { return econDirs.indexOf(o.direction) !== -1; }) : live;
+  }
+  function renderEconFilter() {
+    var el = document.getElementById("econDirFilter");
+    if (!el) return;
+    var dirs = DIRECTIONS.filter(function (d) { return d !== "Личное"; });
+    el.innerHTML = '<button type="button" class="chip-toggle' + (econDirs.length ? '' : ' active') + '" data-dir="">Все проекты</button>' +
+      dirs.map(function (d) {
+        return '<button type="button" class="chip-toggle' + (econDirs.indexOf(d) !== -1 ? ' active' : '') + '" data-dir="' + escapeHtml(d) + '">' + escapeHtml(d) + '</button>';
+      }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll("button"), function (b) {
+      b.addEventListener("click", function () {
+        var d = b.getAttribute("data-dir");
+        if (!d) econDirs = [];
+        else {
+          var i = econDirs.indexOf(d);
+          if (i === -1) econDirs.push(d); else econDirs.splice(i, 1);
+        }
+        saveEconDirs();
+        renderEconomics();
+      });
+    });
+    var note = document.getElementById("econFilterNote");
+    var hint = document.getElementById("econTrendHint");
+    var set = econEntitySet();
+    if (note) {
+      var noEntity = econDirs.filter(function (d) { var e = DIRECTION_ENTITY[d]; return !e || e === "Не применимо"; });
+      note.textContent = noEntity.length
+        ? (noEntity.length === 1 ? "У проекта " + noEntity[0] + " нет своего юрлица — выручка и затраты по нему" : "У проектов " + noEntity.join(", ") + " нет своего юрлица — выручка и затраты по ним") +
+          " во «Финансах» не ведутся; здесь учитываются только заказы и кофе."
+        : "";
+      note.classList.toggle("hidden", !noEntity.length);
+    }
+    if (hint) {
+      hint.textContent = set
+        ? "Юрлица выбранных проектов: " + (Object.keys(set).join(", ") || "нет") + " — последние 6 месяцев"
+        : "По всем юрлицам вместе — последние 6 месяцев с введёнными цифрами ниже";
+    }
+  }
+  // Денежные плитки «Экономики» — по выбранным проектам (econOrders/
+  // econFinanceRecords); та же разметка, что раньше была в renderKpiTiles.
+  function renderEconKpis() {
+    var elEcon = document.getElementById("anKpiGridEcon");
+    if (!elEcon) return;
+    var activeOrders = econOrders();
+    var marginDeals = activeOrders.map(orderMargin).filter(Boolean);
+    var k = {
+      ordersTotal: activeOrders.length,
+      ordersOverdue: activeOrders.filter(function (o) { return o.dueDate && o.dueDate < todayStr(); }).length,
+      marginTotal: marginDeals.reduce(function (sum, m) { return sum + m.abs; }, 0),
+      marginDealsCount: marginDeals.length
+    };
+    var mf = computeMonthFinance();
+    elEcon.innerHTML =
+      // "—", если ни у одного юрлица ещё не заполнены цифры за этот месяц во
+      // "Финансах" — а не 0 ₽ (не то же самое, что "заработали в ноль").
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Выручка за месяц</div>' +
+        '<div class="an-kpi-value">' + (mf.hasAny ? formatMoney(mf.revenue) + ' ₽' : '—') + '</div></div>' +
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Маржа за месяц</div>' +
+        '<div class="an-kpi-value' + (mf.hasAny ? (mf.margin >= 0 ? ' good' : ' bad') : '') + '">' +
+          (mf.hasAny ? (mf.margin >= 0 ? '+' : '') + formatMoney(mf.margin) + ' ₽' : '—') + '</div></div>' +
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Активных заказов</div>' +
+        '<div class="an-kpi-value">' + k.ordersTotal + '</div>' +
+        (k.ordersOverdue ? '<div class="an-kpi-sub bad">' + k.ordersOverdue + ' ' + (k.ordersOverdue === 1 ? "просрочен" : "просрочены") + '</div>' : '') +
+      '</div>' +
+      // Часть 28: маржа по заказам — "—", если ещё ни у одного заказа не
+      // заполнены обе цены (закупка и продажа), а не 0 ₽ (это не то же самое,
+      // что "сработали в ноль").
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Маржа по заказам</div>' +
+        '<div class="an-kpi-value' + (k.marginDealsCount ? (k.marginTotal >= 0 ? ' good' : ' bad') : '') + '">' +
+          (k.marginDealsCount ? (k.marginTotal >= 0 ? '+' : '') + formatMoney(k.marginTotal) + ' ₽' : '—') + '</div>' +
+        (k.marginDealsCount ? '<div class="an-kpi-sub">' + k.marginDealsCount + ' ' + ruDealWord(k.marginDealsCount) + '</div>' : '') +
+      '</div>';
+  }
+  function renderEconomics() {
+    renderEconFilter();
+    renderEconKpis();
+    renderFinanceTrendChart();
+    renderCoffeeKgSection();
+  }
   function computeMonthFinance() {
     var period = periodStr(new Date());
     var revenue = 0, costs = 0, hasAny = false;
-    financeAll.forEach(function (rec) {
+    econFinanceRecords().forEach(function (rec) {
       if (rec.period !== period) return;
       hasAny = true;
       revenue += Number(rec.revenue) || 0;
@@ -7683,12 +7797,10 @@
   // "Экономика". Раньше все 7 плиток шли одной сеткой в одном месте.
   function renderKpiTiles() {
     var elTasks = document.getElementById("anKpiGridTasks");
-    var elEcon = document.getElementById("anKpiGridEcon");
-    if (!elTasks || !elEcon) return;
+    if (!elTasks) return;
     var k = computeKpis();
     var onTimeText = k.onTimeRate === null ? "—" : k.onTimeRate + "%";
     var avgCloseText = k.avgClose === null ? "—" : (k.avgClose.toFixed(1).replace(".", ",") + " дня");
-    var mf = k.monthFinance;
     elTasks.innerHTML =
       '<div class="an-kpi-tile"><div class="an-kpi-label">Просрочено сейчас</div>' +
         '<div class="an-kpi-value' + (k.overdueNow ? ' bad' : '') + '">' + k.overdueNow + '</div></div>' +
@@ -7696,26 +7808,6 @@
         '<div class="an-kpi-value' + (k.onTimeRate !== null && k.onTimeRate >= 70 ? ' good' : '') + '">' + onTimeText + '</div></div>' +
       '<div class="an-kpi-tile"><div class="an-kpi-label">Средний срок закрытия</div>' +
         '<div class="an-kpi-value">' + avgCloseText + '</div></div>';
-    elEcon.innerHTML =
-      // "—", если ни у одного юрлица ещё не заполнены цифры за этот месяц во
-      // "Финансах" — а не 0 ₽ (не то же самое, что "заработали в ноль").
-      '<div class="an-kpi-tile"><div class="an-kpi-label">Выручка за месяц</div>' +
-        '<div class="an-kpi-value">' + (mf.hasAny ? formatMoney(mf.revenue) + ' ₽' : '—') + '</div></div>' +
-      '<div class="an-kpi-tile"><div class="an-kpi-label">Маржа за месяц</div>' +
-        '<div class="an-kpi-value' + (mf.hasAny ? (mf.margin >= 0 ? ' good' : ' bad') : '') + '">' +
-          (mf.hasAny ? (mf.margin >= 0 ? '+' : '') + formatMoney(mf.margin) + ' ₽' : '—') + '</div></div>' +
-      '<div class="an-kpi-tile"><div class="an-kpi-label">Активных заказов</div>' +
-        '<div class="an-kpi-value">' + k.ordersTotal + '</div>' +
-        (k.ordersOverdue ? '<div class="an-kpi-sub bad">' + k.ordersOverdue + ' ' + (k.ordersOverdue === 1 ? "просрочен" : "просрочены") + '</div>' : '') +
-      '</div>' +
-      // Часть 28: маржа по заказам — "—", если ещё ни у одного заказа не
-      // заполнены обе цены (закупка и продажа), а не 0 ₽ (это не то же самое,
-      // что "сработали в ноль").
-      '<div class="an-kpi-tile"><div class="an-kpi-label">Маржа по заказам</div>' +
-        '<div class="an-kpi-value' + (k.marginDealsCount ? (k.marginTotal >= 0 ? ' good' : ' bad') : '') + '">' +
-          (k.marginDealsCount ? (k.marginTotal >= 0 ? '+' : '') + formatMoney(k.marginTotal) + ' ₽' : '—') + '</div>' +
-        (k.marginDealsCount ? '<div class="an-kpi-sub">' + k.marginDealsCount + ' ' + ruDealWord(k.marginDealsCount) + '</div>' : '') +
-      '</div>';
   }
   // Нагрузка по неделям (понедельник-старт, см. mondayOfWeek) — создано /
   // выполнено / просрочено-на-конец-недели. "Просрочено на конец недели" —
@@ -7799,7 +7891,7 @@
       var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       var period = periodStr(d);
       var revenue = 0, costs = 0;
-      financeAll.forEach(function (rec) {
+      econFinanceRecords().forEach(function (rec) {
         if (rec.period !== period) return;
         revenue += Number(rec.revenue) || 0;
         costs += Number(rec.costs) || 0;
@@ -7884,8 +7976,7 @@
   function computeCoffeeKgByClient() {
     var byClient = {};
     var total = 0;
-    orders.forEach(function (o) {
-      if (o.deleted) return;
+    econOrders().forEach(function (o) {
       var kg = Number(o.weightKg);
       if (!kg || kg <= 0) return;
       var label = (o.buyer || "").trim() || "Без указания клиента";
@@ -7924,7 +8015,7 @@
     }).join("");
     var restCount = data.rows.length - topRows.length;
     el.innerHTML =
-      '<div class="an-coffee-total"><span class="an-coffee-total-value">' + formatKg(data.total) + '</span><span class="an-coffee-total-label">всего по всем заказам с указанным весом</span></div>' +
+      '<div class="an-coffee-total"><span class="an-coffee-total-value">' + formatKg(data.total) + '</span><span class="an-coffee-total-label">' + (econDirs.length ? "по заказам выбранных проектов" : "всего по всем заказам") + ' с указанным весом</span></div>' +
       rowsHtml +
       (restCount > 0 ? '<div class="an-coffee-empty">…и ещё ' + restCount + ' ' + (restCount === 1 ? "клиент" : "клиентов") + ' с меньшим весом</div>' : "");
   }
@@ -7994,12 +8085,10 @@
   function renderAnalytics() {
     var liveTasks = tasks.filter(function (t) { return !t.deleted; });
     renderKpiTiles();
-    renderFinanceTrendChart();
     renderTrendChart();
     renderAnalyticsDonut(liveTasks);
     renderPersonStatsSection();
     renderProblemZones();
-    renderCoffeeKgSection();
     renderDigestLink();
 
     // Include names removed from the dropdowns too — tasks that already used
@@ -8043,6 +8132,7 @@
     }
   }
   function renderFinance() {
+    renderEconomics();
     document.getElementById("finMonthLabel").textContent = finCursor.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
     var grid = document.getElementById("finGrid");
     var totalRev = 0, totalCost = 0;
@@ -10385,7 +10475,7 @@
         // месяц), поэтому без отдельного ограничения по количеству.
         financeAllUnsub = db.collection("finance").onSnapshot(function (snap) {
           financeAll = snap.docs.map(function (d) { return d.data(); });
-          if (currentView === "analytics") renderFinanceTrendChart();
+          if (currentView === "finance") renderEconomics();
         }, function (err) { console.error("financeAll subscribe error", err); });
         subscribeCustomLists();
       }).catch(function (err) {
