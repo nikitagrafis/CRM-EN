@@ -8936,6 +8936,9 @@
     var op;
     if (!prev) {
       data.personId = genId("u");
+      // Под привязку Telegram (этап B): заполнит бот, когда сотрудник
+      // подтвердит свой аккаунт; из интерфейса CRM это поле не правится.
+      data.telegramId = "";
       data.color = RESP_COLOR_PALETTE[staffList.length % RESP_COLOR_PALETTE.length];
       data.createdAt = Date.now();
       data.createdBy = getCurrentUser();
