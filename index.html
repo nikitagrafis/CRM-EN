@@ -55,6 +55,19 @@
     --s-done: #1E8A3A;
     --s-done-soft: #E1F3E4;
 
+    /* По просьбе Никиты (30 сент.): отдельная палитра именно для графика
+       "Выручка/Затраты/Маржа" в Аналитике — не переиспользует --accent/
+       --danger/--u-later напрямую (те завязаны на смысл в других местах —
+       срочность, кнопки), а собственный набор, подобранный и провалидированный
+       (dataviz-скилл: charge floor, CVD-разделение) именно под этот график,
+       чтобы зелёно-красная пара (частая слепая зона) не путалась — маржа
+       здесь фиолетовая, а не зелёная. Для карточки "Кофе, кг" — отдельный
+       "кофейный" коричневый, тоже провалидированный. */
+    --chart-revenue: #1E6FB8;
+    --chart-costs: #C1443D;
+    --chart-margin: #8256C7;
+    --chart-coffee: #A85C16;
+
     --shadow-1: 0 1px 2px rgba(26,33,48,.06), 0 1px 1px rgba(26,33,48,.04);
     --shadow-2: 0 4px 16px rgba(26,33,48,.09), 0 1px 2px rgba(26,33,48,.06);
     --radius-s: 8px;
@@ -95,6 +108,11 @@
       --s-done: #3FA85C;
       --s-done-soft: #1B2E20;
 
+      --chart-revenue: #4A8FD1;
+      --chart-costs: #CC5A53;
+      --chart-margin: #9B72D9;
+      --chart-coffee: #B8813F;
+
       --shadow-1: 0 1px 2px rgba(0,0,0,.4);
       --shadow-2: 0 8px 24px rgba(0,0,0,.35);
     }
@@ -127,6 +145,11 @@
 
     --s-done: #6FB483;
     --s-done-soft: #1E2E22;
+
+    --chart-revenue: #4A8FD1;
+    --chart-costs: #CC5A53;
+    --chart-margin: #9B72D9;
+    --chart-coffee: #B8813F;
 
     --shadow-1: 0 1px 2px rgba(0,0,0,.4);
     --shadow-2: 0 8px 24px rgba(0,0,0,.35);
@@ -777,6 +800,16 @@
   .an-legend-label { flex: 1; color: var(--ink-soft); }
   .an-legend-val { font-family: var(--font-mono); color: var(--ink); font-weight: 600; }
   .an-breakdown-caption { font-size: 12px; color: var(--ink-faint); margin: -6px 0 20px; }
+  /* По просьбе Никиты (30 сент.): Аналитика разделена на два явных блока —
+     "Задачи" (операционка: сроки, нагрузка, разбивки) и "Экономика" (деньги:
+     выручка/затраты/маржа, кофе в кг) — чтобы не путать с вкладкой
+     "Финансы" (там — ручной ввод цифр по месяцам; здесь — расчётные отчёты
+     на основе Финансов+Задач+Заказов). См. renderAnalytics(). */
+  .an-group { margin-bottom: 30px; }
+  .an-group-header { display: flex; align-items: baseline; gap: 10px; margin: 0 0 14px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .an-group:first-of-type .an-group-header { border-top: none; padding-top: 0; }
+  .an-group-header h2 { font-family: var(--font-display); font-weight: 700; font-size: 17px; margin: 0; }
+  .an-group-header .an-group-hint { font-size: 11.5px; color: var(--ink-faint); }
   .an-section { margin-bottom: 26px; }
   .an-section h3 { font-family: var(--font-display); font-weight: 600; font-size: 14px; margin: 0 0 10px; }
   .an-rows { display: flex; flex-direction: column; gap: 11px; }
@@ -840,6 +873,10 @@
   .an-kpi-sub.bad { color: var(--danger); }
 
   .an-dashrow { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-bottom: 14px; align-items: start; }
+  /* По просьбе Никиты (30 сент.): строки-"герои" на всю ширину — график
+     Выручка/Затраты/Маржа и блок "Кофе, кг" — не делят место с соседом,
+     как обычные an-dashrow, а идут одной широкой карточкой. */
+  .an-dashrow-single { grid-template-columns: 1fr; }
   .an-card { background: var(--surface); border-radius: var(--radius-m); padding: 16px 18px; box-shadow: var(--shadow-1); }
   .an-card h3 { font-family: var(--font-display); font-weight: 600; font-size: 13px; margin: 0 0 3px; }
   .an-card .an-card-hint { font-size: 11px; color: var(--ink-faint); margin: 0 0 12px; }
@@ -847,6 +884,19 @@
   .an-trend-legend { display: flex; gap: 14px; font-size: 11px; font-weight: 600; flex-wrap: wrap; margin-bottom: 8px; }
   .an-trend-legend span { display: inline-flex; align-items: center; gap: 5px; }
   .an-trend-legend .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
+
+  /* "Кофе, кг" — горизонтальные бары, ранжирование клиентов по одной
+     величине (dataviz: magnitude -> один акцентный оттенок, не
+     категориальная палитра). Заголовочная цифра — общий итог сверху. */
+  .an-coffee-total { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+  .an-coffee-total-value { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--chart-coffee); }
+  .an-coffee-total-label { font-size: 12px; color: var(--ink-faint); font-weight: 600; }
+  .an-coffee-empty { font-size: 12.5px; color: var(--ink-faint); padding: 4px 0; }
+  .an-coffee-row { display: grid; grid-template-columns: 140px 1fr 64px; align-items: center; gap: 10px; padding: 5px 0; }
+  .an-coffee-row-label { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .an-coffee-row-track { background: var(--surface-2); border-radius: 4px; height: 10px; overflow: hidden; }
+  .an-coffee-row-fill { background: var(--chart-coffee); height: 100%; border-radius: 4px; min-width: 3px; }
+  .an-coffee-row-value { font-size: 12px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 
   .an-zone-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
   .an-zone-row:last-child { border-bottom: none; }
@@ -3301,6 +3351,14 @@
       <button type="button" class="ms-filter-btn" id="filterResponsibleBtn" aria-haspopup="true" aria-expanded="false">Все ответственные</button>
       <div class="ms-filter-pop hidden" id="filterResponsiblePop"></div>
     </div>
+    <!-- По просьбе Никиты (30 сент.): отдельный фильтр "кто поставил задачу"
+         (createdBy) — отличается от "Ответственный" (кому назначена): здесь
+         ищем по автору задачи, тот же список людей (RESPONSIBLE), что и у
+         Ответственного. -->
+    <div class="ms-filter" id="filterCreatorWrap">
+      <button type="button" class="ms-filter-btn" id="filterCreatorBtn" aria-haspopup="true" aria-expanded="false">Все постановщики</button>
+      <div class="ms-filter-pop hidden" id="filterCreatorPop"></div>
+    </div>
     <div class="ms-filter" id="filterTypeWrap">
       <button type="button" class="ms-filter-btn" id="filterTypeBtn" aria-haspopup="true" aria-expanded="false">Все типы задач</button>
       <div class="ms-filter-pop hidden" id="filterTypePop"></div>
@@ -3359,73 +3417,123 @@
   <main class="analytics hidden" id="analyticsView">
     <div class="an-digest-row" id="anDigestRow"></div>
 
-    <!-- Часть 26: дашборд-сетка — по просьбе Никиты и Жени, "больше данных и
-         графиков, полезных для работы" наверху, одним взглядом без
-         скроллинга. Ниже, ПОСЛЕ этого блока — прежние разделы без изменений
-         (донат, "Между вами", разбивки по проектам/юрлицам/типу/
-         ответственному). -->
-    <div class="an-kpi-grid" id="anKpiGrid"></div>
-
-    <div class="an-dashrow">
-      <div class="an-card">
-        <h3>Нагрузка по неделям</h3>
-        <p class="an-card-hint">Создано vs выполнено задач — видно, копится долг или успеваете разгребать</p>
-        <div class="an-trend-legend">
-          <span><i class="dot" style="background:var(--accent)"></i>Создано</span>
-          <span><i class="dot" style="background:var(--s-done)"></i>Выполнено</span>
-          <span><i class="dot" style="background:var(--danger)"></i>Просрочено на конец недели</span>
-        </div>
-        <div id="anTrendChart"></div>
+    <!-- По просьбе Никиты и Жени (30 сент.): Аналитика — два явных раздела,
+         чтобы не казалось, что "аналитика по задачам пропала". Сначала
+         "Задачи" (операционка: сроки, нагрузка, кто чем занят, разбивки по
+         проектам/юрлицам/типу/ответственному), потом "Экономика" (деньги:
+         выручка/затраты/маржа по месяцам, маржа по заказам, кофе в кг).
+         Раньше это был один сплошной набор карточек без подписей — отсюда и
+         впечатление, что раздел задач исчез, когда наверх добавили деньги. -->
+    <div class="an-group">
+      <div class="an-group-header">
+        <h2>📋 Задачи</h2>
+        <span class="an-group-hint">сроки, нагрузка, разбивки по направлениям и людям</span>
       </div>
-      <div class="an-card">
-        <div class="an-person-header" style="margin-bottom:12px">
-          <h3 style="margin:0">Между вами</h3>
-          <div class="an-period-toggle" id="anPersonPeriodToggle">
-            <button type="button" class="chip-toggle" data-period="week">Неделя</button>
-            <button type="button" class="chip-toggle" data-period="month">Месяц</button>
-            <button type="button" class="chip-toggle" data-period="all">Всё время</button>
+
+      <div class="an-kpi-grid" id="anKpiGridTasks"></div>
+
+      <div class="an-dashrow">
+        <div class="an-card">
+          <h3>Нагрузка по неделям</h3>
+          <p class="an-card-hint">Создано vs выполнено задач — видно, копится долг или успеваете разгребать</p>
+          <div class="an-trend-legend">
+            <span><i class="dot" style="background:var(--accent)"></i>Создано</span>
+            <span><i class="dot" style="background:var(--s-done)"></i>Выполнено</span>
+            <span><i class="dot" style="background:var(--danger)"></i>Просрочено на конец недели</span>
           </div>
+          <div id="anTrendChart"></div>
         </div>
-        <div class="an-person-rows" id="anByPerson"></div>
-      </div>
-    </div>
-
-    <div class="an-dashrow">
-      <div class="an-card">
-        <div class="an-summary" style="margin:0">
-          <div class="an-donut-wrap">
-            <svg id="anDonut" class="an-donut" viewBox="0 0 120 120" role="img" aria-label="Задачи по статусам"></svg>
-            <div class="an-donut-center">
-              <div class="an-donut-total" id="anTotal">0</div>
-              <div class="an-donut-total-label">задач</div>
+        <div class="an-card">
+          <div class="an-person-header" style="margin-bottom:12px">
+            <h3 style="margin:0">Между вами</h3>
+            <div class="an-period-toggle" id="anPersonPeriodToggle">
+              <button type="button" class="chip-toggle" data-period="week">Неделя</button>
+              <button type="button" class="chip-toggle" data-period="month">Месяц</button>
+              <button type="button" class="chip-toggle" data-period="all">Всё время</button>
             </div>
           </div>
-          <div class="an-legend" id="anLegend"></div>
+          <div class="an-person-rows" id="anByPerson"></div>
         </div>
       </div>
-      <div class="an-card">
-        <h3>Проблемные зоны</h3>
-        <p class="an-card-hint">На что стоит посмотреть в первую очередь</p>
-        <div id="anProblemZones"></div>
+
+      <div class="an-dashrow">
+        <div class="an-card">
+          <div class="an-summary" style="margin:0">
+            <div class="an-donut-wrap">
+              <svg id="anDonut" class="an-donut" viewBox="0 0 120 120" role="img" aria-label="Задачи по статусам"></svg>
+              <div class="an-donut-center">
+                <div class="an-donut-total" id="anTotal">0</div>
+                <div class="an-donut-total-label">задач</div>
+              </div>
+            </div>
+            <div class="an-legend" id="anLegend"></div>
+          </div>
+        </div>
+        <div class="an-card">
+          <h3>Проблемные зоны</h3>
+          <p class="an-card-hint">На что стоит посмотреть в первую очередь</p>
+          <div id="anProblemZones"></div>
+        </div>
+      </div>
+
+      <div class="an-breakdown-caption">Полоски ниже: <span style="color:var(--s-done); font-weight:600">зелёным</span> — доля выполненных, <span style="color:var(--danger); font-weight:600">красным</span> — доля просроченных.</div>
+      <div class="an-section">
+        <h3>По проектам</h3>
+        <div class="an-rows" id="anByDirection"></div>
+      </div>
+      <div class="an-section">
+        <h3>По юрлицам</h3>
+        <div class="an-rows" id="anByEntity"></div>
+      </div>
+      <div class="an-section">
+        <h3>По типу задачи</h3>
+        <div class="an-rows" id="anByType"></div>
+      </div>
+      <div class="an-section">
+        <h3>По ответственному</h3>
+        <div class="an-rows" id="anByResp"></div>
       </div>
     </div>
 
-    <div class="an-breakdown-caption">Полоски ниже: <span style="color:var(--s-done); font-weight:600">зелёным</span> — доля выполненных, <span style="color:var(--danger); font-weight:600">красным</span> — доля просроченных.</div>
-    <div class="an-section">
-      <h3>По проектам</h3>
-      <div class="an-rows" id="anByDirection"></div>
-    </div>
-    <div class="an-section">
-      <h3>По юрлицам</h3>
-      <div class="an-rows" id="anByEntity"></div>
-    </div>
-    <div class="an-section">
-      <h3>По типу задачи</h3>
-      <div class="an-rows" id="anByType"></div>
-    </div>
-    <div class="an-section">
-      <h3>По ответственному</h3>
-      <div class="an-rows" id="anByResp"></div>
+    <div class="an-group">
+      <div class="an-group-header">
+        <h2>💰 Экономика</h2>
+        <span class="an-group-hint">деньги: выручка/затраты/маржа, заказы, кофе в кг</span>
+      </div>
+
+      <div class="an-kpi-grid" id="anKpiGridEcon"></div>
+
+      <!-- По просьбе Никиты (30 сент.): главный управленческий график —
+           Выручка/Затраты/Маржа по месяцам, по всем юрлицам. Данные — из
+           той же коллекции finance, что и вкладка "Финансы" (Часть 1/п.6),
+           просто за все периоды сразу, а не только за текущий месяц
+           курсора. -->
+      <div class="an-dashrow an-dashrow-single">
+        <div class="an-card an-card-wide">
+          <h3>Выручка, затраты и маржа по месяцам</h3>
+          <p class="an-card-hint">По всем юрлицам вместе — последние 6 месяцев с введёнными цифрами во «Финансах»</p>
+          <div class="an-trend-legend">
+            <span><i class="dot" style="background:var(--chart-revenue)"></i>Выручка</span>
+            <span><i class="dot" style="background:var(--chart-costs)"></i>Затраты</span>
+            <span><i class="dot" style="background:var(--chart-margin)"></i>Маржа</span>
+          </div>
+          <div id="anFinanceTrendChart"></div>
+        </div>
+      </div>
+
+      <!-- По просьбе Никиты (30 сент.): "реально выпитый кофе, в кг" —
+           точных данных с вендинговых аппаратов в CRM нет, поэтому это
+           ОЦЕНКА по весу в оформленных заказах (см. новое поле "Вес, кг" в
+           "Заказах"), в разрезе клиента/точки (поле "Кому продать"). Заказы
+           без указанного веса просто не участвуют в подсчёте — это не то же
+           самое, что "выпито 0 кг". -->
+      <div class="an-dashrow an-dashrow-single">
+        <div class="an-card an-card-wide">
+          <h3>☕ Кофе, кг (оценка по заказам)</h3>
+          <p class="an-card-hint">Сумма поля «Вес, кг» по оформленным заказам, в разрезе «Кому продать» — не показания аппаратов, а прикидка по факту продаж</p>
+          <div id="anCoffeeKg"></div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -3933,6 +4041,15 @@
       <input type="text" id="orContact">
     </div>
 
+    <!-- По просьбе Никиты (30 сент.): необязательное поле веса — только для
+         подсчёта "реально выпитого кофе, кг" в Аналитике (прикидка по
+         заказам, см. computeCoffeeKgByClient). Не обязательно для всех
+         заказов, поэтому явно подписано "необязательно". -->
+    <div class="field">
+      <label class="field-label" for="orWeightKg">Вес, кг (необязательно — для оценки «Кофе, кг» в Аналитике)</label>
+      <input type="number" id="orWeightKg" inputmode="decimal" min="0" step="0.1" placeholder="0">
+    </div>
+
     <!-- Часть 28: статус сделки — по просьбе Никиты и Жени, видно на какой
          стадии перекуп (Ожидание/Куплено/Продано/Оплачено), не только срок. -->
     <div class="field">
@@ -4329,6 +4446,13 @@
   var finCursor = new Date();
   var finData = {}; // entity label -> { revenue, costs }
   var finUnsub = null;
+  // По просьбе Никиты (30 сент.): для графика "Выручка/Затраты/Маржа по
+  // месяцам" в Аналитике нужны ВСЕ периоды сразу, а не только текущий месяц
+  // курсора finCursor (тот остаётся как есть — под редактируемую вкладку
+  // "Финансы"). Отдельная постоянная подписка на всю коллекцию finance,
+  // тем же паттерном живой подписки, что tasks/samples/meetings/orders.
+  var financeAll = []; // [{ entity, period: "YYYY-MM", revenue, costs }, ...]
+  var financeAllUnsub = null;
   // CRM v2 Часть 5, п.16: три отдельные кнопки-переключателя (Сегодня/Эта
   // неделя/Просроченные) заменены одним полем "Срок задачи" — filters.due,
   // значение одно из "" (все), "today","week","month","later","overdue",
@@ -4337,7 +4461,7 @@
   // теперь МАССИВЫ выбранных значений (можно отметить несколько сразу) —
   // раньше было одно строковое значение на поле, как у обычного <select>.
   // Пустой массив = "без фильтра по этому полю", как раньше пустая строка.
-  var filters = { direction: [], entity: [], responsible: [], type: [], due: [], search: "" };
+  var filters = { direction: [], entity: [], responsible: [], creator: [], type: [], due: [], search: "" };
   // Часть 5, п.25 (по просьбе Никиты, 29 сент.): вид доски — "buckets"
   // (по умолчанию, пять колонок по срочности) или "flat" (все открытые
   // задачи одним списком, сортировка — новые сверху, см. byNewestFirst).
@@ -5161,10 +5285,10 @@
     if (localSeeded) return; localSeeded = true;
     var t = todayStr();
     tasks = [
-      { id: "demo1", number: 1, title: "Согласовать договор поставки — пример", type: "document", direction: "Вкуснокофе", entity: "ООО Вкуснокофе", responsible: "nikita", dueDate: t, status: "open", notes: "" },
-      { id: "demo2", number: 2, title: "Созвон с партнёром по Биржа33 — пример", type: "call", direction: "Биржа33", entity: "ООО Биржа 33", responsible: "evgeniy", dueDate: addDaysStr(t, 3), status: "open", notes: "" },
-      { id: "demo3", number: 3, title: "Письмо в банк по Капсо — пример", type: "letter", direction: "Капсо", entity: "АО Капсо", responsible: "nikita", dueDate: addDaysStr(t, 12), status: "open", notes: "" },
-      { id: "demo4", number: 4, title: "Командировка в Санкт-Петербург — пример", type: "trip", direction: "Общее", entity: "Не применимо", responsible: "evgeniy", startDate: t, dueDate: addDaysStr(t, 4), status: "open", notes: "" }
+      { id: "demo1", number: 1, title: "Согласовать договор поставки — пример", type: "document", direction: "Вкуснокофе", entity: "ООО Вкуснокофе", responsible: "nikita", createdBy: "nikita", dueDate: t, status: "open", notes: "" },
+      { id: "demo2", number: 2, title: "Созвон с партнёром по Биржа33 — пример", type: "call", direction: "Биржа33", entity: "ООО Биржа 33", responsible: "evgeniy", createdBy: "nikita", dueDate: addDaysStr(t, 3), status: "open", notes: "" },
+      { id: "demo3", number: 3, title: "Письмо в банк по Капсо — пример", type: "letter", direction: "Капсо", entity: "АО Капсо", responsible: "nikita", createdBy: "evgeniy", dueDate: addDaysStr(t, 12), status: "open", notes: "" },
+      { id: "demo4", number: 4, title: "Командировка в Санкт-Петербург — пример", type: "trip", direction: "Общее", entity: "Не применимо", responsible: "evgeniy", createdBy: "evgeniy", startDate: t, dueDate: addDaysStr(t, 4), status: "open", notes: "" }
     ];
     samples = [
       { id: "sdemo1", name: "Образец ткани А12 — пример", direction: "Рубинтрейд", entity: "ООО Рубинтрейд", unitCost: 350, initialQty: 20,
@@ -5179,9 +5303,31 @@
     ];
     orders = [
       { id: "odemo1", item: "60 кг кофе Вкуснокофе — пример", direction: "Вкуснокофе", entity: "ООО Вкуснокофе",
-        supplier: "ООО Рубинтрейд", purchaseCost: 45000, buyer: "Кофейня «Утро»", contact: "Мария, +7 900 000-00-00",
-        dueDate: addDaysStr(t, 7), responsible: "nikita", createdBy: "nikita", createdAt: new Date(t + "T00:00:00").getTime() }
+        supplier: "ООО Рубинтрейд", purchaseCost: 45000, buyer: "Кофейня «Утро»", contact: "Мария, +7 900 000-00-00", weightKg: 60,
+        dueDate: addDaysStr(t, 7), responsible: "nikita", createdBy: "nikita", createdAt: new Date(t + "T00:00:00").getTime() },
+      // По просьбе Никиты (30 сент.): ещё пара демо-заказов с весом и
+      // разными клиентами — чтобы блок "Кофе, кг" в Аналитике было на чём
+      // показать (одной строки недостаточно для осмысленного ранжирования).
+      { id: "odemo2", item: "25 кг кофе Вкуснокофе — пример", direction: "Вкуснокофе", entity: "ООО Вкуснокофе",
+        supplier: "ООО Рубинтрейд", purchaseCost: 19000, buyer: "Офис «Биржа33»", contact: "", weightKg: 25,
+        dueDate: addDaysStr(t, 14), responsible: "evgeniy", createdBy: "evgeniy", createdAt: new Date(t + "T00:00:00").getTime() - 86400000*10 },
+      { id: "odemo3", item: "40 кг кофе Вкуснокофе — пример", direction: "Вкуснокофе", entity: "ООО Вкуснокофе",
+        supplier: "ООО Рубинтрейд", purchaseCost: 30000, buyer: "Кофейня «Утро»", contact: "", weightKg: 18,
+        dueDate: addDaysStr(t, -5), responsible: "nikita", createdBy: "nikita", createdAt: new Date(t + "T00:00:00").getTime() - 86400000*20 }
     ];
+    // По просьбе Никиты (30 сент.): демо-история Финансов за последние 6
+    // месяцев по двум юрлицам — без этого график "Выручка/Затраты/Маржа"
+    // в офлайн-режиме (без Firestore) был бы плоской линией по нулям.
+    // finData/subscribeFinance (редактируемая вкладка "Финансы") этот массив
+    // не трогает — он только для financeAll (постоянная подписка, используется
+    // графиком в Аналитике).
+    financeAll = [];
+    [5,4,3,2,1,0].forEach(function (monthsAgo, idx) {
+      var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - monthsAgo);
+      var period = periodStr(d);
+      financeAll.push({ entity: "ООО Вкуснокофе", period: period, revenue: 820000 + idx*65000, costs: 560000 + idx*38000 });
+      financeAll.push({ entity: "АО Капсо", period: period, revenue: 310000 + idx*12000, costs: 260000 + idx*22000 });
+    });
     // Часть 25 (доп.): раз все четыре коллекции только что заполнены локально
     // (Firestore недоступен), для дайджеста они тоже "готовы" — см.
     // digestDataReady/maybeAutoExportDigest выше по файлу.
@@ -5520,6 +5666,7 @@
     filters.direction = filters.direction.filter(function (d) { return scopedDirs.indexOf(d) !== -1; });
     filters.entity = filters.entity.filter(function (e) { return ENTITIES.indexOf(e) !== -1; });
     filters.responsible = filters.responsible.filter(function (id) { return RESPONSIBLE.some(function (r) { return r.id === id; }); });
+    filters.creator = filters.creator.filter(function (id) { return RESPONSIBLE.some(function (r) { return r.id === id; }); });
     // Часть 22: заводить новые проекты/юрлица/людей — теперь действие
     // администратора (Никита/Женя); у сотрудника пунктов "+ Добавить…" и
     // "Удалить из списка…" в этих трёх фильтрах просто нет.
@@ -5534,6 +5681,10 @@
     setupMsFilter("filterResponsible", "responsible", RESPONSIBLE.map(function (r) { return { value: r.id, label: r.label }; }), "Все ответственные", isAdmin() ? {
       add: function () { handleFilterAdd("responsible", "responsible"); }
     } : null);
+    // По просьбе Никиты (30 сент.): фильтр "Постановщик" — по createdBy,
+    // тот же список людей, что у "Ответственный", без своего "+ Добавить…"
+    // (это не отдельный справочник, а тот же RESPONSIBLE).
+    setupMsFilter("filterCreator", "creator", RESPONSIBLE.map(function (r) { return { value: r.id, label: r.label }; }), "Все постановщики", null);
     setupMsFilter("filterType", "type", TYPES.map(function (ty) { return { value: ty.id, label: ty.label }; }), "Все типы задач", null);
     // Часть 5, п.16: единое поле "Срок задачи" вместо трёх кнопок
     // (Сегодня/Эта неделя/Просроченные) + отдельно "Готово"/"Удалённые".
@@ -5809,6 +5960,9 @@
     if (filters.direction.length && filters.direction.indexOf(t.direction) === -1) return false;
     if (filters.entity.length && filters.entity.indexOf(t.entity) === -1) return false;
     if (filters.responsible.length && !respIds(t).some(function (id) { return filters.responsible.indexOf(id) !== -1; })) return false;
+    // По просьбе Никиты (30 сент.): фильтр "Постановщик" — по полю createdBy
+    // (кто ЗАВЁЛ задачу), отдельно от "Ответственный" (кому она назначена).
+    if (filters.creator.length && filters.creator.indexOf(t.createdBy) === -1) return false;
     if (filters.type.length && filters.type.indexOf(t.type) === -1) return false;
     if (filters.search) {
       var q = filters.search.trim();
@@ -7131,6 +7285,7 @@
     if (filters.direction.length) n++;
     if (filters.entity.length) n++;
     if (filters.responsible.length) n++;
+    if (filters.creator.length) n++;
     if (filters.type.length) n++;
     if (filters.due.length) n++;
     var badge = document.getElementById("filtersCount");
@@ -7366,6 +7521,22 @@
     if (!samples.length) return null;
     return samples.reduce(function (a, b) { return a + b; }, 0) / samples.length;
   }
+  // По просьбе Никиты (30 сент.): "основные управленческие показатели" —
+  // выручка и маржа за ТЕКУЩИЙ месяц по всем юрлицам сразу, из той же
+  // коллекции finance, что и график ниже (см. buildFinanceTrend) — деньги
+  // первым делом видны руководителю, ещё до операционных метрик (просрочки,
+  // нагрузка), которые были в плитках раньше.
+  function computeMonthFinance() {
+    var period = periodStr(new Date());
+    var revenue = 0, costs = 0, hasAny = false;
+    financeAll.forEach(function (rec) {
+      if (rec.period !== period) return;
+      hasAny = true;
+      revenue += Number(rec.revenue) || 0;
+      costs += Number(rec.costs) || 0;
+    });
+    return { hasAny: hasAny, revenue: revenue, costs: costs, margin: revenue - costs };
+  }
   function computeKpis() {
     var overdueNow = tasks.filter(function (t) { return !t.deleted && t.direction !== "Личное" && isOverdue(t); }).length;
     var activeOrders = orders.filter(function (o) { return !o.deleted; });
@@ -7376,6 +7547,7 @@
     var marginDeals = activeOrders.map(orderMargin).filter(Boolean);
     var marginTotal = marginDeals.reduce(function (s, m) { return s + m.abs; }, 0);
     return {
+      monthFinance: computeMonthFinance(),
       overdueNow: overdueNow,
       onTimeRate: computeOnTimeRate("month"),
       avgClose: computeAvgCloseDays("month"),
@@ -7385,19 +7557,32 @@
       marginDealsCount: marginDeals.length
     };
   }
+  // По просьбе Никиты и Жени (30 сент.): плитки разнесены по двум сеткам —
+  // операционные (задачи) в раздел "Задачи", денежные — в раздел
+  // "Экономика". Раньше все 7 плиток шли одной сеткой в одном месте.
   function renderKpiTiles() {
-    var el = document.getElementById("anKpiGrid");
-    if (!el) return;
+    var elTasks = document.getElementById("anKpiGridTasks");
+    var elEcon = document.getElementById("anKpiGridEcon");
+    if (!elTasks || !elEcon) return;
     var k = computeKpis();
     var onTimeText = k.onTimeRate === null ? "—" : k.onTimeRate + "%";
     var avgCloseText = k.avgClose === null ? "—" : (k.avgClose.toFixed(1).replace(".", ",") + " дня");
-    el.innerHTML =
+    var mf = k.monthFinance;
+    elTasks.innerHTML =
       '<div class="an-kpi-tile"><div class="an-kpi-label">Просрочено сейчас</div>' +
         '<div class="an-kpi-value' + (k.overdueNow ? ' bad' : '') + '">' + k.overdueNow + '</div></div>' +
       '<div class="an-kpi-tile"><div class="an-kpi-label">Вовремя за 30 дней</div>' +
         '<div class="an-kpi-value' + (k.onTimeRate !== null && k.onTimeRate >= 70 ? ' good' : '') + '">' + onTimeText + '</div></div>' +
       '<div class="an-kpi-tile"><div class="an-kpi-label">Средний срок закрытия</div>' +
-        '<div class="an-kpi-value">' + avgCloseText + '</div></div>' +
+        '<div class="an-kpi-value">' + avgCloseText + '</div></div>';
+    elEcon.innerHTML =
+      // "—", если ни у одного юрлица ещё не заполнены цифры за этот месяц во
+      // "Финансах" — а не 0 ₽ (не то же самое, что "заработали в ноль").
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Выручка за месяц</div>' +
+        '<div class="an-kpi-value">' + (mf.hasAny ? formatMoney(mf.revenue) + ' ₽' : '—') + '</div></div>' +
+      '<div class="an-kpi-tile"><div class="an-kpi-label">Маржа за месяц</div>' +
+        '<div class="an-kpi-value' + (mf.hasAny ? (mf.margin >= 0 ? ' good' : ' bad') : '') + '">' +
+          (mf.hasAny ? (mf.margin >= 0 ? '+' : '') + formatMoney(mf.margin) + ' ₽' : '—') + '</div></div>' +
       '<div class="an-kpi-tile"><div class="an-kpi-label">Активных заказов</div>' +
         '<div class="an-kpi-value">' + k.ordersTotal + '</div>' +
         (k.ordersOverdue ? '<div class="an-kpi-sub bad">' + k.ordersOverdue + ' ' + (k.ordersOverdue === 1 ? "просрочен" : "просрочены") + '</div>' : '') +
@@ -7478,6 +7663,150 @@
         xLabels +
       '</svg>';
   }
+  // По просьбе Никиты (30 сент.): главный управленческий график —
+  // Выручка/Затраты/Маржа по месяцам, по всем юрлицам сразу, из ВСЕХ
+  // периодов finance (financeAll — постоянная подписка, см. boot()), а не
+  // только текущего месяца курсора finCursor (тот — для редактируемой
+  // вкладки "Финансы", не трогали). Месяцы без единой заполненной цифры
+  // показываются нулями — это ожидаемо для месяцев до начала ведения
+  // Финансов в CRM, не ошибка.
+  function buildFinanceTrend(monthsCount) {
+    monthsCount = monthsCount || 6;
+    var now = new Date();
+    var months = [];
+    for (var i = monthsCount - 1; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      var period = periodStr(d);
+      var revenue = 0, costs = 0;
+      financeAll.forEach(function (rec) {
+        if (rec.period !== period) return;
+        revenue += Number(rec.revenue) || 0;
+        costs += Number(rec.costs) || 0;
+      });
+      months.push({
+        label: d.toLocaleDateString("ru-RU", { month: "short", year: "2-digit" }),
+        revenue: revenue, costs: costs, margin: revenue - costs
+      });
+    }
+    return months;
+  }
+  // Тот же SVG-приём, что и в "Нагрузке по неделям" (без библиотек), но с
+  // двумя отличиями, важными именно для денег: (1) шкала считается и по
+  // отрицательным значениям (маржа может уйти в минус), полоска нуля видна
+  // отдельной линией; (2) у каждой линии — прямая подпись значения в конце
+  // (dataviz: цвет читает не каждый, точная цифра — текстом, не только
+  // цветом) и свой пунктир (сплошная/пунктир/штрихпунктир), чтобы линии
+  // различались не только оттенком — зелёно-красная пара плохо разделяется
+  // при дальтонизме, поэтому маржа сознательно фиолетовая, а не зелёная
+  // (см. --chart-margin).
+  function renderFinanceTrendChart() {
+    var el = document.getElementById("anFinanceTrendChart");
+    if (!el) return;
+    var months = buildFinanceTrend(6);
+    var allVals = [];
+    months.forEach(function (m) { allVals.push(m.revenue, m.costs, m.margin); });
+    var maxVal = Math.max(1, Math.max.apply(null, allVals));
+    var minVal = Math.min(0, Math.min.apply(null, allVals));
+    var W = 640, H = 190, padTop = 10, padBottom = 22, padX = 8, padRight = 78;
+    var innerH = H - padTop - padBottom;
+    var range = (maxVal - minVal) || 1;
+    var stepX = months.length > 1 ? (W - padX - padRight) / (months.length - 1) : 0;
+    function xAt(i) { return padX + i * stepX; }
+    function yAt(v) { return padTop + innerH - ((v - minVal) / range) * innerH; }
+    function pointsFor(key) { return months.map(function (m, i) { return xAt(i) + "," + yAt(m[key]); }).join(" "); }
+    function dotsFor(key, colorVar, label) {
+      return months.map(function (m, i) {
+        return '<circle cx="' + xAt(i) + '" cy="' + yAt(m[key]) + '" r="2.6" fill="' + colorVar + '"><title>' + escapeHtml(m.label) + ' — ' + label + ': ' + formatMoney(m[key]) + ' ₽</title></circle>';
+      }).join("");
+    }
+    function endLabel(key, colorVar) {
+      var last = months[months.length - 1];
+      var v = last[key];
+      var sign = v < 0 ? "−" : "";
+      return '<circle cx="' + xAt(months.length - 1) + '" cy="' + yAt(v) + '" r="3" fill="' + colorVar + '"></circle>' +
+        '<text x="' + (xAt(months.length - 1) + 8) + '" y="' + (yAt(v) + 3.5) + '" font-size="10.5" font-weight="700" fill="var(--ink)">' + sign + formatMoney(Math.abs(v)) + '</text>';
+    }
+    var gridLines = [0, 0.5, 1].map(function (f) {
+      var y = padTop + innerH * f;
+      return '<line x1="' + padX + '" y1="' + y + '" x2="' + (W - padRight) + '" y2="' + y + '" stroke="var(--line)" stroke-width="1"></line>';
+    }).join("");
+    // Отдельная, чуть более заметная линия нуля — только если диапазон
+    // вообще уходит в минус (иначе она совпала бы с нижней сеткой и просто
+    // задвоила бы её).
+    var zeroLine = (minVal < 0) ? '<line x1="' + padX + '" y1="' + yAt(0) + '" x2="' + (W - padRight) + '" y2="' + yAt(0) + '" stroke="var(--line-strong)" stroke-width="1.2"></line>' : "";
+    var labelEvery = Math.max(1, Math.ceil(months.length / 6));
+    var xLabels = months.map(function (m, i) {
+      if (i % labelEvery !== 0 && i !== months.length - 1) return "";
+      return '<text x="' + xAt(i) + '" y="' + (H - 4) + '" font-size="9" fill="var(--ink-faint)" text-anchor="middle">' + escapeHtml(m.label) + '</text>';
+    }).join("");
+    el.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="190">' +
+        gridLines + zeroLine +
+        '<polyline points="' + pointsFor("revenue") + '" fill="none" stroke="var(--chart-revenue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>' +
+        '<polyline points="' + pointsFor("costs") + '" fill="none" stroke="var(--chart-costs)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 4"></polyline>' +
+        '<polyline points="' + pointsFor("margin") + '" fill="none" stroke="var(--chart-margin)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 4.5"></polyline>' +
+        dotsFor("revenue", "var(--chart-revenue)", "Выручка") +
+        dotsFor("costs", "var(--chart-costs)", "Затраты") +
+        dotsFor("margin", "var(--chart-margin)", "Маржа") +
+        endLabel("revenue", "var(--chart-revenue)") +
+        endLabel("costs", "var(--chart-costs)") +
+        endLabel("margin", "var(--chart-margin)") +
+        xLabels +
+      '</svg>';
+  }
+  // По просьбе Никиты (30 сент.): "реально выпитый кофе, в кг" — прикидка
+  // по весу оформленных заказов (поле weightKg в "Заказах", см. openOrderModal
+  // и orderFormData), в разрезе "Кому продать" (buyer) — не показания
+  // вендинговых аппаратов, точных данных для этого в CRM нет. Заказы без
+  // указанного веса просто не учитываются (не то же самое, что 0 кг).
+  // Удалённые заказы — тоже не учитываются, как и везде.
+  function computeCoffeeKgByClient() {
+    var byClient = {};
+    var total = 0;
+    orders.forEach(function (o) {
+      if (o.deleted) return;
+      var kg = Number(o.weightKg);
+      if (!kg || kg <= 0) return;
+      var label = (o.buyer || "").trim() || "Без указания клиента";
+      byClient[label] = (byClient[label] || 0) + kg;
+      total += kg;
+    });
+    var rows = Object.keys(byClient).map(function (label) { return { label: label, kg: byClient[label] }; })
+      .sort(function (a, b) { return b.kg - a.kg; });
+    return { total: total, rows: rows };
+  }
+  function formatKg(n) {
+    var rounded = Math.round(n * 10) / 10;
+    return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1).replace(".", ",")) + " кг";
+  }
+  // Горизонтальные бары — ранжирование клиентов по одной величине
+  // (dataviz: magnitude -> один акцентный оттенок --chart-coffee, не
+  // категориальная палитра; цвет тут не различает клиентов, только длина
+  // бара и подпись, поэтому одного цвета достаточно).
+  function renderCoffeeKgSection() {
+    var el = document.getElementById("anCoffeeKg");
+    if (!el) return;
+    var data = computeCoffeeKgByClient();
+    if (!data.rows.length) {
+      el.innerHTML = '<div class="an-coffee-empty">Пока нет заказов с указанным весом — добавьте «Вес, кг» в карточке заказа, чтобы здесь появилась оценка.</div>';
+      return;
+    }
+    var maxKg = data.rows[0].kg;
+    var topRows = data.rows.slice(0, 8);
+    var rowsHtml = topRows.map(function (r) {
+      var pct = Math.max(2, Math.round((r.kg / maxKg) * 100));
+      return '<div class="an-coffee-row">' +
+        '<div class="an-coffee-row-label" title="' + escapeHtml(r.label) + '">' + escapeHtml(r.label) + '</div>' +
+        '<div class="an-coffee-row-track"><div class="an-coffee-row-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="an-coffee-row-value">' + formatKg(r.kg) + '</div>' +
+      '</div>';
+    }).join("");
+    var restCount = data.rows.length - topRows.length;
+    el.innerHTML =
+      '<div class="an-coffee-total"><span class="an-coffee-total-value">' + formatKg(data.total) + '</span><span class="an-coffee-total-label">всего по всем заказам с указанным весом</span></div>' +
+      rowsHtml +
+      (restCount > 0 ? '<div class="an-coffee-empty">…и ещё ' + restCount + ' ' + (restCount === 1 ? "клиент" : "клиентов") + ' с меньшим весом</div>' : "");
+  }
   // "Проблемные зоны" — до трёх подсказок, на что смотреть в первую очередь:
   // самый проблемный проект (просрочки весят вдвое больше переносов), самый
   // просроченный заказ, человек с наибольшим числом переносов за неделю.
@@ -7544,10 +7873,12 @@
   function renderAnalytics() {
     var liveTasks = tasks.filter(function (t) { return !t.deleted; });
     renderKpiTiles();
+    renderFinanceTrendChart();
     renderTrendChart();
     renderAnalyticsDonut(liveTasks);
     renderPersonStatsSection();
     renderProblemZones();
+    renderCoffeeKgSection();
     renderDigestLink();
 
     // Include names removed from the dropdowns too — tasks that already used
@@ -8281,6 +8612,7 @@
     var margin = orderMargin(o);
     var lines = [];
     if (o.contact) lines.push("Контакт: " + escapeHtml(o.contact));
+    if (o.weightKg) lines.push("Вес: " + formatKg(Number(o.weightKg)));
     var metaBits = [];
     if (o.responsible) metaBits.push("Ответственный: " + escapeHtml(responsibleLabel(o.responsible)));
     if (o.createdBy) metaBits.push("Завёл: " + escapeHtml(responsibleLabel(o.createdBy)));
@@ -8341,6 +8673,7 @@
     document.getElementById("orBuyer").value = o ? (o.buyer || "") : "";
     document.getElementById("orSalePrice").value = o && o.salePrice ? o.salePrice : "";
     document.getElementById("orContact").value = o ? (o.contact || "") : "";
+    document.getElementById("orWeightKg").value = o && o.weightKg ? o.weightKg : "";
     // Часть 28: статус сделки — у старых заказов (до этой доработки) поля
     // ещё нет, дефолт тот же, что на карточке (см. orderDealStatusInfo).
     buildPillRow(document.getElementById("orStatusRow"), DEAL_STATUSES, orderDealStatusInfo(o).id, null);
@@ -8415,6 +8748,7 @@
       buyer: document.getElementById("orBuyer").value.trim(),
       salePrice: Number(document.getElementById("orSalePrice").value) || 0,
       contact: document.getElementById("orContact").value.trim(),
+      weightKg: Number(document.getElementById("orWeightKg").value) || 0,
       dealStatus: document.getElementById("orStatusRow").getAttribute("data-value") || "wait",
       responsible: document.getElementById("orRespRow").getAttribute("data-value") || ""
     };
@@ -9495,7 +9829,7 @@
     // По просьбе Никиты (15 сент.): открытие/закрытие попапов мультивыбора —
     // разово при старте (сами кнопки .ms-filter-btn не пересоздаются,
     // initFilterBar() перестраивает только содержимое попапа и текст кнопки).
-    ["filterDirection", "filterEntity", "filterResponsible", "filterType", "filterDue"].forEach(function (id) {
+    ["filterDirection", "filterEntity", "filterResponsible", "filterCreator", "filterType", "filterDue"].forEach(function (id) {
       var btn = document.getElementById(id + "Btn");
       var pop = document.getElementById(id + "Pop");
       if (!btn || !pop) return;
@@ -9516,7 +9850,7 @@
       e.target.closest("#filtersToggle").setAttribute("aria-expanded", open ? "true" : "false");
     });
     document.getElementById("resetFilters").addEventListener("click", function () {
-      filters = { direction: [], entity: [], responsible: [], type: [], due: [], search: "" };
+      filters = { direction: [], entity: [], responsible: [], creator: [], type: [], due: [], search: "" };
       document.getElementById("filterSearch").value = "";
       closeAllMsFilterPops();
       initFilterBar();
@@ -9804,6 +10138,14 @@
           if (currentView === "orders") renderOrders();
           markDigestReady("orders");
         }, function (err) { console.error("orders subscribe error", err); });
+        // По просьбе Никиты (30 сент.): все периоды finance сразу — для
+        // графика "Выручка/Затраты/Маржа по месяцам" в Аналитике (см.
+        // buildFinanceTrend). Небольшая коллекция (по документу на юрлицо на
+        // месяц), поэтому без отдельного ограничения по количеству.
+        financeAllUnsub = db.collection("finance").onSnapshot(function (snap) {
+          financeAll = snap.docs.map(function (d) { return d.data(); });
+          if (currentView === "analytics") renderFinanceTrendChart();
+        }, function (err) { console.error("financeAll subscribe error", err); });
         subscribeCustomLists();
       }).catch(function (err) {
         console.error("auth/init failed", err);
