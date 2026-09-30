@@ -1130,6 +1130,26 @@
   }
   .pw-gate-error { color: var(--danger); font-size: 12.5px; margin: 12px 0 0; }
   .pw-gate-error.hidden { display: none; }
+  /* Этап A: вход через Google вместо общего пароля. */
+  .pw-gate-card { max-width: 360px; }
+  .auth-google-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    border-radius: var(--radius-m); padding: 12px 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  .auth-google-btn:hover { background: var(--surface-2); }
+  .auth-google-btn:disabled { opacity: .6; cursor: default; }
+  .auth-google-btn svg { width: 18px; height: 18px; flex: none; }
+  .auth-msg { font-size: 13.5px; color: var(--ink-soft); margin: 14px 0 0; }
+  .auth-msg.hidden, .auth-google-btn.hidden, .auth-signout.hidden { display: none; }
+  .auth-signout { margin-top: 14px; width: 100%; }
+  .who-logout {
+    border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600;
+    padding: 0 0 0 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .employee-card-inactive { opacity: .55; }
+  .employee-card-email { font-size: 12.5px; color: var(--ink-soft); margin: 2px 0 6px; word-break: break-all; }
+  .employee-role-tag { font-weight: 700; }
 
   @media (max-width: 720px) {
     /* Larger, easier-to-read type across the board on phones. */
@@ -1257,7 +1277,8 @@
   };
   firebase.initializeApp(firebaseConfig);
   window.__CRM_DB__ = firebase.firestore();
-  window.__CRM_AUTH_READY__ = firebase.auth().signInAnonymously();
+  // Этап A (1 окт. 2026): анонимный вход убран — в CRM входят только через
+  // Google-аккаунт из списка сотрудников (коллекция staff), см. initAuthGate.
   window.__CRM_SEED__ = {
 "tasks":{
 "4i21tjxrxhqrhj05jgl0":{
@@ -3250,13 +3271,14 @@
      всё, включая "Кто вы?" (z-index выше). -->
 <div class="pw-gate" id="pwGate">
   <div class="pw-gate-card">
-    <h2>Пароль</h2>
-    <p>Введите пароль, чтобы открыть CRM</p>
-    <form id="pwGateForm">
-      <input type="password" id="pwGateInput" class="pw-gate-input" autocomplete="current-password" placeholder="Пароль">
-      <button type="submit" class="btn-primary pw-gate-submit">Войти</button>
-    </form>
-    <p class="pw-gate-error hidden" id="pwGateError">Неверный пароль, попробуйте ещё раз.</p>
+    <h2>CRM EN</h2>
+    <p>Войдите через Google-аккаунт, который администратор добавил во вкладку «Сотрудники».</p>
+    <button type="button" class="auth-google-btn" id="authGoogleBtn">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+      Войти через Google
+    </button>
+    <p class="auth-msg hidden" id="authGateMsg"></p>
+    <button type="button" class="btn-secondary auth-signout hidden" id="authSignOutBtn">Войти под другим аккаунтом</button>
   </div>
 </div>
 
@@ -3445,7 +3467,7 @@
         </div>
         <div class="an-card">
           <div class="an-person-header" style="margin-bottom:12px">
-            <h3 style="margin:0">Между вами</h3>
+            <h3 style="margin:0">По сотрудникам</h3>
             <div class="an-period-toggle" id="anPersonPeriodToggle">
               <button type="button" class="chip-toggle" data-period="week">Неделя</button>
               <button type="button" class="chip-toggle" data-period="month">Месяц</button>
@@ -3799,17 +3821,24 @@
       <input type="text" id="empName" required>
     </div>
     <div class="field">
-      <label class="field-label" for="empPassword">Личный пароль для входа</label>
-      <input type="text" id="empPassword" placeholder="Придумайте пароль" autocomplete="off">
-      <p class="field-hint">Сотрудник вводит этот пароль на экране входа вместо общего — CRM сразу понимает, что это именно он, без экрана «Кто вы». Пока пароль не задан, войти он не сможет.</p>
+      <label class="field-label" for="empEmail">Почта Google-аккаунта</label>
+      <input type="email" id="empEmail" placeholder="name@gmail.com" autocomplete="off" required>
+      <p class="field-hint">Сотрудник входит в CRM через Google именно с этой почтой. Подойдёт и Google-аккаунт, созданный на Яндекс/Mail.ru/рабочую почту.</p>
     </div>
     <div class="field">
+      <label class="field-label" for="empRole">Роль</label>
+      <select class="full" id="empRole">
+        <option value="member">Сотрудник — видит только разрешённые проекты</option>
+        <option value="admin">Администратор — видит и может всё, управляет сотрудниками</option>
+      </select>
+    </div>
+    <div class="field" id="empDirsField">
       <span class="field-label">Разрешённые направления</span>
       <div class="employee-dir-checks" id="empDirChecks"></div>
       <p class="field-hint">«Личное» доступно каждому всегда для своих личных задач — отдельно отмечать не нужно.</p>
     </div>
     <div class="modal-actions">
-      <button type="button" class="btn-danger hidden" id="employeeDeleteBtn">Удалить</button>
+      <button type="button" class="btn-danger hidden" id="employeeDeleteBtn">Закрыть доступ</button>
       <div class="modal-actions-right">
         <button type="button" class="btn-secondary" id="employeeCancelBtn">Отмена</button>
         <button type="submit" class="btn-primary">Сохранить</button>
@@ -4259,6 +4288,22 @@
     });
     return out;
   }
+  // Этап A: люди для выбора ответственного — активные сотрудники из staff.
+  // Пока staff не загрузился (или его нет, как в песочнице без базы), —
+  // прежний список: Никита/Евгений + людей из customResponsible.
+  function buildResponsibleList() {
+    var active = staffList.filter(function (s) { return s.active !== false && s.personId; });
+    if (!active.length) return uniqueResponsible(BASE_RESPONSIBLE, customResponsible);
+    var seen = {};
+    var out = [];
+    active.forEach(function (s, i) {
+      if (seen[s.personId]) return;
+      seen[s.personId] = true;
+      out.push({ id: s.personId, label: s.label || s.email, initial: s.initial || (s.label || "?").charAt(0).toUpperCase(),
+        color: s.color || RESP_COLOR_PALETTE[i % RESP_COLOR_PALETTE.length] });
+    });
+    return out;
+  }
   function uniqueResponsible(base, custom) {
     var seen = {}; base.forEach(function (r) { seen[r.label] = true; });
     var out = base.slice();
@@ -4272,7 +4317,7 @@
   function mergeCustomLists() {
     DIRECTIONS = uniqueNames(BASE_DIRECTIONS, customDirections).filter(function (n) { return hiddenDirections.indexOf(n) === -1; });
     ENTITIES = uniqueNames(BASE_ENTITIES, customEntities).filter(function (n) { return hiddenEntities.indexOf(n) === -1; });
-    RESPONSIBLE = uniqueResponsible(BASE_RESPONSIBLE, customResponsible);
+    RESPONSIBLE = buildResponsibleList();
     initFilterBar();
     fillModalSelects();
     initBulkBar();
@@ -4527,17 +4572,17 @@
   var orderEditingId = null;
 
   // ---------- "Кто вы" (per-browser, not a real login) ----------
-  // There's no auth in this app — anyone with the link can edit anything as
-  // either person. This just lets the change history below say who made an
-  // edit, so it's stored per-browser in localStorage rather than as a real
-  // account; each viewer sets it once on their own device.
-  var CURRENT_USER_KEY = "ponedelnikCurrentUser";
-  function getCurrentUser() {
-    try { return localStorage.getItem(CURRENT_USER_KEY) || ""; } catch (e) { return ""; }
-  }
-  function setCurrentUser(id) {
-    try { localStorage.setItem(CURRENT_USER_KEY, id); } catch (e) {}
-  }
+  // Этап A (1 окт. 2026): кто работает с CRM, определяет вход через Google.
+  // После входа по почте находится запись в коллекции staff (её ведут
+  // админы во вкладке «Сотрудники»): personId — тот же id, что хранится в
+  // задачах в responsible/createdBy ("nikita", "evgeniy", "u_…"), поэтому
+  // все старые задачи и история продолжают работать как раньше.
+  var currentStaff = null;   // запись staff того, кто вошёл
+  var staffList = [];        // все записи staff (для админки и списков людей)
+  function getCurrentUser() { return currentStaff ? currentStaff.personId : ""; }
+  // Раньше «Кто вы» выбирали вручную — теперь личность задаёт вход, менять
+  // её из интерфейса нельзя. Функция оставлена пустой для старых вызовов.
+  function setCurrentUser() {}
   // ---------- Часть 22: роли и доступ по направлениям ----------
   // Быстрый путь (по решению Никиты): без Firebase Auth и правил
   // безопасности на сервере — разграничение только на уровне интерфейса.
@@ -4546,12 +4591,15 @@
   // панель «Сотрудники»: у каждого свой личный пароль для входа
   // (customResponsible[].password) и список разрешённых направлений
   // (customResponsible[].allowedDirections), которые задаёт администратор.
-  function isAdminId(id) { return id === "nikita" || id === "evgeniy"; }
-  function isAdmin() { return isAdminId(getCurrentUser()); }
+  // Этап A: админ — это роль в карточке сотрудника, а не зашитый id.
+  function isAdminId(id) {
+    var s = staffList.filter(function (x) { return x.personId === id; })[0];
+    return !!s && s.role === "admin" && s.active !== false;
+  }
+  function isAdmin() { return !!currentStaff && currentStaff.role === "admin"; }
   function currentEmployeeRecord() {
-    var id = getCurrentUser();
-    if (!id || isAdminId(id)) return null;
-    return customResponsible.filter(function (r) { return r.id === id; })[0] || null;
+    if (!currentStaff || isAdmin()) return null;
+    return currentStaff;
   }
   // null = без ограничений (администратор). Иначе — конкретный список
   // разрешённых направлений; "Личное" всегда в нём, чтобы у сотрудника в
@@ -4598,7 +4646,13 @@
   }
   function responsibleLabel(id) {
     var r = RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
-    return r ? r.label : (id || "?");
+    if (r) return r.label;
+    // Сотрудник с закрытым доступом в списке для выбора не показывается, но
+    // его имя в старых задачах должно оставаться читаемым.
+    var s = staffList.filter(function (x) { return x.personId === id; })[0];
+    if (s) return s.label;
+    var b = BASE_RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
+    return b ? b.label : (id || "?");
   }
   // ---------- Часть 27: подсказка ответственного по истории проекта ----------
   // По просьбе Никиты и Жени (тот же разговор, что "Между вами"/дайджест) —
@@ -4610,7 +4664,8 @@
   // входят.
   function suggestResponsibleForDirection(direction) {
     if (!direction) return null;
-    var counts = { nikita: 0, evgeniy: 0 };
+    var counts = {};
+    RESPONSIBLE.forEach(function (r) { counts[r.id] = 0; });
     var total = 0;
     tasks.forEach(function (t) {
       if (t.deleted || t.direction !== direction) return;
@@ -4619,8 +4674,11 @@
         if (counts[id] !== undefined) counts[id]++;
       });
     });
-    if (!total || counts.nikita === counts.evgeniy) return null; // нет истории или ничья — подсказывать нечего
-    var winnerId = counts.nikita > counts.evgeniy ? "nikita" : "evgeniy";
+    // Этап A: считаем по всем сотрудникам, а не только по двум. Нет истории
+    // или ничья у лидеров — подсказывать нечего.
+    var ranked = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+    if (!total || !ranked.length || !counts[ranked[0]] || (ranked[1] && counts[ranked[0]] === counts[ranked[1]])) return null;
+    var winnerId = ranked[0];
     return { id: winnerId, count: counts[winnerId], total: total };
   }
   // Обновляет подпись-подсказку под пилюлями и (пока человек ничего не
@@ -4635,11 +4693,11 @@
     var direction = document.getElementById("fDirection").value;
     var suggestion = suggestResponsibleForDirection(direction);
     if (!suggestion) { hintEl.textContent = ""; return; }
-    var person = byId(BASE_RESPONSIBLE, suggestion.id);
+    var person = byId(RESPONSIBLE, suggestion.id);
     hintEl.textContent = "Подсказка: в «" + direction + "» обычно отвечает " + person.label +
       " (" + suggestion.count + " из " + suggestion.total + " задач)";
     if (!responsibleManuallySet) {
-      buildMultiPillRow(document.getElementById("respRow"), BASE_RESPONSIBLE, [suggestion.id], false);
+      buildMultiPillRow(document.getElementById("respRow"), RESPONSIBLE, [suggestion.id], false);
     }
   }
   // CRM v2 Часть 5, п.8/11: "Личное" — задача видна целиком только тому, кто
@@ -4753,110 +4811,109 @@
   // В песочнице без Firestore (db == null) список сотрудников и не
   // появится, поэтому там сразу true — ждать нечего (см. boot()).
   var customResponsibleReady = false;
-  function initPasswordGate() {
+  // Этап A: вход через Google. Firebase Auth помнит вход в этом браузере,
+  // поэтому экран появляется только при первом входе или после «Выйти».
+  // onReady вызывается один раз — когда подтверждено, что вошедший есть в
+  // staff и доступ не закрыт. Смена аккаунта — через перезагрузку
+  // страницы, чтобы подписки на данные прежнего человека не остались жить.
+  function initAuthGate(onReady) {
     var gate = document.getElementById("pwGate");
-    if (!gate) return;
-    var alreadyOk = false;
-    try { alreadyOk = localStorage.getItem(PW_GATE_STORAGE_KEY) === "1"; } catch (e) {}
-    // Часть 22: раньше заслонку пропускали, если её один раз уже прошли в
-    // этом браузере, — даже если "Кто вы" (currentUser) при этом пуст.
-    // Теперь дополнительно требуем, чтобы currentUser тоже был известен:
-    // иначе сотрудник с наполовину очищенным localStorage попал бы на
-    // экран "Кто вы" с кнопками Никита/Женя и смог бы выдать себя за
-    // администратора без пароля. При пустом currentUser заслонка паролем
-    // показывается заново в любом случае — она же теперь и определяет,
-    // под кем именно войти (см. ниже).
-    if (alreadyOk && getCurrentUser()) { gate.classList.add("hidden"); return; }
-    gate.classList.remove("hidden");
-    var form = document.getElementById("pwGateForm");
-    var input = document.getElementById("pwGateInput");
-    var err = document.getElementById("pwGateError");
-    function showGateError(text) {
-      if (!err) return;
-      err.textContent = text;
-      err.classList.remove("hidden");
+    var btn = document.getElementById("authGoogleBtn");
+    var msg = document.getElementById("authGateMsg");
+    var other = document.getElementById("authSignOutBtn");
+    var auth = firebase.auth();
+    var started = false;
+    function show(text, isError, offerOther) {
+      gate.classList.remove("hidden");
+      msg.textContent = text || "";
+      msg.classList.toggle("hidden", !text);
+      msg.classList.toggle("pw-gate-error", !!isError);
+      btn.classList.toggle("hidden", !!offerOther);
+      other.classList.toggle("hidden", !offerOther);
     }
-    if (form) form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      // Путь администратора: общий пароль, дальше — как раньше, экран
-      // "Кто вы" с выбором Никита/Женя.
-      if (input.value === SITE_PASSWORD) {
-        try { localStorage.setItem(PW_GATE_STORAGE_KEY, "1"); } catch (e2) {}
-        gate.classList.add("hidden");
-        if (err) err.classList.add("hidden");
-        return;
-      }
-      // Путь сотрудника: личный пароль сразу же определяет, кто он — экран
-      // "Кто вы" ему не нужен.
-      var emp = findEmployeeByPassword(input.value);
-      if (emp) {
-        setCurrentUser(emp.id);
-        try { localStorage.setItem(PW_GATE_STORAGE_KEY, "1"); } catch (e2) {}
-        gate.classList.add("hidden");
-        if (err) err.classList.add("hidden");
-        mergeCustomLists();
-        return;
-      }
-      if (!customResponsibleReady) {
-        // Список сотрудников ещё не подгрузился — не можем быть уверены,
-        // что пароль неверный (см. комментарий у customResponsibleReady
-        // выше). Не чистим поле, чтобы можно было просто отправить форму
-        // ещё раз через секунду.
-        showGateError("Проверяем пароль — отправьте ещё раз через секунду.");
-        return;
-      }
-      showGateError("Неверный пароль, попробуйте ещё раз.");
-      input.value = "";
-      input.focus();
+    btn.addEventListener("click", function () {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      btn.disabled = true;
+      auth.signInWithPopup(provider).catch(function (e) {
+        btn.disabled = false;
+        var code = e && e.code;
+        // Всплывающие окна запрещены (часто на телефоне) — входим через
+        // переход на страницу Google и обратно.
+        if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment") {
+          auth.signInWithRedirect(provider);
+          return;
+        }
+        if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return;
+        show("Не удалось войти: " + ((e && e.message) || code), true, false);
+      });
     });
-  }
-  function renderWhoAmI() {
-    var sel = document.getElementById("whoAmI");
-    var label = document.getElementById("whoAmILabel");
-    if (!sel) return;
-    var cur = getCurrentUser();
-    if (!cur || isAdminId(cur)) {
-      sel.classList.remove("hidden");
-      if (label) label.classList.add("hidden");
-      sel.innerHTML = '<option value="">Кто вы?</option>' + BASE_RESPONSIBLE.map(function (r) {
-        return '<option value="' + r.id + '">Вы: ' + r.label + '</option>';
-      }).join("");
-      sel.value = cur;
-    } else {
-      // Часть 22: сотрудник — личность уже определена его личным паролем
-      // на входе, переключатель здесь не нужен (и не должен позволять
-      // выдать себя за другого без пароля) — просто подпись, под кем вошли.
-      sel.classList.add("hidden");
-      if (label) {
-        label.textContent = "Вы: " + responsibleLabel(cur);
-        label.classList.remove("hidden");
+    other.addEventListener("click", function () { auth.signOut(); });
+    auth.onAuthStateChanged(function (user) {
+      if (!user) {
+        if (started) { location.reload(); return; }
+        currentStaff = null;
+        btn.disabled = false;
+        show("", false, false);
+        return;
       }
-    }
-    renderWhoGateBtns();
-    updateAdminNav();
-  }
-  // Часть 5, п.12: те же варианты, что и в whoAmI, просто крупными кнопками
-  // на заслонке — выбор сразу же прячет её (см. updateWhoGate, вызывается
-  // из render()). Часть 22: только администраторы (Никита/Женя) — сотрудник
-  // до этого экрана вообще не доходит, его личность уже определена паролем.
-  function renderWhoGateBtns() {
-    var el = document.getElementById("whoGateBtns");
-    if (!el) return;
-    el.innerHTML = BASE_RESPONSIBLE.map(function (r) {
-      return '<button type="button" data-id="' + r.id + '">' + r.label + '</button>';
-    }).join("");
-    Array.prototype.forEach.call(el.children, function (b) {
-      b.addEventListener("click", function () {
-        setCurrentUser(b.getAttribute("data-id"));
-        renderWhoAmI();
-        mergeCustomLists();
+      if (user.isAnonymous) { auth.signOut(); return; }
+      var email = String(user.email || "").toLowerCase();
+      show("Проверяем доступ…", false, false);
+      btn.classList.add("hidden");
+      window.__CRM_DB__.collection("staff").doc(email).get().then(function (doc) {
+        var rec = doc.exists ? doc.data() : null;
+        if (!rec || rec.active === false) {
+          currentStaff = null;
+          show("У аккаунта " + email + " нет доступа к CRM. Попросите администратора добавить эту почту во вкладке «Сотрудники».", true, true);
+          return;
+        }
+        currentStaff = Object.assign({ email: email }, rec);
+        gate.classList.add("hidden");
+        if (!started) { started = true; onReady(); }
+      }).catch(function (e) {
+        console.error("staff check failed", e);
+        show("Не удалось проверить доступ (" + ((e && e.code) || "ошибка сети") + "). Обновите страницу.", true, true);
       });
     });
   }
+  // Список сотрудников вживую: админка, имена в задачах, а заодно — если
+  // вошедшему закрыли доступ, пока он на сайте, выходим сразу.
+  function subscribeStaff() {
+    if (!db) return;
+    db.collection("staff").onSnapshot(function (snap) {
+      staffList = snap.docs.map(function (d) { return Object.assign({ email: d.id }, d.data()); });
+      if (currentStaff) {
+        var me = staffList.filter(function (x) { return x.email === currentStaff.email; })[0];
+        if (!me || me.active === false) { firebase.auth().signOut(); return; }
+        currentStaff = me;
+      }
+      customResponsibleReady = true;
+      mergeCustomLists();
+    }, function (err) { console.error("staff subscribe error", err); });
+  }
+  // Этап A: вместо переключателя «Кто вы» — подпись, под кем вошли, и «Выйти».
+  function renderWhoAmI() {
+    var sel = document.getElementById("whoAmI");
+    var label = document.getElementById("whoAmILabel");
+    if (sel) sel.classList.add("hidden");
+    if (label) {
+      if (currentStaff) {
+        label.innerHTML = "Вы: " + escapeHtml(currentStaff.label || currentStaff.email) +
+          ' <button type="button" class="who-logout" id="logoutBtn">Выйти</button>';
+        label.classList.remove("hidden");
+        var lb = document.getElementById("logoutBtn");
+        if (lb) lb.addEventListener("click", function () { firebase.auth().signOut(); });
+      } else {
+        label.classList.add("hidden");
+      }
+    }
+    updateAdminNav();
+  }
+  // Экран «Кто вы» больше не нужен — личность задаёт вход через Google.
   function updateWhoGate() {
     var gate = document.getElementById("whoGate");
-    if (!gate) return;
-    gate.classList.toggle("hidden", !!getCurrentUser());
+    if (gate) gate.classList.add("hidden");
   }
 
   // ---------- Toast ----------
@@ -5927,12 +5984,11 @@
     var respEl = document.getElementById("bulkRespRow");
     respEl.innerHTML = RESPONSIBLE.map(function (r) {
       return '<button type="button" class="pill-btn-sm" data-id="'+r.id+'">'+r.label+'</button>';
-    }).join("") + '<button type="button" class="pill-btn-sm" data-id="both">Оба</button>';
+    }).join("");
     Array.prototype.forEach.call(respEl.children, function (b) {
       b.addEventListener("click", function () {
         var id = b.getAttribute("data-id");
-        var resp = id === "both" ? ["nikita","evgeniy"] : [id];
-        applyToSelected({ responsible: resp });
+        applyToSelected({ responsible: [id] });
         showToast("Ответственный обновлён.");
       });
     });
@@ -6896,7 +6952,7 @@
     // CRM v2 п.3, 11: "Кто вы" обязательно, чтобы вообще создать или
     // отредактировать задачу — без этого форма не открывается.
     if (!getCurrentUser()) {
-      showToast("Сначала выберите, кто вы, вверху страницы — без этого нельзя создать задачу.", true);
+      showToast("Сначала войдите в CRM через Google.", true);
       var whoSel = document.getElementById("whoAmI");
       if (whoSel) {
         whoSel.focus();
@@ -6989,9 +7045,10 @@
     // Ответственный in the task form is deliberately just Никита/Евгений —
     // custom people (added via the filter bar's "+") aren't offered here.
     var curUser = getCurrentUser();
-    var defaultResp = (curUser === "nikita" || curUser === "evgeniy") ? curUser : "nikita";
+    // Этап A: в форме — все активные сотрудники; по умолчанию — тот, кто вошёл.
+    var defaultResp = RESPONSIBLE.some(function (r) { return r.id === curUser; }) ? curUser : (RESPONSIBLE[0] ? RESPONSIBLE[0].id : "nikita");
     responsibleManuallySet = false;
-    buildMultiPillRow(document.getElementById("respRow"), BASE_RESPONSIBLE, t ? respIds(t) : [defaultResp], false);
+    buildMultiPillRow(document.getElementById("respRow"), RESPONSIBLE, t ? respIds(t) : [defaultResp], false);
     // Часть 27: подсказка ответственного — только для НОВОЙ задачи (у уже
     // существующей respRow и так показывает настоящего ответственного, его
     // незачем "подсказывать"); applyResponsibleSuggestion сама проверяет
@@ -8767,32 +8824,27 @@
     closeOrderModal();
   }
 
-  // ---------- Сотрудники / доступ (Часть 22, админ-панель) ----------
-  // customResponsible уже существовал (люди, добавленные через "+
-  // Добавить…" у поля "Ответственный") — здесь тот же массив просто
-  // дополняется полями password/allowedDirections, которые задаёт
-  // администратор через эту панель. Никита/Женя (BASE_RESPONSIBLE) сюда
-  // не попадают — они не "сотрудники", а администраторы.
-  function updateCustomResponsible(id, patch) {
-    customResponsible = customResponsible.map(function (r) { return r.id === id ? Object.assign({}, r, patch) : r; });
-    if (db) db.collection("customResponsible").doc(id).update(patch).catch(function (e) { console.error(e); });
-    mergeCustomLists();
-  }
-  function deleteCustomResponsible(id) {
-    customResponsible = customResponsible.filter(function (r) { return r.id !== id; });
-    if (db) db.collection("customResponsible").doc(id).delete().catch(function (e) { console.error(e); });
-    mergeCustomLists();
-  }
+  // ---------- Сотрудники / доступ (этап A, 1 окт. 2026) ----------
+  // Список ведётся в коллекции staff, ключ документа — почта Google-аккаунта
+  // (так её проверяют и экран входа, и правила базы). personId — постоянный
+  // id человека в задачах ("nikita", "evgeniy", "u_…"); при смене почты он
+  // сохраняется, поэтому задачи и история остаются за тем же человеком.
+  // Удаления нет — только «Закрыть доступ» (active: false): имя в старых
+  // задачах должно оставаться читаемым, а доступ можно вернуть.
+  function staffByEmail(email) { return staffList.filter(function (x) { return x.email === email; })[0] || null; }
   function employeeCardHtml(e) {
+    var isAdm = e.role === "admin";
     var dirs = e.allowedDirections || [];
-    var dirsHtml = dirs.length
-      ? dirs.map(function (d) { return '<span class="meta-tag">' + escapeHtml(d) + '</span>'; }).join("")
-      : '<span class="employee-no-access">Доступ не настроен</span>';
-    var pwOk = !!e.password;
+    var dirsHtml = isAdm
+      ? '<span class="meta-tag">Все проекты</span>'
+      : (dirs.length ? dirs.map(function (d) { return '<span class="meta-tag">' + escapeHtml(d) + '</span>'; }).join("")
+        : '<span class="employee-no-access">Проекты не выбраны — видит только свои задачи</span>');
+    var inactive = e.active === false;
     return (
-      '<button type="button" class="employee-card" data-id="' + e.id + '">' +
-        '<div class="employee-card-name">' + escapeHtml(e.label) + '</div>' +
-        '<div class="employee-card-pw' + (pwOk ? "" : " employee-card-pw-warn") + '">' + (pwOk ? "Пароль задан" : "Пароль не задан — войти пока не может") + '</div>' +
+      '<button type="button" class="employee-card' + (inactive ? " employee-card-inactive" : "") + '" data-email="' + escapeHtml(e.email) + '">' +
+        '<div class="employee-card-name">' + escapeHtml(e.label || e.email) +
+          ' <span class="employee-role-tag">· ' + (isAdm ? "Администратор" : "Сотрудник") + '</span></div>' +
+        '<div class="employee-card-email">' + escapeHtml(e.email) + (inactive ? " — доступ закрыт" : "") + '</div>' +
         '<div class="card-meta">' + dirsHtml + '</div>' +
       '</button>'
     );
@@ -8800,13 +8852,16 @@
   function renderEmployees() {
     var list = document.getElementById("employeeList");
     if (!list) return;
-    if (!customResponsible.length) {
+    if (!staffList.length) {
       list.innerHTML = '<div class="subtask-empty">Пока нет сотрудников — нажмите «+ Сотрудник», чтобы добавить первого.</div>';
       return;
     }
-    list.innerHTML = customResponsible.map(employeeCardHtml).join("");
+    var sorted = staffList.slice().sort(function (a, b) {
+      return (a.active === false) - (b.active === false) || (b.role === "admin") - (a.role === "admin") || String(a.label).localeCompare(String(b.label), "ru");
+    });
+    list.innerHTML = sorted.map(employeeCardHtml).join("");
     Array.prototype.forEach.call(list.querySelectorAll(".employee-card"), function (card) {
-      card.addEventListener("click", function () { openEmployeeModal(card.getAttribute("data-id")); });
+      card.addEventListener("click", function () { openEmployeeModal(card.getAttribute("data-email")); });
     });
   }
   function renderEmpDirChecks(selected) {
@@ -8820,23 +8875,34 @@
       return '<label class="employee-dir-row"><input type="checkbox" value="' + escapeHtml(d) + '"' + checked + '><span>' + escapeHtml(d) + '</span></label>';
     }).join("");
   }
-  var employeeEditingId = null;
+  function updateEmpDirsVisibility() {
+    var f = document.getElementById("empDirsField");
+    if (f) f.classList.toggle("hidden", document.getElementById("empRole").value === "admin");
+  }
+  var employeeEditingId = null;   // почта редактируемого сотрудника
   var employeeDeleteArmed = false;
   var employeeDeleteArmTimer = null;
   function resetEmployeeDeleteBtn() {
     employeeDeleteArmed = false;
     var b = document.getElementById("employeeDeleteBtn");
-    if (b) b.textContent = "Удалить";
+    var e = employeeEditingId ? staffByEmail(employeeEditingId) : null;
+    if (b) b.textContent = e && e.active === false ? "Вернуть доступ" : "Закрыть доступ";
   }
-  function openEmployeeModal(id) {
-    employeeEditingId = id || null;
+  function openEmployeeModal(email) {
+    employeeEditingId = email || null;
+    var e = email ? staffByEmail(email) : null;
     resetEmployeeDeleteBtn();
-    var e = id ? customResponsible.filter(function (r) { return r.id === id; })[0] : null;
-    document.getElementById("employeeModalTitle").textContent = e ? "Сотрудник: " + e.label : "Новый сотрудник";
-    document.getElementById("empName").value = e ? e.label : "";
-    document.getElementById("empPassword").value = e ? (e.password || "") : "";
+    document.getElementById("employeeModalTitle").textContent = e ? "Сотрудник: " + (e.label || e.email) : "Новый сотрудник";
+    document.getElementById("empName").value = e ? (e.label || "") : "";
+    document.getElementById("empEmail").value = e ? e.email : "";
+    document.getElementById("empRole").value = e && e.role === "admin" ? "admin" : "member";
     renderEmpDirChecks(e ? e.allowedDirections : []);
-    document.getElementById("employeeDeleteBtn").classList.toggle("hidden", !e);
+    updateEmpDirsVisibility();
+    // Себе закрыть доступ или снять роль админа нельзя — иначе можно
+    // случайно остаться без единого администратора.
+    var isSelf = !!e && currentStaff && e.email === currentStaff.email;
+    document.getElementById("employeeDeleteBtn").classList.toggle("hidden", !e || isSelf);
+    document.getElementById("empRole").disabled = isSelf;
     document.getElementById("employeeModal").classList.remove("hidden");
     setTimeout(function () { document.getElementById("empName").focus(); }, 30);
   }
@@ -8844,24 +8910,62 @@
     document.getElementById("employeeModal").classList.add("hidden");
     employeeEditingId = null;
   }
-  function onEmployeeSubmit(e) {
-    e.preventDefault();
+  function onEmployeeSubmit(ev) {
+    ev.preventDefault();
+    if (!isAdmin() || !db) { showToast("Менять сотрудников может только администратор.", true); return; }
     var name = document.getElementById("empName").value.trim();
-    if (!name) { showToast("Введите имя.", true); return; }
-    var password = document.getElementById("empPassword").value.trim();
+    var email = document.getElementById("empEmail").value.trim().toLowerCase();
+    var role = document.getElementById("empRole").value === "admin" ? "admin" : "member";
     var dirs = Array.prototype.map.call(document.querySelectorAll("#empDirChecks input:checked"), function (cb) { return cb.value; });
-    if (employeeEditingId) {
-      var existing = customResponsible.filter(function (r) { return r.id === employeeEditingId; })[0];
-      var patch = { allowedDirections: dirs, password: password };
-      if (existing && existing.label !== name) patch.label = name;
-      updateCustomResponsible(employeeEditingId, patch);
-      showToast("Сотрудник обновлён.");
+    if (!name) { showToast("Введите имя.", true); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast("Введите почту Google-аккаунта.", true); return; }
+    var prev = employeeEditingId ? staffByEmail(employeeEditingId) : null;
+    var clash = staffByEmail(email);
+    if (clash && (!prev || clash.email !== prev.email)) { showToast("Сотрудник с такой почтой уже есть.", true); return; }
+    if (prev && currentStaff && prev.email === currentStaff.email) role = prev.role;
+    var data = {
+      label: name,
+      initial: name.charAt(0).toUpperCase(),
+      role: role,
+      allowedDirections: role === "admin" ? [] : dirs,
+      active: prev ? prev.active !== false : true,
+      updatedAt: Date.now(),
+      updatedBy: getCurrentUser()
+    };
+    var col = db.collection("staff");
+    var op;
+    if (!prev) {
+      data.personId = genId("u");
+      data.color = RESP_COLOR_PALETTE[staffList.length % RESP_COLOR_PALETTE.length];
+      data.createdAt = Date.now();
+      data.createdBy = getCurrentUser();
+      op = col.doc(email).set(data);
+    } else if (prev.email === email) {
+      op = col.doc(email).update(data);
     } else {
-      var newId = addCustomResponsible(name);
-      updateCustomResponsible(newId, { allowedDirections: dirs, password: password });
-      showToast("Сотрудник добавлен.");
+      // Новая почта = новый документ (почта — ключ), personId прежний.
+      var moved = Object.assign({}, prev, data);
+      delete moved.email;
+      var batch = db.batch();
+      batch.set(col.doc(email), moved);
+      batch.delete(col.doc(prev.email));
+      op = batch.commit();
     }
+    op.then(function () {
+      showToast(prev ? "Сотрудник обновлён." : "Сотрудник добавлен — теперь он может войти через Google с почтой " + email + ".");
+    }).catch(function (e) {
+      console.error(e);
+      showToast("Не удалось сохранить сотрудника.", true);
+    });
     closeEmployeeModal();
+  }
+  function toggleEmployeeAccess(email) {
+    var e = staffByEmail(email);
+    if (!e || !db) return;
+    var nowActive = e.active === false;
+    db.collection("staff").doc(email).update({ active: nowActive, updatedAt: Date.now(), updatedBy: getCurrentUser() }).then(function () {
+      showToast(nowActive ? "Доступ возвращён." : "Доступ закрыт — сотрудник больше не сможет войти.");
+    }).catch(function (err) { console.error(err); showToast("Не удалось изменить доступ.", true); });
   }
 
   // ---------- Google Calendar (Часть 24) ----------
@@ -9660,7 +9764,6 @@
     // CRM v2 п.1: смена "Кто вы" сразу же должна скрыть/показать личные
     // задачи — раньше переключатель ничего не перерисовывал, пока
     // это было не важно, но теперь от него зависит видимость карточек.
-    document.getElementById("whoAmI").addEventListener("change", function (e) { setCurrentUser(e.target.value); mergeCustomLists(); });
 
     // Часть 24: подключение Google Calendar — клик по уже подключённому
     // статусу отключает (проще, чем отдельная кнопка "Отключить").
@@ -9981,17 +10084,17 @@
     document.getElementById("employeeCancelBtn").addEventListener("click", closeEmployeeModal);
     document.getElementById("employeeModal").addEventListener("click", function (e) { if (e.target.id === "employeeModal") closeEmployeeModal(); });
     document.getElementById("employeeForm").addEventListener("submit", onEmployeeSubmit);
+    document.getElementById("empRole").addEventListener("change", updateEmpDirsVisibility);
     document.getElementById("employeeDeleteBtn").addEventListener("click", function (e) {
       if (!employeeEditingId) return;
       if (!employeeDeleteArmed) {
         employeeDeleteArmed = true;
-        e.target.textContent = "Точно удалить?";
+        e.target.textContent = "Точно?";
         clearTimeout(employeeDeleteArmTimer);
         employeeDeleteArmTimer = setTimeout(resetEmployeeDeleteBtn, 4000);
         return;
       }
-      deleteCustomResponsible(employeeEditingId);
-      showToast("Сотрудник удалён.");
+      toggleEmployeeAccess(employeeEditingId);
       closeEmployeeModal();
     });
 
@@ -10103,13 +10206,17 @@
   }
 
   function boot() {
-    initPasswordGate();
     wire();
     render();
     try {
       db = window.__CRM_DB__;
       if (!db) throw new Error("Firestore not initialized");
-      Promise.resolve(window.__CRM_AUTH_READY__).then(function () {
+      // Этап A: данные грузим только после входа через Google и проверки,
+      // что человек есть в списке сотрудников (см. initAuthGate).
+      initAuthGate(function () {
+      renderWhoAmI();
+      subscribeStaff();
+      Promise.resolve().then(function () {
       return ensureSeeded(); }).then(function () {
       return runOneTimeMigrations(); }).then(function () {
         unsub = db.collection("tasks").onSnapshot(function (snap) {
@@ -10153,6 +10260,7 @@
         // будет — заслонке входа незачем ждать (см. customResponsibleReady).
         customResponsibleReady = true;
         if (!tasks.length) { seedLocal(); render(); }
+      });
       });
     } catch (e) {
       console.error("firebase init failed", e);
