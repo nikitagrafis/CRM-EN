@@ -1149,6 +1149,10 @@
   }
   .employee-card-inactive { opacity: .55; }
   .who-tg { color: var(--ink-soft); font-weight: 600; }
+  .card-history-tag { font-size: 12px; color: var(--ink-faint); margin: 2px 0 4px; }
+  .history-tag-deleted { color: var(--danger); font-weight: 700; }
+  .history-tag-done { color: var(--s-done); font-weight: 700; }
+  .card.card-deleted { opacity: .6; }
   .employee-card-email { font-size: 12.5px; color: var(--ink-soft); margin: 2px 0 6px; word-break: break-all; }
   .employee-role-tag { font-weight: 700; }
 
@@ -3350,7 +3354,7 @@
          открытые задачи одним списком, новые сверху. Выбор запоминается в
          localStorage браузера (см. loadBoardLayout/saveBoardLayout) и виден
          только на самой доске — на Календаре кнопка прячется (см. setView). -->
-    <button type="button" class="chip-toggle" id="boardLayoutToggle">☰ Списком</button>
+    <button type="button" class="chip-toggle" id="boardLayoutToggle">🕘 Хронология</button>
   </div>
   <!-- Everything here still works exactly like the row above — it's just
        tucked behind "Фильтры" on a phone screen so the bar above doesn't
@@ -4525,7 +4529,7 @@
   function refreshBoardLayoutBtn() {
     var btn = document.getElementById("boardLayoutToggle");
     if (!btn) return;
-    btn.textContent = boardLayout === "flat" ? "🗂 По срокам" : "☰ Списком";
+    btn.textContent = boardLayout === "flat" ? "🗂 По срокам" : "🕘 Хронология";
     btn.classList.toggle("active", boardLayout === "flat");
   }
   var selectMode = false;
@@ -6105,6 +6109,18 @@
     });
     return n;
   }
+  // «Хронология» (1 окт. 2026): на карточке — когда создана, и отдельно
+  // пометка, если задача выполнена или удалена (в обычном виде доски
+  // выполненные/удалённые и так лежат в своих секциях — там не нужно).
+  function historyTagHtml(t) {
+    if (boardLayout !== "flat") return "";
+    var d = function (ms) { return ms ? new Date(ms).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "2-digit" }) : ""; };
+    var parts = [];
+    if (t.createdAt) parts.push("Создана " + d(t.createdAt));
+    if (t.deleted) parts.push('<span class="history-tag-deleted">🗑 Удалена' + (t.deletedAt ? " " + d(t.deletedAt) : "") + '</span>');
+    else if (t.status === "done") parts.push('<span class="history-tag-done">✓ Выполнена' + (t.completedAt ? " " + d(t.completedAt) : "") + '</span>');
+    return parts.length ? '<div class="card-history-tag">' + parts.join(" · ") + '</div>' : "";
+  }
   function cardHtml(t) {
     var u = taskUrgency(t);
     // По просьбе Никиты (15 сент.): чужая личная задача теперь отфильтрована
@@ -6152,8 +6168,9 @@
     // терялась на цветном фоне) — теперь это первая строка карточки, всегда
     // на одном уровне контраста с номером типа/бейджем срока.
     return (
-      '<button type="button" class="card'+(selected?' selected':'')+'" data-id="'+t.id+'" style="border-left-color: var('+accentVar+'); '+tintStyle+'">' +
+      '<button type="button" class="card'+(selected?' selected':'')+(t.deleted && boardLayout === "flat" ? ' card-deleted' : '')+'" data-id="'+t.id+'" style="border-left-color: var('+accentVar+'); '+tintStyle+'">' +
         '<div class="card-number-label">'+cardTitleLineHtml(t)+'</div>' +
+        historyTagHtml(t) +
         '<div class="card-top">' +
           (selectMode ? '<span class="card-select-dot'+(selected?' checked':'')+'"></span>' : '') +
           // По просьбе Никиты (16 сент., повторная правка): подложка под
@@ -6374,19 +6391,18 @@
       });
       html += columnSectionHtml({ label: "Результаты поиска", varc: "--accent" }, searchResults);
     } else if (boardLayout === "flat") {
-      // Альтернативный вид (Часть 5, п.25): те же самые задачи, что попали бы
-      // в колонки ниже (due-фильтр по-прежнему работает — просто на уровне
-      // отдельной карточки, а не целой секции), но одним списком без деления
-      // на Просрочено/Сегодня/Неделя/Месяц/Позже, отсортированным по дате
-      // создания (новые сверху) — как и попросил Никита.
-      var flatList = openTasks.filter(function (t) {
-        var id = overdueIds[t.id] ? "overdue" : computeUrgencyId(t);
+      // «Хронология» (по просьбе Никиты, 1 окт. 2026): ВСЕ задачи и подзадачи
+      // одним списком по номеру — от самой новой к первой, включая
+      // выполненные и удалённые (с пометкой на карточке). Фильтры проекта/
+      // юрлица/ответственного/типа/поиска работают как обычно; «Срок»
+      // понимает и «Готово»/«Удалённые».
+      var historyList = tasks.filter(matchesBaseFilters).filter(function (t) {
+        var id = t.deleted ? "deleted" : (taskDone(t) ? "done" : (isOverdue(t) ? "overdue" : computeUrgencyId(t)));
         return showSection(id);
       }).sort(function (a, b) {
-        var sr = searchExactRank(a) - searchExactRank(b);
-        return sr || byNewestFirst(a, b);
+        return (b.number || 0) - (a.number || 0) || byNewestFirst(a, b);
       });
-      html += columnSectionHtml({ label: "Все задачи", varc: "--accent" }, flatList);
+      html += columnSectionHtml({ label: "Хронология — все задачи по номеру", varc: "--accent" }, historyList);
     } else {
       if (showSection("overdue")) {
         html += columnSectionHtml({ label: "Просрочено", varc: "--u-overdue" }, overdueTasks);
@@ -6398,7 +6414,7 @@
         html += columnSectionHtml(u, col);
       });
     }
-    if (showSection("done")) {
+    if (showSection("done") && (boardLayout !== "flat" || isSearching)) {
       // Готово: недавно завершённые — сверху блока (а не по срочности, это
       // уже не имеет смысла для закрытой задачи).
       doneTasks.sort(function (a, b) {
@@ -6407,7 +6423,7 @@
       });
       html += doneColumnSectionHtml(doneTasks);
     }
-    if (showSection("deleted")) {
+    if (showSection("deleted") && (boardLayout !== "flat" || isSearching)) {
       html += deletedSectionHtml(deletedList);
     }
     el.innerHTML = html;
