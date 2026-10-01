@@ -1157,6 +1157,9 @@
   .history-tag-deleted { color: var(--danger); font-weight: 700; }
   .history-tag-done { color: var(--s-done); font-weight: 700; }
   .card.card-deleted { opacity: .6; }
+  .field-label-soft { font-weight: 500; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
+  .meta-tag-sub { background: var(--accent-soft); color: var(--accent); }
+  .ms-filter-group { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px 2px; }
   .employee-card-email { font-size: 12.5px; color: var(--ink-soft); margin: 2px 0 6px; word-break: break-all; }
   .employee-role-tag { font-weight: 700; }
 
@@ -3374,6 +3377,10 @@
       <button type="button" class="ms-filter-btn" id="filterDirectionBtn" aria-haspopup="true" aria-expanded="false">Все проекты</button>
       <div class="ms-filter-pop hidden" id="filterDirectionPop"></div>
     </div>
+    <div class="ms-filter hidden" id="filterSubprojectWrap">
+      <button type="button" class="ms-filter-btn" id="filterSubprojectBtn" aria-haspopup="true" aria-expanded="false">Все подпроекты</button>
+      <div class="ms-filter-pop hidden" id="filterSubprojectPop"></div>
+    </div>
     <div class="ms-filter" id="filterEntityWrap">
       <button type="button" class="ms-filter-btn" id="filterEntityBtn" aria-haspopup="true" aria-expanded="false">Все юр лица</button>
       <div class="ms-filter-pop hidden" id="filterEntityPop"></div>
@@ -3681,6 +3688,14 @@
         <label class="field-label" for="fEntity">Юрлицо</label>
         <select class="full" id="fEntity"></select>
       </div>
+    </div>
+
+    <!-- 1 окт. 2026: подпроект — второй уровень внутри проекта (например,
+         «Какао ECT › Отдел закупок»). Поле видно, только если у выбранного
+         проекта есть подпроекты (или вошёл админ — он может их заводить). -->
+    <div class="field hidden" id="fSubprojectField">
+      <label class="field-label" for="fSubproject">Подпроект <span class="field-label-soft">— необязательно</span></label>
+      <select class="full" id="fSubproject"></select>
     </div>
 
     <div class="field">
@@ -4415,8 +4430,74 @@
     mergeCustomLists();
     return id;
   }
+  // ---------- Подпроекты (1 окт. 2026) ----------
+  // Коллекция subprojects: { direction, name, archived, createdAt, createdBy }.
+  // В задаче хранится имя подпроекта в поле subproject (как и проект — по
+  // имени). «Удалить из списка» = archived: true — у старых задач подпроект
+  // остаётся, просто его больше нельзя выбрать для новых.
+  var subprojects = [];
+  function subprojectsOf(direction, includeArchived) {
+    return subprojects.filter(function (sp) { return sp.direction === direction && (includeArchived || !sp.archived); })
+      .map(function (sp) { return sp.name; })
+      .sort(function (a, b) { return a.localeCompare(b, "ru"); });
+  }
+  function addSubproject(direction, name) {
+    name = (name || "").trim();
+    if (!name || !direction) return null;
+    var existing = subprojects.filter(function (sp) { return sp.direction === direction && sp.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (existing) {
+      if (existing.archived && db) db.collection("subprojects").doc(existing.id).update({ archived: false }).catch(function () {});
+      existing.archived = false;
+      return existing.name;
+    }
+    var rec = { id: genId("sp"), direction: direction, name: name, archived: false, createdAt: Date.now(), createdBy: getCurrentUser() };
+    subprojects.push(rec);
+    if (db) db.collection("subprojects").doc(rec.id).set({ direction: direction, name: name, archived: false, createdAt: rec.createdAt, createdBy: rec.createdBy }).catch(function (e) { console.error(e); showToast("Не удалось сохранить подпроект.", true); });
+    mergeCustomLists();
+    return name;
+  }
+  function archiveSubproject(direction, name) {
+    subprojects.forEach(function (sp) {
+      if (sp.direction !== direction || sp.name !== name) return;
+      sp.archived = true;
+      if (db) db.collection("subprojects").doc(sp.id).update({ archived: true }).catch(function () {});
+    });
+    mergeCustomLists();
+  }
+  // Значение фильтра — «проект␟подпроект», чтобы одинаковые имена в разных
+  // проектах (например, «Отдел закупок» у двух проектов) не путались.
+  var SUB_SEP = "\u241F";
+  function subKey(direction, name) { return direction + SUB_SEP + name; }
+  // Поле «Подпроект» в форме задачи — под выбранный проект.
+  function refreshSubprojectField(direction, current) {
+    var field = document.getElementById("fSubprojectField");
+    var sel = document.getElementById("fSubproject");
+    if (!field || !sel) return;
+    var list = subprojectsOf(direction, false);
+    if (current && list.indexOf(current) === -1) list = list.concat([current]);
+    var show = !!direction && direction !== "Личное" && (list.length > 0 || isAdmin());
+    field.classList.toggle("hidden", !show);
+    var html = '<option value="">— без подпроекта —</option>' +
+      list.map(function (n) { return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>'; }).join("");
+    if (isAdmin()) {
+      html += '<option value="__add__">+ Новый подпроект…</option>';
+      if (subprojectsOf(direction, false).length) html += '<option value="__manage__">Удалить из списка…</option>';
+    }
+    sel.innerHTML = html;
+    sel.value = current || "";
+    sel.setAttribute("data-prev", sel.value);
+  }
   function subscribeCustomLists() {
     if (!db) return;
+    db.collection("subprojects").onSnapshot(function (snap) {
+      subprojects = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      mergeCustomLists();
+      var dirSel = document.getElementById("fDirection");
+      var subSel = document.getElementById("fSubproject");
+      if (dirSel && subSel && !document.getElementById("taskModal").classList.contains("hidden")) {
+        refreshSubprojectField(dirSel.value, subSel.value && subSel.value.indexOf("__") !== 0 ? subSel.value : "");
+      }
+    }, function (err) { console.error("subprojects subscribe error", err); });
     db.collection("customDirections").onSnapshot(function (snap) {
       customDirections = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       customDirections.forEach(function (c) { if (c.entity) DIRECTION_ENTITY[c.name] = c.entity; });
@@ -4522,7 +4603,7 @@
   // теперь МАССИВЫ выбранных значений (можно отметить несколько сразу) —
   // раньше было одно строковое значение на поле, как у обычного <select>.
   // Пустой массив = "без фильтра по этому полю", как раньше пустая строка.
-  var filters = { direction: [], entity: [], responsible: [], creator: [], type: [], due: [], search: "" };
+  var filters = { direction: [], subproject: [], entity: [], responsible: [], creator: [], type: [], due: [], search: "" };
   // Часть 5, п.25 (по просьбе Никиты, 29 сент.): вид доски — "buckets"
   // (по умолчанию, пять колонок по срочности) или "flat" (все открытые
   // задачи одним списком, сортировка — новые сверху, см. byNewestFirst).
@@ -5766,6 +5847,8 @@
         else if (!cb.checked && idx !== -1) arr.splice(idx, 1);
         refreshAllCb();
         refreshButton();
+        // Выбор проекта сужает список подпроектов в соседнем фильтре.
+        if (filterKey === "direction") refreshSubprojectFilterOnly();
         render();
       });
     });
@@ -5777,6 +5860,11 @@
       var manageBtn = pop.querySelector('[data-action="manage"]');
       if (manageBtn) manageBtn.addEventListener("click", function () { closeAllMsFilterPops(); actions.manage(); });
     }
+  }
+  function refreshSubprojectFilterOnly() {
+    var keepOpen = !document.getElementById("filterDirectionPop").classList.contains("hidden");
+    initFilterBar();
+    if (keepOpen) document.getElementById("filterDirectionPop").classList.remove("hidden");
   }
   function initFilterBar() {
     // Чистим выбор от значений, которых больше нет в списках (проект/юрлицо
@@ -5794,6 +5882,22 @@
       add: function () { handleFilterAdd("direction", "direction"); },
       manage: function () { handleFilterManage("direction"); }
     } : null);
+    // Подпроекты: показываем фильтр, только если они вообще заведены; если
+    // выбран проект — только его подпроекты. Подпись строки — «Проект ›
+    // Подпроект», когда проектов несколько.
+    var subOpts = [];
+    scopedDirs.forEach(function (d) {
+      if (filters.direction.length && filters.direction.indexOf(d) === -1) return;
+      var names = subprojectsOf(d, true).filter(function (n) {
+        return !subprojects.some(function (sp) { return sp.direction === d && sp.name === n && sp.archived; }) ||
+          tasks.some(function (t) { return t.direction === d && t.subproject === n; });
+      });
+      names.forEach(function (n) { subOpts.push({ value: subKey(d, n), label: (filters.direction.length === 1 ? "" : d + " › ") + n }); });
+    });
+    filters.subproject = filters.subproject.filter(function (v) { return subOpts.some(function (o) { return o.value === v; }); });
+    var subWrap = document.getElementById("filterSubprojectWrap");
+    if (subWrap) subWrap.classList.toggle("hidden", !subOpts.length);
+    setupMsFilter("filterSubproject", "subproject", subOpts, "Все подпроекты", null);
     setupMsFilter("filterEntity", "entity", ENTITIES.map(function (e) { return { value: e, label: e }; }), "Все юр лица", isAdmin() ? {
       add: function () { handleFilterAdd("entity", "entity"); },
       manage: function () { handleFilterManage("entity"); }
@@ -5835,15 +5939,17 @@
   // backdrop, or Escape) puts that <select> back to its value from before
   // "+ Добавить…" was picked, instead of leaving it stuck on that option. ----------
   var addItemState = { kind: null, onDone: null, sel: null, cancelValue: "" };
+  var addItemSubDirection = "";   // проект, в который добавляется подпроект
   var ADD_ITEM_LABELS = {
     direction:   { title: "Новый проект",         name: "Название проекта" },
     entity:      { title: "Новое юрлицо",         name: "Название юрлица" },
-    responsible: { title: "Новый ответственный",  name: "Имя ответственного" }
+    responsible: { title: "Новый ответственный",  name: "Имя ответственного" },
+    subproject:  { title: "Новый подпроект",      name: "Название подпроекта" }
   };
   function openAddItemModal(kind, onDone, sel, cancelValue) {
     addItemState = { kind: kind, onDone: onDone, sel: sel || null, cancelValue: cancelValue || "" };
     var labels = ADD_ITEM_LABELS[kind];
-    document.getElementById("addItemTitle").textContent = labels.title;
+    document.getElementById("addItemTitle").textContent = labels.title + (kind === "subproject" && addItemSubDirection ? " в «" + addItemSubDirection + "»" : "");
     document.getElementById("addItemNameLabel").textContent = labels.name;
     var nameInput = document.getElementById("addItemName");
     nameInput.value = "";
@@ -5868,6 +5974,7 @@
     if (kind === "direction") result = addCustomDirection(name, document.getElementById("addItemEntitySel").value);
     else if (kind === "entity") result = addCustomEntity(name);
     else if (kind === "responsible") result = addCustomResponsible(name);
+    else if (kind === "subproject") result = addSubproject(addItemSubDirection, name);
     closeAddItemModal();
     if (onDone) onDone(result);
   }
@@ -5885,11 +5992,12 @@
   var manageListState = { kind: null, sel: null, cancelValue: "", confirming: null };
   var MANAGE_LIST_LABELS = {
     direction: { title: "Удалить проекты", empty: "Нет проектов в списке" },
-    entity:    { title: "Удалить юрлица",  empty: "Нет юрлиц в списке" }
+    entity:    { title: "Удалить юрлица",  empty: "Нет юрлиц в списке" },
+    subproject: { title: "Удалить подпроекты", empty: "Нет подпроектов в списке" }
   };
   function openManageListModal(kind, sel, cancelValue) {
     manageListState = { kind: kind, sel: sel || null, cancelValue: cancelValue || "", confirming: null };
-    document.getElementById("manageListTitle").textContent = MANAGE_LIST_LABELS[kind].title;
+    document.getElementById("manageListTitle").textContent = MANAGE_LIST_LABELS[kind].title + (kind === "subproject" ? " — «" + addItemSubDirection + "»" : "");
     renderManageList();
     document.getElementById("manageListModal").classList.remove("hidden");
   }
@@ -5901,7 +6009,7 @@
   function renderManageList() {
     var kind = manageListState.kind;
     if (!kind) return;
-    var list = kind === "direction" ? DIRECTIONS : ENTITIES;
+    var list = kind === "direction" ? DIRECTIONS : (kind === "subproject" ? subprojectsOf(addItemSubDirection, false) : ENTITIES);
     var el = document.getElementById("manageListItems");
     if (!list.length) { el.innerHTML = '<div class="manage-list-empty">' + MANAGE_LIST_LABELS[kind].empty + '</div>'; return; }
     // По просьбе Никиты (16 сент.): "Общее"/"Личное" — служебные значения
@@ -5936,6 +6044,13 @@
       b.addEventListener("click", function () {
         var name = b.getAttribute("data-name");
         manageListState.confirming = null;
+        if (kind === "subproject") {
+          archiveSubproject(addItemSubDirection, name);
+          showToast("Подпроект «" + name + "» убран из списка (у старых задач он сохранится).");
+          refreshSubprojectField(addItemSubDirection, "");
+          renderManageList();
+          return;
+        }
         if (kind === "direction") removeDirectionFromList(name); else removeEntityFromList(name);
         showToast((kind === "direction" ? "Проект" : "Юрлицо") + " «" + name + "» убран" + (kind === "entity" ? "о" : "") + " из списка.");
         renderManageList();
@@ -6029,13 +6144,7 @@
     var bulkDeleteArmed = false, bulkDeleteArmTimer = null;
     var bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
     bulkDeleteBtn.addEventListener("click", function () {
-      if (!bulkDeleteArmed) {
-        bulkDeleteArmed = true;
-        bulkDeleteBtn.textContent = "Точно удалить?";
-        clearTimeout(bulkDeleteArmTimer);
-        bulkDeleteArmTimer = setTimeout(function () { bulkDeleteArmed = false; bulkDeleteBtn.textContent = "Удалить задачу"; }, 4000);
-        return;
-      }
+      // 1 окт. 2026: сразу, без второго нажатия — задачи уходят в «Удалённые».
       var ids = Object.keys(selectedIds);
       ids.forEach(function (id) { softDeleteTask(id); });
       bulkDeleteArmed = false;
@@ -6077,6 +6186,7 @@
     // отмеченных значений (для "Ответственный" — хотя бы один из выбранных
     // людей должен быть среди её ответственных, а не только первый).
     if (filters.direction.length && filters.direction.indexOf(t.direction) === -1) return false;
+    if (filters.subproject.length && filters.subproject.indexOf(subKey(t.direction, t.subproject || "")) === -1) return false;
     if (filters.entity.length && filters.entity.indexOf(t.entity) === -1) return false;
     if (filters.responsible.length && !respIds(t).some(function (id) { return filters.responsible.indexOf(id) !== -1; })) return false;
     // По просьбе Никиты (30 сент.): фильтр "Постановщик" — по полю createdBy
@@ -6198,6 +6308,7 @@
         '<div class="card-title">'+escapeHtml(t.title)+'</div>' +
         '<div class="card-meta">' +
           '<span class="meta-tag">'+escapeHtml(t.direction||DEFAULT_DIRECTION)+'</span>' +
+          (t.subproject ? '<span class="meta-tag meta-tag-sub" title="Подпроект">› '+escapeHtml(t.subproject)+'</span>' : "") +
           (t.entity && t.entity !== "Не применимо" ? '<span class="meta-tag meta-tag-entity">'+escapeHtml(t.entity)+'</span>' : "") +
           // Часть 25 (доп.): скрепка + число файлов, если к задаче есть
           // хоть один активный (не удалённый) вложенный файл — чтобы не
@@ -6984,6 +7095,21 @@
       if (dirSel.value === "__manage__") { handleManageDirection(dirSel); return; }
       var mapped = DIRECTION_ENTITY[dirSel.value];
       entSel.value = mapped || "Не применимо";
+      // Подпроект принадлежит проекту — при смене проекта сбрасываем.
+      refreshSubprojectField(dirSel.value, "");
+    });
+    var subSel = document.getElementById("fSubproject");
+    subSel.addEventListener("change", function () {
+      var prev = subSel.getAttribute("data-prev") || "";
+      addItemSubDirection = dirSel.value;
+      if (subSel.value === "__add__") {
+        openAddItemModal("subproject", function (name) {
+          refreshSubprojectField(dirSel.value, name || prev);
+        }, subSel, prev);
+        return;
+      }
+      if (subSel.value === "__manage__") { openManageListModal("subproject", subSel, prev); return; }
+      subSel.setAttribute("data-prev", subSel.value);
     });
     entSel.addEventListener("change", function () {
       if (entSel.value === "__add__") { handleAddEntity(entSel); return; }
@@ -7076,6 +7202,7 @@
     // (presets.direction/entity, см. openSubtaskFormFor) — как и раньше,
     // всё это можно поменять руками.
     document.getElementById("fDirection").value = t ? t.direction : (presets.direction || defaultDirectionForCurrentUser());
+    refreshSubprojectField(document.getElementById("fDirection").value, t ? (t.subproject || "") : (presets.subproject || ""));
     document.getElementById("fEntity").value = t ? t.entity : (presets.entity || "Не применимо");
     // У совсем новой задачи без конкретного дня (не кликали по календарю,
     // не выбирали день на доске, явного срока не передали) по умолчанию —
@@ -7243,6 +7370,10 @@
     var data = {
       title: document.getElementById("fTitle").value.trim(),
       direction: direction,
+      subproject: (function () {
+        var v = document.getElementById("fSubproject").value;
+        return v && v.indexOf("__") !== 0 && !document.getElementById("fSubprojectField").classList.contains("hidden") ? v : "";
+      })(),
       entity: document.getElementById("fEntity").value,
       dueDate: document.getElementById("fDue").value,
       startDate: document.getElementById("fStart").value,
@@ -10105,15 +10236,10 @@
         closeModal();
         return;
       }
-      if (!deleteArmed) {
-        deleteArmed = true;
-        e.target.textContent = "Точно удалить?";
-        clearTimeout(deleteArmTimer);
-        deleteArmTimer = setTimeout(resetDeleteBtn, 4000);
-        return;
-      }
+      // 1 окт. 2026: без «Точно удалить?» — удаление и так обратимое
+      // (перенос в «Удалённые», оттуда можно восстановить).
       softDeleteTask(editingId);
-      showToast("Задача перемещена в «Удалённые».");
+      showToast("Задача перемещена в «Удалённые» — её можно восстановить оттуда.");
       closeModal();
     });
     // По просьбе Никиты: кнопка работает и на ещё не сохранённой новой
@@ -10176,7 +10302,7 @@
       e.target.closest("#filtersToggle").setAttribute("aria-expanded", open ? "true" : "false");
     });
     document.getElementById("resetFilters").addEventListener("click", function () {
-      filters = { direction: [], entity: [], responsible: [], creator: [], type: [], due: [], search: "" };
+      filters = { direction: [], subproject: [], entity: [], responsible: [], creator: [], type: [], due: [], search: "" };
       document.getElementById("filterSearch").value = "";
       closeAllMsFilterPops();
       initFilterBar();
@@ -10235,13 +10361,8 @@
     document.getElementById("meetingForm").addEventListener("submit", onMeetingSubmit);
     document.getElementById("meetingDeleteBtn").addEventListener("click", function (e) {
       if (!meetingEditingId) return;
-      if (!meetingDeleteArmed) {
-        meetingDeleteArmed = true;
-        e.target.textContent = "Точно удалить?";
-        clearTimeout(meetingDeleteArmTimer);
-        meetingDeleteArmTimer = setTimeout(resetMeetingDeleteBtn, 4000);
-        return;
-      }
+      // 1 окт. 2026: без «Точно удалить?» — удаление и так обратимое
+      // (перенос в «Удалённые», оттуда можно восстановить).
       softDeleteMeeting(meetingEditingId);
       showToast("Протокол перемещён в удалённые.");
       closeMeetingModal();
@@ -10263,13 +10384,8 @@
     document.getElementById("smInitialQty").addEventListener("input", updateStockReadout);
     document.getElementById("sampleDeleteBtn").addEventListener("click", function (e) {
       if (!sampleEditingId) return;
-      if (!sampleDeleteArmed) {
-        sampleDeleteArmed = true;
-        e.target.textContent = "Точно удалить?";
-        clearTimeout(sampleDeleteArmTimer);
-        sampleDeleteArmTimer = setTimeout(resetSampleDeleteBtn, 4000);
-        return;
-      }
+      // 1 окт. 2026: без «Точно удалить?» — удаление и так обратимое
+      // (перенос в «Удалённые», оттуда можно восстановить).
       softDeleteSample(sampleEditingId);
       showToast("Образец перемещён в удалённые.");
       closeSampleModal();
@@ -10289,13 +10405,8 @@
     document.getElementById("orderForm").addEventListener("submit", onOrderSubmit);
     document.getElementById("orderDeleteBtn").addEventListener("click", function (e) {
       if (!orderEditingId) return;
-      if (!orderDeleteArmed) {
-        orderDeleteArmed = true;
-        e.target.textContent = "Точно удалить?";
-        clearTimeout(orderDeleteArmTimer);
-        orderDeleteArmTimer = setTimeout(resetOrderDeleteBtn, 4000);
-        return;
-      }
+      // 1 окт. 2026: без «Точно удалить?» — удаление и так обратимое
+      // (перенос в «Удалённые», оттуда можно восстановить).
       softDeleteOrder(orderEditingId);
       showToast("Заказ перемещён в удалённые.");
       closeOrderModal();
