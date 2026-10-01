@@ -1157,6 +1157,37 @@
   .history-tag-deleted { color: var(--danger); font-weight: 700; }
   .history-tag-done { color: var(--s-done); font-weight: 700; }
   .card.card-deleted { opacity: .6; }
+  .myday { max-width: 1280px; margin: 0 auto; padding: 18px 20px 40px; }
+  .myday-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 4px 0 14px; }
+  .myday-head h2 { font-family: var(--font-display); font-size: 22px; margin: 0; }
+  .myday-head span { color: var(--ink-soft); font-size: 13.5px; }
+  .myday-block { margin: 0 0 26px; }
+  .myday-block h3 { font-size: 15px; margin: 0 0 4px; }
+  .myday-block .myday-hint { font-size: 12.5px; color: var(--ink-faint); margin: 0 0 10px; }
+  .myday-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  .myday-cols .column-cards { display: flex; flex-direction: column; gap: 10px; }
+  .myday-list { display: flex; flex-direction: column; gap: 8px; }
+  .myday-row { display: block; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 10px 12px; font: inherit; color: var(--ink); cursor: pointer; }
+  .myday-row:hover { background: var(--surface-2); }
+  .myday-row-top { font-size: 13px; font-weight: 700; }
+  .myday-row-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+  .myday-empty { font-size: 13px; color: var(--ink-faint); padding: 8px 0; }
+  .myday-load { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--radius-s); overflow: hidden; background: var(--surface); }
+  .myday-load > * { padding: 9px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .myday-load .h { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; background: var(--surface-2); }
+  .myday-load .num { font-family: var(--font-mono); text-align: right; }
+  .myday-load .bad { color: var(--danger); font-weight: 700; }
+  .myday-load button { border: 0; background: none; font: inherit; color: var(--accent); text-align: left; cursor: pointer; padding: 0; font-weight: 600; }
+  .an-person-now { font-size: 12.5px; color: var(--ink-soft); margin: -2px 0 8px; }
+  .an-person-now b { color: var(--ink); }
+  .an-person-now .bad { color: var(--danger); }
+  @media (max-width: 720px) {
+    .myday { padding: 12px 12px 30px; }
+    .myday-cols { grid-template-columns: 1fr; }
+    .myday-head h2 { font-size: 26px; }
+    .myday-row-top { font-size: 18px; }
+    .myday-row-sub, .myday-load > * { font-size: 16px; }
+  }
   .field-label-soft { font-weight: 500; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
   .meta-tag-sub { background: var(--accent-soft); color: var(--accent); }
   .ms-filter-group { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px 2px; }
@@ -3317,6 +3348,7 @@
            другого без пароля), вместо него просто подпись, под кем он вошёл. -->
       <span id="whoAmILabel" class="who-select-label hidden"></span>
       <div class="tabs" role="tablist" aria-label="Вид">
+        <button class="tab" data-view="myday" role="tab" aria-selected="false">Мой день</button>
         <button class="tab active" data-view="board" role="tab" aria-selected="true">Доска Задач</button>
         <button id="addTaskBtn" class="btn-primary btn-add-compact" type="button" aria-label="Добавить задачу" title="Добавить задачу">+</button>
         <button class="tab" data-view="calendar" role="tab" aria-selected="false">Календарь</button>
@@ -3428,6 +3460,8 @@
     <button type="button" class="btn-ghost" id="bulkClear">Снять выделение</button>
   </div>
 
+  <!-- 1 окт. 2026: «Мой день» — стартовый экран каждого сотрудника. -->
+  <main class="myday hidden" id="mydayView"></main>
   <main class="board" id="boardView"></main>
   <main class="calendar hidden" id="calendarView">
     <div class="cal-header">
@@ -7497,6 +7531,7 @@
       b.setAttribute("aria-selected", active ? "true" : "false");
     });
     document.getElementById("boardView").classList.toggle("hidden", v !== "board");
+    document.getElementById("mydayView").classList.toggle("hidden", v !== "myday");
     document.getElementById("calendarView").classList.toggle("hidden", v !== "calendar");
     document.getElementById("financeView").classList.toggle("hidden", v !== "finance");
     document.getElementById("analyticsView").classList.toggle("hidden", v !== "analytics");
@@ -7511,7 +7546,7 @@
     // второй (filtersExtra) на широком экране виден всегда по умолчанию
     // (.filters-extra{display: flex}), поэтому ряд селектов "протекал"
     // поверх этих разделов; здесь заодно и это поправлено.
-    var hideTaskFilters = v === "finance" || v === "analytics" || v === "meetings" || v === "samples" || v === "orders" || v === "employees";
+    var hideTaskFilters = v === "myday" || v === "finance" || v === "analytics" || v === "meetings" || v === "samples" || v === "orders" || v === "employees";
     document.getElementById("filters").classList.toggle("hidden", hideTaskFilters);
     document.getElementById("filtersExtra").classList.toggle("hidden", hideTaskFilters);
     // Переключатель "По срокам"/"Списком" имеет смысл только на самой доске —
@@ -7522,16 +7557,129 @@
     if (v === "finance") subscribeFinance(); else render();
   }
 
+  // ---------- «Мой день» (1 окт. 2026) ----------
+  // Стартовый экран: мои задачи (просрочено / сегодня / 7 дней), что я
+  // поручил другим, новые комментарии в моих задачах за 2 дня и — для
+  // админа — нагрузка команды. Всё считается из уже загруженных задач.
+  function liveOpenTasks() {
+    return tasks.filter(function (t) { return !t.deleted && !taskDone(t) && !isPersonalHidden(t) && isDirectionAllowed(t.direction); });
+  }
+  function personWorkload(personId) {
+    var w = { overdue: 0, today: 0, open: 0 };
+    tasks.forEach(function (t) {
+      if (t.deleted || taskDone(t) || respIds(t).indexOf(personId) === -1) return;
+      w.open++;
+      if (isOverdue(t)) w.overdue++;
+      else if (computeUrgencyId(t) === "today") w.today++;
+    });
+    return w;
+  }
+  function wireTaskCards(root) {
+    Array.prototype.forEach.call(root.querySelectorAll(".card, .myday-row[data-id]"), function (c) {
+      c.addEventListener("click", function (e) {
+        var parentLink = e.target.closest(".card-parent-link");
+        if (parentLink) { e.stopPropagation(); openModal(parentLink.getAttribute("data-parent-id")); return; }
+        openModal(c.getAttribute("data-id"));
+      });
+    });
+  }
+  function renderMyDay() {
+    var el = document.getElementById("mydayView");
+    if (!el) return;
+    var me = getCurrentUser();
+    var open = liveOpenTasks();
+    var mine = open.filter(function (t) { return respIds(t).indexOf(me) !== -1; });
+    var overdue = mine.filter(isOverdue).sort(function (a, b) { return overdueDays(b) - overdueDays(a); });
+    var today = mine.filter(function (t) { return !isOverdue(t) && computeUrgencyId(t) === "today"; }).sort(byUrgencyRank);
+    var week = mine.filter(function (t) { return !isOverdue(t) && computeUrgencyId(t) === "week"; }).sort(byUrgencyRank);
+    var assigned = open.filter(function (t) {
+      return t.createdBy === me && respIds(t).some(function (id) { return id !== me; });
+    }).sort(function (a, b) {
+      var oa = isOverdue(a), ob = isOverdue(b);
+      if (oa !== ob) return oa ? -1 : 1;
+      return byUrgencyRank(a, b);
+    });
+    var since = Date.now() - 2 * 86400000;
+    var news = [];
+    tasks.forEach(function (t) {
+      if (t.deleted || isPersonalHidden(t) || !isDirectionAllowed(t.direction)) return;
+      if (respIds(t).indexOf(me) === -1 && t.createdBy !== me) return;
+      (Array.isArray(t.comments) ? t.comments : []).forEach(function (c) {
+        if (!c || c.deletedAt || c.by === me || !c.at || c.at < since) return;
+        news.push({ t: t, c: c });
+      });
+    });
+    news.sort(function (a, b) { return b.c.at - a.c.at; });
+
+    var hour = new Date().getHours();
+    var hello = hour < 12 ? "Доброе утро" : (hour < 18 ? "Добрый день" : "Добрый вечер");
+    var name = currentStaff ? (currentStaff.label || "") : "";
+    var html = '<div class="myday-head"><h2>' + hello + (name ? ", " + escapeHtml(name) : "") + '</h2>' +
+      '<span>' + (overdue.length ? overdue.length + " просрочено · " : "") + today.length + " на сегодня · " + week.length + " на неделе</span></div>";
+
+    html += '<div class="myday-block"><h3>Мои задачи</h3><p class="myday-hint">Где вы среди ответственных</p><div class="myday-cols">' +
+      columnSectionHtml({ label: "Просрочено", varc: "--u-overdue" }, overdue) +
+      columnSectionHtml({ label: "Сегодня", varc: "--u-today" }, today) +
+      columnSectionHtml({ label: "Ближайшие 7 дней", varc: "--u-week" }, week) +
+      '</div></div>';
+
+    html += '<div class="myday-block"><h3>Поставил я</h3><p class="myday-hint">Открытые задачи, которые вы поручили другим</p>' +
+      (assigned.length ? '<div class="myday-list">' + assigned.map(function (t) {
+        var who = respIds(t).filter(function (id) { return id !== me; }).map(responsibleLabel).join(", ");
+        var due = isOverdue(t) ? '<span style="color:var(--danger);font-weight:700">просрочено · ' + ruDays(overdueDays(t)) + '</span>' : (t.dueDate ? dateLabel(t.dueDate) : "без срока");
+        return '<button type="button" class="myday-row" data-id="' + t.id + '"><div class="myday-row-top">' + taskTitleLabel(t) + ' · ' + escapeHtml(t.title) + '</div>' +
+          '<div class="myday-row-sub">👤 ' + escapeHtml(who) + ' · ' + due + ' · ' + escapeHtml(t.direction || "") + (t.subproject ? " › " + escapeHtml(t.subproject) : "") + '</div></button>';
+      }).join("") + '</div>' : '<div class="myday-empty">Нет открытых поручений другим.</div>') + '</div>';
+
+    html += '<div class="myday-block"><h3>Новое в моих задачах</h3><p class="myday-hint">Комментарии коллег за последние 2 дня</p>' +
+      (news.length ? '<div class="myday-list">' + news.slice(0, 20).map(function (n) {
+        var when = new Date(n.c.at).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+        var text = String(n.c.text || (n.c.attachments && n.c.attachments.length ? "📎 вложение" : ""));
+        return '<button type="button" class="myday-row" data-id="' + n.t.id + '"><div class="myday-row-top">' + taskTitleLabel(n.t) + ' · ' + escapeHtml(n.t.title) + '</div>' +
+          '<div class="myday-row-sub">💬 <b>' + escapeHtml(responsibleLabel(n.c.by)) + '</b> (' + when + '): ' + escapeHtml(text.length > 160 ? text.slice(0, 160) + "…" : text) + '</div></button>';
+      }).join("") + '</div>' : '<div class="myday-empty">Новых комментариев нет.</div>') + '</div>';
+
+    if (isAdmin()) {
+      var rows = RESPONSIBLE.map(function (r) { return { r: r, w: personWorkload(r.id) }; })
+        .sort(function (a, b) { return b.w.overdue - a.w.overdue || b.w.open - a.w.open; });
+      html += '<div class="myday-block"><h3>Нагрузка команды</h3><p class="myday-hint">Открытые задачи по сотрудникам прямо сейчас — нажмите имя, чтобы открыть его задачи на доске</p>' +
+        '<div class="myday-load"><div class="h">Сотрудник</div><div class="h num">Просрочено</div><div class="h num">Сегодня</div><div class="h num">Открыто</div>' +
+        rows.map(function (x) {
+          return '<div><button type="button" data-person="' + x.r.id + '">' + escapeHtml(x.r.label) + '</button></div>' +
+            '<div class="num' + (x.w.overdue ? ' bad' : '') + '">' + x.w.overdue + '</div>' +
+            '<div class="num">' + x.w.today + '</div><div class="num">' + x.w.open + '</div>';
+        }).join("") + '</div></div>';
+    }
+    el.innerHTML = html;
+    wireTaskCards(el);
+    Array.prototype.forEach.call(el.querySelectorAll("[data-person]"), function (b) {
+      b.addEventListener("click", function () {
+        filters.responsible = [b.getAttribute("data-person")];
+        initFilterBar();
+        setView("board");
+      });
+    });
+  }
+
   // ---------- Master render ----------
   function render() {
     updateWhoGate();
     var live = tasks.filter(function (t) { return !t.deleted; });
     var visible = live.filter(matchesFilters);
-    document.getElementById("taskCount").textContent = visible.length + " из " + live.length;
+    if (currentView === "board" && boardLayout === "flat") {
+      // «Хронология» показывает и удалённые — счётчик тоже считает все задачи.
+      var all = tasks.filter(function (t) { return !isPersonalHidden(t) && isDirectionAllowed(t.direction); });
+      var shown = all.filter(matchesBaseFilters);
+      var del = shown.filter(function (t) { return t.deleted; }).length;
+      document.getElementById("taskCount").textContent = shown.length + " из " + all.length + (del ? " · удалённых " + del : "");
+    } else {
+      document.getElementById("taskCount").textContent = visible.length + " из " + live.length;
+    }
     updateFiltersToggleBadge();
     if (!document.getElementById("dayDetailModal").classList.contains("hidden")) renderDayDetailModal();
     if (!document.getElementById("taskModal").classList.contains("hidden") && editingId) { renderCommentsSection(findTask(editingId)); updateModalDoneBtn(findTask(editingId)); }
     if (currentView === "board") renderBoard();
+    else if (currentView === "myday") renderMyDay();
     else if (currentView === "calendar") renderCalendar();
     else if (currentView === "analytics") renderAnalytics();
     else if (currentView === "meetings") renderMeetings();
@@ -7634,14 +7782,18 @@
       btn.classList.toggle("active", btn.getAttribute("data-period") === anPersonPeriod);
     });
     var buckets = computePersonBarBuckets(anPersonPeriod);
-    var people = RESPONSIBLE.filter(function (r) { return buckets[r.id] && buckets[r.id].total > 0; });
+    var people = RESPONSIBLE.filter(function (r) { return (buckets[r.id] && buckets[r.id].total > 0) || personWorkload(r.id).open > 0; });
     var el = document.getElementById("anByPerson");
     if (!people.length) { el.innerHTML = '<div class="an-empty">Пока нет данных за этот период</div>'; return; }
     el.innerHTML = people.map(function (r) {
-      var s = buckets[r.id];
-      var pct = function (n) { return Math.round(n / s.total * 100); };
+      var s = buckets[r.id] || { total: 0, onTime: 0, overdueNow: 0, movedRest: 0, inProgress: 0 };
+      var pct = function (n) { return s.total ? Math.round(n / s.total * 100) : 0; };
+      // 1 окт. 2026: нагрузка «прямо сейчас» — та же, что в «Моём дне»
+      // у админа; ниже, как и раньше, — итоги за выбранный период.
+      var w = personWorkload(r.id);
       return '<div class="an-person-card">' +
-        '<div class="an-person-name">' + escapeHtml(r.label) + '<span class="an-row-count">' + s.total + ' ' + ruTaskWord(s.total) + '</span></div>' +
+        '<div class="an-person-name">' + escapeHtml(r.label) + '<span class="an-row-count">' + s.total + ' ' + ruTaskWord(s.total) + ' за период</span></div>' +
+        '<div class="an-person-now">Сейчас: <span class="' + (w.overdue ? 'bad' : '') + '">просрочено <b>' + w.overdue + '</b></span> · сегодня <b>' + w.today + '</b> · открыто <b>' + w.open + '</b></div>' +
         '<div class="an-stackbar"><div class="an-stackbar-track">' +
           (s.onTime ? '<div class="an-stackbar-seg good" style="width:' + pct(s.onTime) + '%"></div>' : '') +
           (s.overdueNow ? '<div class="an-stackbar-seg bad" style="width:' + pct(s.overdueNow) + '%"></div>' : '') +
@@ -10548,6 +10700,7 @@
       // Этап A: данные грузим только после входа через Google и проверки,
       // что человек есть в списке сотрудников (см. initAuthGate).
       initAuthGate(function () {
+      setView("myday");
       renderWhoAmI();
       subscribeStaff();
       fetchServerGoogleToken().catch(function () {});
