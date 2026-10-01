@@ -3896,6 +3896,7 @@
       </select>
     </div>
     <div class="field" id="empDirsField">
+      <label class="employee-dir-row" style="margin-bottom:10px"><input type="checkbox" id="empSeeFinance"><span><b>Видит «Финансы»</b> — по юрлицам отмеченных проектов</span></label>
       <span class="field-label">Разрешённые направления</span>
       <div class="employee-dir-checks" id="empDirChecks"></div>
       <p class="field-hint">«Личное» доступно каждому всегда для своих личных задач — отдельно отмечать не нужно.</p>
@@ -4751,6 +4752,19 @@
     var allowed = allowedDirectionsForCurrentUser();
     return !allowed || allowed.indexOf(direction) !== -1;
   }
+  // Этап A, видимость: сотрудник видит задачу разрешённого проекта ИЛИ где
+  // он ответственный/постановщик (то же правило — в firestore.rules).
+  function isMyTask(t) {
+    var me = getCurrentUser();
+    return !!me && (respIds(t).indexOf(me) !== -1 || t.createdBy === me);
+  }
+  function canSeeTask(t) { return isDirectionAllowed(t.direction) || isMyTask(t); }
+  function canSeeMeeting(m) {
+    var me = getCurrentUser();
+    return isDirectionAllowed(m.direction) || m.createdBy === me || (Array.isArray(m.participants) && m.participants.indexOf(me) !== -1);
+  }
+  function canSeeOrder(o) { return isDirectionAllowed(o.direction) || o.responsible === getCurrentUser(); }
+  function canSeeFinance() { return isAdmin() || !!(currentStaff && currentStaff.seeFinance); }
   function scopedDirections() {
     var allowed = allowedDirectionsForCurrentUser();
     if (!allowed) return DIRECTIONS;
@@ -4768,6 +4782,8 @@
   function updateAdminNav() {
     var tab = document.getElementById("employeesTabBtn");
     if (tab) tab.classList.toggle("hidden", !isAdmin());
+    var finTab = document.querySelector('.tab[data-view="finance"]');
+    if (finTab) finTab.classList.toggle("hidden", !canSeeFinance());
   }
   function findEmployeeByPassword(pw) {
     if (!pw) return null;
@@ -6212,7 +6228,7 @@
     // направлениям, которые ему не разрешил администратор — ни на доске, ни
     // в календаре, ни в "Удалённых", ни через поиск (все они проходят через
     // matchesBaseFilters/matchesFilters — единая точка входа).
-    if (!isDirectionAllowed(t.direction)) return false;
+    if (!canSeeTask(t)) return false;
     // По просьбе Никиты (15 сент.): каждое поле теперь массив — пусто =
     // фильтр не применяется, иначе задача должна попасть хоть в одно из
     // отмеченных значений (для "Ответственный" — хотя бы один из выбранных
@@ -7522,6 +7538,7 @@
     // Часть 22: раздел "Сотрудники" — только для администратора; случайный
     // (или намеренный) переход туда у сотрудника просто возвращает на доску.
     if (v === "employees" && !isAdmin()) v = "board";
+    if (v === "finance" && !canSeeFinance()) v = "board";
     currentView = v;
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
       var active = b.getAttribute("data-view") === v;
@@ -7555,12 +7572,66 @@
     if (v === "finance") subscribeFinance(); else render();
   }
 
+  // ---------- Загрузка данных с учётом доступа (этап A) ----------
+  // Правила базы не «фильтруют» запрос — запрос целиком должен попадать под
+  // разрешение. Поэтому для роли «Сотрудник» коллекция собирается из
+  // нескольких узких запросов (разрешённые проекты, «где я ответственный»,
+  // «где я постановщик» …) и склеивается по id документа.
+  function scopedQueries(name) {
+    var col = db.collection(name);
+    var pid = getCurrentUser();
+    var dirs = ((currentStaff && currentStaff.allowedDirections) || []).filter(function (d) { return d !== "Личное"; });
+    var ents = (currentStaff && currentStaff.allowedEntities) || [];
+    var out = [];
+    function inChunks(field, vals) { for (var i = 0; i < vals.length; i += 30) out.push(col.where(field, "in", vals.slice(i, i + 30))); }
+    if (name === "tasks") {
+      inChunks("direction", dirs);
+      out.push(col.where("responsible", "array-contains", pid));
+      out.push(col.where("responsible", "==", pid));
+      out.push(col.where("createdBy", "==", pid));
+    } else if (name === "meetings") {
+      inChunks("direction", dirs);
+      out.push(col.where("direction", "==", ""));
+      out.push(col.where("participants", "array-contains", pid));
+      out.push(col.where("createdBy", "==", pid));
+    } else if (name === "orders") {
+      inChunks("direction", dirs);
+      out.push(col.where("responsible", "==", pid));
+    } else if (name === "samples") {
+      inChunks("direction", dirs);
+    } else if (name === "finance") {
+      if (currentStaff && currentStaff.seeFinance) inChunks("entity", ents);
+    }
+    return out;
+  }
+  function subscribeScoped(name, onDocs, onErr) {
+    if (isAdmin()) {
+      return db.collection(name).onSnapshot(function (snap) {
+        onDocs(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
+      }, onErr);
+    }
+    var queries = scopedQueries(name);
+    if (!queries.length) { onDocs([]); return function () {}; }
+    var parts = {};
+    function merge() {
+      var map = {};
+      Object.keys(parts).forEach(function (k) {
+        parts[k].forEach(function (d) { map[d.id] = Object.assign({ id: d.id }, d.data()); });
+      });
+      onDocs(Object.keys(map).map(function (id) { return map[id]; }));
+    }
+    var unsubs = queries.map(function (q, i) {
+      return q.onSnapshot(function (snap) { parts[i] = snap.docs; merge(); }, onErr);
+    });
+    return function () { unsubs.forEach(function (u) { u(); }); };
+  }
+
   // ---------- «Мой день» (1 окт. 2026) ----------
   // Стартовый экран: мои задачи (просрочено / сегодня / 7 дней), что я
   // поручил другим, новые комментарии в моих задачах за 2 дня и — для
   // админа — нагрузка команды. Всё считается из уже загруженных задач.
   function liveOpenTasks() {
-    return tasks.filter(function (t) { return !t.deleted && !taskDone(t) && !isPersonalHidden(t) && isDirectionAllowed(t.direction); });
+    return tasks.filter(function (t) { return !t.deleted && !taskDone(t) && !isPersonalHidden(t) && canSeeTask(t); });
   }
   function personWorkload(personId) {
     var w = { overdue: 0, today: 0, open: 0 };
@@ -7602,7 +7673,7 @@
     var since = Date.now() - 2 * 86400000;
     var news = [];
     tasks.forEach(function (t) {
-      if (t.deleted || isPersonalHidden(t) || !isDirectionAllowed(t.direction)) return;
+      if (t.deleted || isPersonalHidden(t) || !canSeeTask(t)) return;
       if (respIds(t).indexOf(me) === -1 && t.createdBy !== me) return;
       (Array.isArray(t.comments) ? t.comments : []).forEach(function (c) {
         if (!c || c.deletedAt || c.by === me || !c.at || c.at < since) return;
@@ -7670,7 +7741,7 @@
     var visible = live.filter(matchesFilters);
     if (currentView === "board" && boardLayout === "flat") {
       // «Хронология» показывает и удалённые — счётчик тоже считает все задачи.
-      var all = tasks.filter(function (t) { return !isPersonalHidden(t) && isDirectionAllowed(t.direction); });
+      var all = tasks.filter(function (t) { return !isPersonalHidden(t) && canSeeTask(t); });
       var shown = all.filter(matchesBaseFilters);
       var del = shown.filter(function (t) { return t.deleted; }).length;
       document.getElementById("taskCount").textContent = shown.length + " из " + all.length + (del ? " · удалённых " + del : "");
@@ -8395,10 +8466,18 @@
     var sign = n < 0 ? "−" : "";
     return sign + Math.abs(Math.round(n)).toLocaleString("ru-RU");
   }
+  function rebuildFinDataFromAll() {
+    var period = periodStr(finCursor);
+    var map = {};
+    financeAll.forEach(function (d) { if (d.period === period) map[d.entity] = d; });
+    finData = map;
+    if (currentView === "finance") renderFinance();
+  }
   function subscribeFinance() {
     if (finUnsub) { finUnsub(); finUnsub = null; }
     var period = periodStr(finCursor);
     if (!db) { renderFinance(); return; }
+    if (!isAdmin()) { rebuildFinDataFromAll(); return; }
     finUnsub = db.collection("finance").where("period", "==", period).onSnapshot(function (snap) {
       var map = {};
       snap.docs.forEach(function (d) { var data = d.data(); map[data.entity] = data; });
@@ -8421,7 +8500,9 @@
     document.getElementById("finMonthLabel").textContent = finCursor.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
     var grid = document.getElementById("finGrid");
     var totalRev = 0, totalCost = 0;
-    grid.innerHTML = FINANCE_ENTITIES.map(function (entity) {
+    // Сотрудник с доступом к «Финансам» видит только юрлица своих проектов.
+    var finEntities = isAdmin() ? FINANCE_ENTITIES : FINANCE_ENTITIES.filter(function (en) { return ((currentStaff && currentStaff.allowedEntities) || []).indexOf(en) !== -1; });
+    grid.innerHTML = finEntities.map(function (entity) {
       var rec = finData[entity] || {};
       var revenue = Number(rec.revenue) || 0;
       var costs = Number(rec.costs) || 0;
@@ -8730,7 +8811,7 @@
     var visible = base.filter(function (m) {
       // Часть 22: тот же принцип, что и с задачами — протокол по
       // направлению вне доступа сотрудника просто не показывается.
-      if (!isDirectionAllowed(m.direction)) return false;
+      if (!canSeeMeeting(m)) return false;
       if (meetingsFilterDirection && m.direction !== meetingsFilterDirection) return false;
       if (meetingsFilterEntity && m.entity !== meetingsFilterEntity) return false;
       return true;
@@ -9053,7 +9134,7 @@
     var base = ordersShowDeleted ? orders : orders.filter(function (o) { return !o.deleted; });
     // Часть 23: тот же принцип доступа, что и у остальных разделов — заказ по
     // направлению вне допуска сотрудника просто не показывается.
-    base = base.filter(function (o) { return isDirectionAllowed(o.direction); });
+    base = base.filter(canSeeOrder);
     var visible = ordersFilterDirection ? base.filter(function (o) { return o.direction === ordersFilterDirection; }) : base;
     visible = visible.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     var list = document.getElementById("orderList");
@@ -9277,7 +9358,8 @@
     var dirsHtml = isAdm
       ? '<span class="meta-tag">Все проекты</span>'
       : (dirs.length ? dirs.map(function (d) { return '<span class="meta-tag">' + escapeHtml(d) + '</span>'; }).join("")
-        : '<span class="employee-no-access">Проекты не выбраны — видит только свои задачи</span>');
+        : '<span class="employee-no-access">Проекты не выбраны — видит только свои задачи</span>') +
+      (!isAdm && e.seeFinance ? '<span class="meta-tag">Финансы</span>' : '');
     var inactive = e.active === false;
     return (
       '<button type="button" class="employee-card' + (inactive ? " employee-card-inactive" : "") + '" data-email="' + escapeHtml(e.email) + '">' +
@@ -9336,6 +9418,7 @@
     document.getElementById("empEmail").value = e ? e.email : "";
     document.getElementById("empRole").value = e && e.role === "admin" ? "admin" : "member";
     renderEmpDirChecks(e ? e.allowedDirections : []);
+    document.getElementById("empSeeFinance").checked = !!(e && e.seeFinance);
     updateEmpDirsVisibility();
     // Себе закрыть доступ или снять роль админа нельзя — иначе можно
     // случайно остаться без единого администратора.
@@ -9362,11 +9445,17 @@
     var clash = staffByEmail(email);
     if (clash && (!prev || clash.email !== prev.email)) { showToast("Сотрудник с такой почтой уже есть.", true); return; }
     if (prev && currentStaff && prev.email === currentStaff.email) role = prev.role;
+    // Юрлица считаем из проектов (как и в «Экономике») — по ним правила
+    // базы открывают сотруднику «Финансы», если включено.
+    var ents = [];
+    dirs.forEach(function (d) { var en = DIRECTION_ENTITY[d]; if (en && en !== "Не применимо" && ents.indexOf(en) === -1) ents.push(en); });
     var data = {
       label: name,
       initial: name.charAt(0).toUpperCase(),
       role: role,
       allowedDirections: role === "admin" ? [] : dirs,
+      allowedEntities: role === "admin" ? [] : ents,
+      seeFinance: role === "admin" ? true : document.getElementById("empSeeFinance").checked,
       active: prev ? prev.active !== false : true,
       updatedAt: Date.now(),
       updatedBy: getCurrentUser()
@@ -10708,8 +10797,8 @@
       Promise.resolve().then(function () {
       return ensureSeeded(); }).then(function () {
       return runOneTimeMigrations(); }).then(function () {
-        unsub = db.collection("tasks").onSnapshot(function (snap) {
-          tasks = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+        unsub = subscribeScoped("tasks", function (docs) {
+          tasks = docs;
           render();
           markDigestReady("tasks");
         }, function (err) {
@@ -10717,20 +10806,20 @@
           if (!tasks.length) { seedLocal(); render(); }
         });
         // CRM v2 Часть 3: «Образцы» — тот же паттерн живой подписки, что tasks.
-        samplesUnsub = db.collection("samples").onSnapshot(function (snap) {
-          samples = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+        samplesUnsub = subscribeScoped("samples", function (docs) {
+          samples = docs;
           if (currentView === "samples") renderSamples();
           markDigestReady("samples");
         }, function (err) { console.error("samples subscribe error", err); });
         // CRM v2 Часть 20: «Протоколы встреч/звонков» — тот же паттерн живой подписки.
-        meetingsUnsub = db.collection("meetings").onSnapshot(function (snap) {
-          meetings = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+        meetingsUnsub = subscribeScoped("meetings", function (docs) {
+          meetings = docs;
           if (currentView === "meetings") renderMeetings();
           markDigestReady("meetings");
         }, function (err) { console.error("meetings subscribe error", err); });
         // CRM v2 Часть 23: «Заказы» — тот же паттерн живой подписки.
-        ordersUnsub = db.collection("orders").onSnapshot(function (snap) {
-          orders = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+        ordersUnsub = subscribeScoped("orders", function (docs) {
+          orders = docs;
           if (currentView === "orders") renderOrders();
           markDigestReady("orders");
         }, function (err) { console.error("orders subscribe error", err); });
@@ -10738,8 +10827,9 @@
         // графика "Выручка/Затраты/Маржа по месяцам" в Аналитике (см.
         // buildFinanceTrend). Небольшая коллекция (по документу на юрлицо на
         // месяц), поэтому без отдельного ограничения по количеству.
-        financeAllUnsub = db.collection("finance").onSnapshot(function (snap) {
-          financeAll = snap.docs.map(function (d) { return d.data(); });
+        financeAllUnsub = subscribeScoped("finance", function (docs) {
+          financeAll = docs;
+          if (!isAdmin()) rebuildFinDataFromAll();
           if (currentView === "finance") renderEconomics();
         }, function (err) { console.error("financeAll subscribe error", err); });
         subscribeCustomLists();
