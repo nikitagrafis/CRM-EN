@@ -1157,15 +1157,14 @@
   .history-tag-deleted { color: var(--danger); font-weight: 700; }
   .history-tag-done { color: var(--s-done); font-weight: 700; }
   .card.card-deleted { opacity: .6; }
-  .myday { max-width: 1280px; margin: 0 auto; padding: 18px 20px 40px; }
+  .myday { max-width: 1180px; width: 100%; margin: 0 auto; padding: 18px 20px 40px; }
   .myday-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 4px 0 14px; }
   .myday-head h2 { font-family: var(--font-display); font-size: 22px; margin: 0; }
   .myday-head span { color: var(--ink-soft); font-size: 13.5px; }
   .myday-block { margin: 0 0 26px; }
   .myday-block h3 { font-size: 15px; margin: 0 0 4px; }
   .myday-block .myday-hint { font-size: 12.5px; color: var(--ink-faint); margin: 0 0 10px; }
-  .myday-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
-  .myday-cols .column-cards { display: flex; flex-direction: column; gap: 10px; }
+  .myday-stack { display: flex; flex-direction: column; gap: 4px; }
   .myday-list { display: flex; flex-direction: column; gap: 8px; }
   .myday-row { display: block; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 10px 12px; font: inherit; color: var(--ink); cursor: pointer; }
   .myday-row:hover { background: var(--surface-2); }
@@ -1183,7 +1182,6 @@
   .an-person-now .bad { color: var(--danger); }
   @media (max-width: 720px) {
     .myday { padding: 12px 12px 30px; }
-    .myday-cols { grid-template-columns: 1fr; }
     .myday-head h2 { font-size: 26px; }
     .myday-row-top { font-size: 18px; }
     .myday-row-sub, .myday-load > * { font-size: 16px; }
@@ -4644,10 +4642,10 @@
   // Хранится в localStorage браузера, а не в Firestore — это личная
   // настройка отображения, а не общие данные CRM; если localStorage
   // недоступен (приватный режим и т. п.) — тихо остаёмся на "buckets".
-  function loadBoardLayout() {
-    try { return localStorage.getItem("crmBoardLayout") === "flat" ? "flat" : "buckets"; }
-    catch (e) { return "buckets"; }
-  }
+  // 1 окт. 2026, по просьбе Никиты: доска всегда открывается по срокам
+  // (Просрочено → Сегодня → Неделя → Месяц → Позже); «Хронология» — только
+  // по кнопке и не запоминается между заходами.
+  function loadBoardLayout() { return "buckets"; }
   function saveBoardLayout(v) {
     try { localStorage.setItem("crmBoardLayout", v); } catch (e) {}
   }
@@ -7592,6 +7590,8 @@
     var overdue = mine.filter(isOverdue).sort(function (a, b) { return overdueDays(b) - overdueDays(a); });
     var today = mine.filter(function (t) { return !isOverdue(t) && computeUrgencyId(t) === "today"; }).sort(byUrgencyRank);
     var week = mine.filter(function (t) { return !isOverdue(t) && computeUrgencyId(t) === "week"; }).sort(byUrgencyRank);
+    var month = mine.filter(function (t) { return !isOverdue(t) && computeUrgencyId(t) === "month"; }).sort(byUrgencyRank);
+    var later = mine.filter(function (t) { return !isOverdue(t) && computeUrgencyId(t) === "later"; }).sort(byUrgencyRank);
     var assigned = open.filter(function (t) {
       return t.createdBy === me && respIds(t).some(function (id) { return id !== me; });
     }).sort(function (a, b) {
@@ -7615,12 +7615,14 @@
     var hello = hour < 12 ? "Доброе утро" : (hour < 18 ? "Добрый день" : "Добрый вечер");
     var name = currentStaff ? (currentStaff.label || "") : "";
     var html = '<div class="myday-head"><h2>' + hello + (name ? ", " + escapeHtml(name) : "") + '</h2>' +
-      '<span>' + (overdue.length ? overdue.length + " просрочено · " : "") + today.length + " на сегодня · " + week.length + " на неделе</span></div>";
+      '<span>' + (overdue.length ? overdue.length + " просрочено · " : "") + today.length + " на сегодня · " + week.length + " на неделе · " + month.length + " в этом месяце</span></div>";
 
-    html += '<div class="myday-block"><h3>Мои задачи</h3><p class="myday-hint">Где вы среди ответственных</p><div class="myday-cols">' +
-      columnSectionHtml({ label: "Просрочено", varc: "--u-overdue" }, overdue) +
-      columnSectionHtml({ label: "Сегодня", varc: "--u-today" }, today) +
-      columnSectionHtml({ label: "Ближайшие 7 дней", varc: "--u-week" }, week) +
+    // По просьбе Никиты: тот же вид, что на доске — сверху вниз по важности
+    // (Просрочено → Сегодня → Неделя → Месяц → Позже), пустые блоки скрыты.
+    var buckets = [overdue, today, week, month, later];
+    html += '<div class="myday-block"><h3>Мои задачи</h3><p class="myday-hint">Где вы среди ответственных</p><div class="myday-stack">' +
+      URGENCY.map(function (u, i) { return buckets[i].length ? columnSectionHtml(u, buckets[i]) : ""; }).join("") +
+      (mine.length ? "" : '<div class="myday-empty">Открытых задач нет 🎉</div>') +
       '</div></div>';
 
     html += '<div class="myday-block"><h3>Поставил я</h3><p class="myday-hint">Открытые задачи, которые вы поручили другим</p>' +
@@ -10700,7 +10702,6 @@
       // Этап A: данные грузим только после входа через Google и проверки,
       // что человек есть в списке сотрудников (см. initAuthGate).
       initAuthGate(function () {
-      setView("myday");
       renderWhoAmI();
       subscribeStaff();
       fetchServerGoogleToken().catch(function () {});
