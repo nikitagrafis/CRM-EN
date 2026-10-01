@@ -1186,6 +1186,43 @@
     .myday-row-top { font-size: 18px; }
     .myday-row-sub, .myday-load > * { font-size: 16px; }
   }
+  /* ---------- Вид «Строки» ---------- */
+  .column-cards.rows-mode { display: flex; flex-direction: column; gap: 3px; }
+  .row-head, .card.task-row {
+    display: grid; align-items: center; column-gap: 12px;
+    grid-template-columns: 58px 18px minmax(0, 1fr) minmax(0, 200px) 104px 62px 92px;
+  }
+  .row-head { padding: 2px 12px 4px 15px; font-size: 10.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; }
+  .card.task-row {
+    flex-direction: row; gap: 0; padding: 7px 12px 7px 12px; min-height: 40px; border-radius: 8px;
+    background: var(--surface); box-shadow: none;
+  }
+  .card.task-row:hover { background: var(--surface-2); box-shadow: none; }
+  .card.task-row.task-row-done { background: var(--s-done-soft); }
+  .card.task-row-sub { margin-left: 28px; min-height: 34px; padding-top: 5px; padding-bottom: 5px; background: var(--bg); }
+  .card.task-row-sub { grid-template-columns: 58px 18px minmax(0, 1fr) minmax(0, 172px) 104px 62px 92px; }
+  .row-num { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .row-num .card-select-dot { width: 14px; height: 14px; }
+  .row-type { display: flex; color: var(--ink-soft); }
+  .row-title { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .row-title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .task-row-sub .row-title { font-weight: 500; font-size: 13px; }
+  .task-row-done .row-title-text { text-decoration: line-through; color: var(--ink-soft); }
+  .row-sub-mark { color: var(--ink-faint); flex: none; }
+  .row-parent { flex: none; font-family: var(--font-mono); font-size: 11px; color: var(--accent); font-weight: 600; }
+  .row-hist { flex: none; font-size: 10.5px; font-weight: 700; border-radius: 4px; padding: 1px 6px; }
+  .row-hist.del { color: var(--danger); background: var(--danger-soft); }
+  .row-hist.done { color: var(--s-done); background: var(--s-done-soft); }
+  .row-project { font-size: 12px; font-weight: 600; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row-subproject { color: var(--accent); }
+  .row-due { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); text-align: right; white-space: nowrap; }
+  .row-due.overdue { color: var(--danger); font-weight: 700; }
+  .row-due.today { color: var(--accent); font-weight: 700; }
+  .row-due.none { color: var(--ink-faint); }
+  .row-people { display: flex; align-items: center; }
+  .avatar.row-avatar { width: 24px; height: 24px; font-size: 10.5px; border: 1.5px solid var(--surface); }
+  .row-icons { display: flex; gap: 8px; justify-content: flex-end; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
+  @media (max-width: 720px) { .board-density-toggle { display: none; } }
   .field-label-soft { font-weight: 500; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
   .meta-tag-sub { background: var(--accent-soft); color: var(--accent); }
   .ms-filter-group { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px 2px; }
@@ -3379,6 +3416,7 @@
          открытые задачи одним списком, новые сверху. Выбор запоминается в
          localStorage браузера (см. loadBoardLayout/saveBoardLayout) и виден
          только на самой доске — на Календаре кнопка прячется (см. setView). -->
+    <button type="button" class="chip-toggle board-density-toggle" id="boardDensityToggle">☰ Строки</button>
     <button type="button" class="chip-toggle" id="boardLayoutToggle">🕘 Хронология</button>
   </div>
   <!-- Everything here still works exactly like the row above — it's just
@@ -6387,13 +6425,91 @@
   // Часть 5, п.23: раньше "Готово" старше недели пряталось за "Показать
   // ещё N" — по просьбе Никиты это убрано, весь блок "Готово" показывается
   // целиком сразу.
+  // ---------- Вид «Строки» (1 окт. 2026) ----------
+  // На компьютере задачу можно показать одной строкой: № · тип · название ·
+  // проект › подпроект · срок · ответственные · значки. Колонки — одна общая
+  // сетка, поэтому всё стоит строго друг под другом. Подзадача, чей родитель
+  // в том же блоке, идёт сразу под ним с отступом. На узком экране (телефон)
+  // — всегда карточки: строка из шести колонок там не читается.
+  var boardDensity = (function () { try { return localStorage.getItem("crmBoardDensity") === "rows" ? "rows" : "cards"; } catch (e) { return "cards"; } })();
+  function useRows() { return boardDensity === "rows" && !window.matchMedia("(max-width: 720px)").matches; }
+  function refreshDensityBtn() {
+    var b = document.getElementById("boardDensityToggle");
+    if (!b) return;
+    b.textContent = boardDensity === "rows" ? "▦ Карточки" : "☰ Строки";
+    b.classList.toggle("active", boardDensity === "rows");
+  }
+  function rowDueParts(t) {
+    var u = taskUrgency(t);
+    var isDone = t.status === "done";
+    if (!isDone && u.id === "overdue") return { text: "−" + ruDays(overdueDays(t)), cls: "overdue", title: "Просрочено на " + ruDays(overdueDays(t)) + " (срок " + dateLabel(t.dueDate) + ")" };
+    if (!t.dueDate) return { text: "без срока", cls: "none", title: "" };
+    var multi = isMultiDay(t);
+    var txt = multi ? rangeLabel(t.startDate, t.dueDate) : dateLabel(t.dueDate);
+    if (t.time && !multi) txt += " " + t.time;
+    return { text: txt, cls: t.dueDate === todayStr() && !isDone ? "today" : "", title: "" };
+  }
+  function rowHtml(t, isSub) {
+    if (isPersonalHidden(t)) return "";
+    var u = taskUrgency(t);
+    var isDone = t.status === "done";
+    var accentVar = isDone ? "--s-done" : u.varc;
+    var due = rowDueParts(t);
+    var selected = !!selectedIds[t.id];
+    var kids = childrenOf(t.id).filter(function (k) { return !isPersonalHidden(k); });
+    var kidsDone = kids.filter(function (k) { return k.status === "done"; }).length;
+    var att = taskAttachmentsCount(t);
+    var com = (Array.isArray(t.comments) ? t.comments : []).filter(function (c) { return c && !c.deletedAt; }).length;
+    var parent = t.parentId ? findTask(t.parentId) : null;
+    var people = respIds(t).map(function (id) { return byId(RESPONSIBLE, id); });
+    var typeLabel = byId(TYPES, t.type).label;
+    var histTag = "";
+    if (boardLayout === "flat") {
+      if (t.deleted) histTag = '<span class="row-hist del">удалена</span>';
+      else if (isDone) histTag = '<span class="row-hist done">выполнена</span>';
+    }
+    return (
+      '<button type="button" class="card task-row' + (isSub ? ' task-row-sub' : '') + (selected ? ' selected' : '') + (isDone ? ' task-row-done' : '') + (t.deleted ? ' card-deleted' : '') +
+        '" data-id="' + t.id + '" style="border-left-color: var(' + accentVar + ')" title="' + escapeHtml(t.title) + '">' +
+        '<span class="row-num">' + (selectMode ? '<span class="card-select-dot' + (selected ? ' checked' : '') + '"></span>' : '') + '№' + (t.number || "?") + '</span>' +
+        '<span class="row-type" title="' + typeLabel + '">' + typeIconSvg(t.type, 16) + '</span>' +
+        '<span class="row-title">' + (isSub ? '<span class="row-sub-mark">↳</span>' : '') +
+          (parent && !isSub ? '<span class="card-parent-link row-parent" data-parent-id="' + parent.id + '">к №' + (parent.number || "?") + '</span>' : '') +
+          '<span class="row-title-text">' + escapeHtml(t.title) + '</span>' + histTag + '</span>' +
+        '<span class="row-project" title="' + escapeHtml((t.direction || DEFAULT_DIRECTION) + (t.subproject ? " › " + t.subproject : "") + (t.entity && t.entity !== "Не применимо" ? " · " + t.entity : "")) + '">' +
+          escapeHtml(t.direction || DEFAULT_DIRECTION) + (t.subproject ? '<span class="row-subproject"> › ' + escapeHtml(t.subproject) + '</span>' : '') + '</span>' +
+        '<span class="row-due ' + due.cls + '"' + (due.title ? ' title="' + escapeHtml(due.title) + '"' : '') + '>' + escapeHtml(due.text) + '</span>' +
+        '<span class="row-people">' + people.map(function (r, i) {
+          return '<span class="avatar row-avatar" style="background:' + r.color + '; margin-left:' + (i ? "-7px" : "0") + '" title="' + escapeHtml(r.label) + '">' + r.initial + '</span>';
+        }).join("") + '</span>' +
+        '<span class="row-icons">' +
+          (kids.length ? '<span title="Подзадачи: выполнено ' + kidsDone + ' из ' + kids.length + '">☑ ' + kidsDone + '/' + kids.length + '</span>' : '') +
+          (com ? '<span title="Комментариев: ' + com + '">💬 ' + com + '</span>' : '') +
+          (att ? '<span title="Вложений: ' + att + '">📎 ' + att + '</span>' : '') +
+        '</span>' +
+      '</button>'
+    );
+  }
+  // Список задач блока: строки (с подзадачами под родителем) или карточки.
+  function taskListHtml(list) {
+    if (!useRows()) return list.map(cardHtml).join("");
+    var inList = {};
+    list.forEach(function (t) { inList[t.id] = true; });
+    var html = '<div class="row-head"><span>№</span><span></span><span>Задача</span><span>Проект</span><span>Срок</span><span>Кто</span><span></span></div>';
+    list.forEach(function (t) {
+      if (t.parentId && inList[t.parentId]) return; // покажем под родителем
+      html += rowHtml(t, false);
+      list.forEach(function (k) { if (k.parentId === t.id) html += rowHtml(k, true); });
+    });
+    return html;
+  }
   function columnSectionHtml(s, list) {
     var weekTagHtml = s.weekTag ? '<span class="column-week-tag">'+s.weekTag+'</span>' : "";
     return '<section class="column">' +
       '<div class="column-head"><span class="status-dot" style="background: var('+s.varc+')"></span>' +
       '<span class="column-title">'+s.label+'</span>'+weekTagHtml+'<span class="column-count">'+list.length+'</span></div>' +
-      '<div class="column-cards">' +
-      (list.length ? list.map(cardHtml).join("") : '<div class="column-empty">Пусто</div>') +
+      '<div class="column-cards' + (useRows() ? ' rows-mode' : '') + '">' +
+      (list.length ? taskListHtml(list) : '<div class="column-empty">Пусто</div>') +
       '</div></section>';
   }
   // По просьбе Никиты (16 сент.): "Готово" — отдельный вариант колонки с
@@ -6416,8 +6532,8 @@
     return '<section class="column">' +
       '<div class="column-head"><span class="status-dot" style="background: var(--s-done)"></span>' +
       '<span class="column-title">Готово</span><span class="column-count">'+list.length+'</span></div>' +
-      '<div class="column-cards">' +
-      (shown.length ? shown.map(cardHtml).join("") : '<div class="column-empty">Пусто</div>') +
+      '<div class="column-cards' + (useRows() ? ' rows-mode' : '') + '">' +
+      (shown.length ? taskListHtml(shown) : '<div class="column-empty">Пусто</div>') +
       '</div>' + toggleHtml +
       '</section>';
   }
@@ -7542,6 +7658,7 @@
     // на Календаре задачи и так показаны по-другому, кнопка там просто
     // пряталась бы без дела.
     document.getElementById("boardLayoutToggle").classList.toggle("hidden", v !== "board");
+    document.getElementById("boardDensityToggle").classList.toggle("hidden", v !== "board" && v !== "myday");
     if (v !== "board") document.getElementById("bulkBar").classList.add("hidden");
     if (v === "finance") subscribeFinance(); else render();
   }
@@ -7720,7 +7837,8 @@
       var del = shown.filter(function (t) { return t.deleted; }).length;
       document.getElementById("taskCount").textContent = shown.length + " из " + all.length + (del ? " · удалённых " + del : "");
     } else {
-      document.getElementById("taskCount").textContent = visible.length + " из " + live.length;
+      var allCount = tasks.filter(function (t) { return !isPersonalHidden(t) && canSeeTask(t); }).length;
+      document.getElementById("taskCount").textContent = visible.length + " из " + live.length + (allCount > live.length ? " · всего " + allCount + " с удалёнными" : "");
     }
     updateFiltersToggleBadge();
     if (!document.getElementById("dayDetailModal").classList.contains("hidden")) renderDayDetailModal();
@@ -9509,6 +9627,9 @@
   // доступа нет (не давал или отозвал), нужна кнопка «Подключить Google».
   var gcalServerConnected = false;
   var gcalNeedConsent = false;
+  // Пока сервер не ответил, подключён ли Google, — кнопку «Подключить Google»
+  // не показываем (иначе она мелькает при каждой загрузке страницы).
+  var gcalStatusKnown = false;
   var gcalConnecting = false;
   var gcalPendingBackfill = false;
   var gTokenInflight = null;
@@ -9552,6 +9673,7 @@
     });
   }
   function applyServerGoogleResult(d) {
+    gcalStatusKnown = true;
     if (d.access_token) setGcalToken(d.access_token, d.expires_in);
     gcalServerConnected = !!d.googleConnected;
     gcalNeedConsent = !d.googleConnected;
@@ -9576,6 +9698,7 @@
       return fetch(GOOGLE_AUTH_FN + "/token", { method: "POST", headers: { "Authorization": "Bearer " + idt } });
     }).then(function (r) {
       return r.json().then(function (d) {
+        gcalStatusKnown = true;
         if (r.status === 409) {
           gcalServerConnected = false; gcalNeedConsent = true; clearGcalToken(); updateGcalStatusUi();
           throw new Error("gcal-need-consent");
@@ -9659,7 +9782,7 @@
     if (!btn || !text) return;
     // Этап A, шаг 2: когда Google подключён через сервер, кнопка не нужна —
     // прячем её совсем; показываем, только если нужно (пере)подключить.
-    btn.classList.toggle("hidden", gcalIsConnected() && !gcalNeedConsent);
+    btn.classList.toggle("hidden", !gcalStatusKnown || (gcalIsConnected() && !gcalNeedConsent));
     if (gcalConnecting) {
       text.textContent = "Подключение…";
       btn.classList.remove("active");
@@ -10527,6 +10650,19 @@
     });
 
     refreshBoardLayoutBtn();
+    refreshDensityBtn();
+    document.getElementById("boardDensityToggle").addEventListener("click", function () {
+      boardDensity = boardDensity === "rows" ? "cards" : "rows";
+      try { localStorage.setItem("crmBoardDensity", boardDensity); } catch (e) {}
+      refreshDensityBtn();
+      render();
+    });
+    // Ширина окна меняется (повернули планшет, сузили окно) — строки ↔ карточки.
+    var wasRows = useRows();
+    window.addEventListener("resize", function () {
+      var nowRows = useRows();
+      if (nowRows !== wasRows) { wasRows = nowRows; render(); }
+    });
     document.getElementById("boardLayoutToggle").addEventListener("click", function () {
       boardLayout = boardLayout === "flat" ? "buckets" : "flat";
       saveBoardLayout(boardLayout);
