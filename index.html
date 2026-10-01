@@ -3323,18 +3323,6 @@
   </div>
 </div>
 
-<!-- Часть 5, п.12: раньше "Кто вы" требовался только для создания/
-     редактирования задачи, теперь — чтобы вообще увидеть доску (иначе не
-     видно, кому что назначено, и "Личное" некому проверять). Просто
-     оверлей поверх #app, скрывается сразу после выбора (см. updateWhoGate). -->
-<div class="who-gate hidden" id="whoGate">
-  <div class="who-gate-card">
-    <h2>Кто вы?</h2>
-    <p>Выберите, чтобы видеть и создавать задачи</p>
-    <div class="who-gate-btns" id="whoGateBtns"></div>
-  </div>
-</div>
-
 <div id="app">
   <header class="topbar">
     <div class="topbar-left">
@@ -4785,10 +4773,6 @@
     var finTab = document.querySelector('.tab[data-view="finance"]');
     if (finTab) finTab.classList.toggle("hidden", !canSeeFinance());
   }
-  function findEmployeeByPassword(pw) {
-    if (!pw) return null;
-    return customResponsible.filter(function (r) { return r.password && r.password === pw; })[0] || null;
-  }
   function responsibleLabel(id) {
     var r = RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
     if (r) return r.label;
@@ -4899,18 +4883,8 @@
     }
     return numPart + ' Задача';
   }
-  // Часть 12 (16 сент.): лёгкая заслонка паролем — ТОЛЬКО чтобы случайный
-  // человек со ссылкой не открыл доску сходу. Это НЕ настоящая защита данных
-  // — пароль лежит прямо в этом файле открытым текстом и виден любому, кто
-  // откроет исходный код страницы (DevTools → Sources). Настоящая защита
-  // потребует Firebase Auth (вход по email+паролю) и правил Firestore,
-  // которые пускают к данным только вошедших — это отдельная, более крупная
-  // задача, запланирована отдельно (см. спецификацию).
-  // Никита/Евгений: чтобы сменить общий пароль администратора —
-  // отредактируйте строку ниже. Личные пароли сотрудников задаются не
-  // здесь, а через панель «Сотрудники» (customResponsible[].password).
-  var SITE_PASSWORD = "crm2026";
-  var PW_GATE_STORAGE_KEY = "crmPwGateOk";
+  // Этап A (1 окт. 2026): общий пароль сайта убран — вход только через
+  // Google-аккаунт из списка сотрудников (см. initAuthGate и firestore.rules).
   // ---------- Google Calendar (Часть 24, 27 сент. 2026) ----------
   // По просьбе Никиты: задачи (кроме "Личное") и встречи/звонки из
   // «Протоколов» автоматически появляются в Google Calendar. Выбранный
@@ -5950,9 +5924,9 @@
       add: function () { handleFilterAdd("entity", "entity"); },
       manage: function () { handleFilterManage("entity"); }
     } : null);
-    setupMsFilter("filterResponsible", "responsible", RESPONSIBLE.map(function (r) { return { value: r.id, label: r.label }; }), "Все ответственные", isAdmin() ? {
-      add: function () { handleFilterAdd("responsible", "responsible"); }
-    } : null);
+    // Людей добавляют во вкладке «Сотрудники» (по почте Google) — отдельного
+    // «+ Добавить…» в фильтре больше нет.
+    setupMsFilter("filterResponsible", "responsible", RESPONSIBLE.map(function (r) { return { value: r.id, label: r.label }; }), "Все ответственные", null);
     // По просьбе Никиты (30 сент.): фильтр "Постановщик" — по createdBy,
     // тот же список людей, что у "Ответственный", без своего "+ Добавить…"
     // (это не отдельный справочник, а тот же RESPONSIBLE).
