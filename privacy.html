@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM EN — Политика конфиденциальности</title>
+<style>
+  :root { --bg: #F5F6F8; --surface: #FFFFFF; --ink: #1A2130; --ink-soft: #5B6474; --line: #DFE2E8; --accent: #2F5D8A; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12161E; --surface: #1A202B; --ink: #E6E9EF; --ink-soft: #A3ACB9; --line: #2A3240; --accent: #8DB4DB; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  article { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; }
+  .muted { color: var(--ink-soft); font-size: 14px; }
+  a { color: var(--accent); }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+</style>
+</head>
+<body>
+<main>
+<article>
+  <h1>Политика конфиденциальности CRM EN</h1>
+  <p class="muted">Обновлено: 1 октября 2026 г.</p>
+
+  <p>CRM EN — внутренний рабочий инструмент небольшой команды (задачи, протоколы встреч, заказы, образцы). Доступ к нему есть только у сотрудников, которых администратор добавил в список.</p>
+
+  <h2>Какие данные мы получаем от Google</h2>
+  <ul>
+    <li><b>Имя и адрес электронной почты</b> Google-аккаунта — чтобы узнать сотрудника при входе и проверить, что он есть в списке допущенных.</li>
+    <li><b>Google Календарь</b> (разрешение <code>calendar.events</code>) — CRM создаёт, обновляет и удаляет в календаре сотрудника события для его задач и встреч. Другие события календаря CRM не читает.</li>
+    <li><b>Google Диск</b> (разрешение <code>drive.file</code>) — CRM загружает на Диск сотрудника файлы, которые он сам прикрепляет к комментариям, и работает только с файлами, созданными самой CRM. Доступа к остальному Диску у CRM нет.</li>
+  </ul>
+
+  <h2>Как данные используются и хранятся</h2>
+  <ul>
+    <li>Данные используются только для работы CRM внутри команды.</li>
+    <li>Мы не продаём и не передаём данные третьим лицам и не используем их для рекламы.</li>
+    <li>Данные CRM хранятся в Google Firebase (Google Cloud). Ключи доступа к Календарю и Диску хранятся на сервере в зашифрованном виде и недоступны из браузера.</li>
+    <li>Использование данных, полученных через API Google, соответствует <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, включая требования Limited Use.</li>
+  </ul>
+
+  <h2>Как отозвать доступ</h2>
+  <p>Доступ CRM к Google-аккаунту можно отозвать в любой момент на странице <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>. Чтобы удалить свои данные из CRM, напишите администратору.</p>
+
+  <h2>Контакты</h2>
+  <p><a href="mailto:nikitagrafis@gmail.com">nikitagrafis@gmail.com</a></p>
+
+  <hr>
+
+  <h1>CRM EN Privacy Policy</h1>
+  <p>CRM EN is an internal work tool for a small team. Only staff members added by an administrator can sign in.</p>
+  <p><b>Google data we access:</b> your Google account name and email (to identify you at sign-in); Google Calendar events (<code>calendar.events</code>) — CRM creates, updates and deletes events for your tasks and meetings only; Google Drive (<code>drive.file</code>) — only files you attach in CRM and files created by CRM.</p>
+  <p><b>Use and storage:</b> data is used solely to operate CRM for the team, is never sold or shared with third parties, and is not used for advertising. Data is stored in Google Firebase; access tokens are stored server-side, encrypted. CRM's use of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+  <p><b>Revoking access:</b> <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>. Contact: <a href="mailto:nikitagrafis@gmail.com">nikitagrafis@gmail.com</a>.</p>
+</article>
+</main>
+</body>
+</html>
