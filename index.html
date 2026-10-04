@@ -1262,6 +1262,21 @@
   .pulse-item:first-of-type { border-top: 0; }
   .pulse-item:hover { color: var(--accent); }
   .pulse-item small { color: var(--ink-faint); }
+  /* ---------- Цепочка шагов ---------- */
+  .path-chain { display: flex; flex-direction: column; gap: 2px; }
+  .path-step { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; background: none; padding: 5px 6px; border-radius: var(--radius-s); font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
+  .path-step:hover { background: var(--surface-2); }
+  .path-step.current { background: var(--accent-soft); font-weight: 700; cursor: default; }
+  .path-step .path-num { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft); flex: none; }
+  .path-step .path-state { flex: none; width: 16px; text-align: center; }
+  .path-step .path-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .path-arrow { color: var(--ink-faint); font-size: 11px; padding-left: 10px; }
+  .path-link-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; font-size: 12.5px; color: var(--ink-soft); }
+  .path-link-row input { width: 74px; border: 1px solid var(--line); border-radius: var(--radius-s); padding: 5px 7px; font: inherit; font-size: 12.5px; }
+  .next-step-modal { max-width: 520px; z-index: 2; }
+  #nextStepModal { z-index: 120; }
+  .next-step-prev { font-size: 13px; color: var(--ink-soft); background: var(--surface-2); border-radius: var(--radius-s); padding: 8px 10px; }
+  .card-prev-link { color: var(--accent); }
   .field-label-soft { font-weight: 500; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
   .meta-tag-sub { background: var(--accent-soft); color: var(--accent); }
   .ms-filter-group { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px 2px; }
@@ -1886,6 +1901,13 @@
       <button type="button" class="btn-secondary hidden" id="addRelatedBtn" style="margin-top:9px">+ Добавить подзадачу</button>
     </div>
 
+    <!-- 5 окт. 2026: цепочка шагов — задача закончилась и породила следующую
+         (встреча → КП → договор). Не подзадача: шаги идут друг за другом. -->
+    <div class="field hidden" id="pathField">
+      <span class="field-label">Путь</span>
+      <div class="path-chain" id="pathChain"></div>
+    </div>
+
     <!-- Часть 5, п.7: раньше это поле скрывалось целиком, пока задача не
          сохранена (renderCommentsSection(null) ставил hidden=true) — из-за
          этого окошко комментариев "пропадало" при создании новой задачи.
@@ -1987,6 +2009,34 @@
     </div>
     <div class="triage-progress"><div class="triage-progress-fill" id="triageProgressFill"></div></div>
     <div id="triageBody"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="nextStepModal">
+  <div class="modal next-step-modal">
+    <div class="modal-head">
+      <h2>✓ Закрыто. Что дальше?</h2>
+      <button type="button" class="btn-ghost" id="nextStepClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="next-step-prev" id="nextStepPrev"></div>
+    <div class="field">
+      <label class="field-label" for="nextStepTitle">Следующий шаг</label>
+      <input type="text" id="nextStepTitle" placeholder="Например: выслать КП Вавилону" autocomplete="off">
+    </div>
+    <div class="field">
+      <span class="field-label">Срок</span>
+      <div class="triage-row" id="nextStepDates"></div>
+    </div>
+    <div class="field">
+      <span class="field-label">Ответственный</span>
+      <div class="triage-row" id="nextStepPeople"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="nextStepNone">Нет, это всё</button>
+      <div class="modal-actions-right">
+        <button type="button" class="btn-primary" id="nextStepCreate">Создать следующий шаг</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3016,7 +3066,8 @@
       var ord = subtaskOrdinal(t);
       return numPart + ' Подзадача ' + ord + ' к <span class="card-parent-link" data-parent-id="' + parent.id + '">Задаче ' + (parent.number || "?") + '</span>';
     }
-    return numPart + ' Задача';
+    var prevT = t.prevId ? findTask(t.prevId) : null;
+    return numPart + ' Задача' + (prevT && !isPersonalHidden(prevT) ? ' <span class="card-parent-link card-prev-link" data-parent-id="' + prevT.id + '" title="Следующий шаг после №' + (prevT.number || "?") + '">← из №' + (prevT.number || "?") + '</span>' : '');
   }
   // Этап A (1 окт. 2026): общий пароль сайта убран — вход только через
   // Google-аккаунт из списка сотрудников (см. initAuthGate и firestore.rules).
@@ -4592,6 +4643,7 @@
         '<span class="row-type" title="' + typeLabel + '">' + typeIconSvg(t.type, 16) + '</span>' +
         '<span class="row-title">' + (isSub ? '<span class="row-sub-mark">↳</span>' : '') +
           (parent && !isSub ? '<span class="card-parent-link row-parent" data-parent-id="' + parent.id + '">к №' + (parent.number || "?") + '</span>' : '') +
+          (!parent && t.prevId && findTask(t.prevId) && !isPersonalHidden(findTask(t.prevId)) ? '<span class="card-parent-link row-parent" data-parent-id="' + t.prevId + '" title="Следующий шаг">← из №' + (findTask(t.prevId).number || "?") + '</span>' : '') +
           '<span class="row-title-text">' + escapeHtml(t.title) + '</span>' + histTag + '</span>' +
         '<span class="row-project" title="' + escapeHtml((t.direction || DEFAULT_DIRECTION) + (t.subproject ? " › " + t.subproject : "") + (t.entity && t.entity !== "Не применимо" ? " · " + t.entity : "")) + '">' +
           escapeHtml(t.direction || DEFAULT_DIRECTION) + (t.subproject ? '<span class="row-subproject"> › ' + escapeHtml(t.subproject) + '</span>' : '') + '</span>' +
@@ -5516,6 +5568,7 @@
     pendingParentId = t ? (t.parentId || "") : (presets.parentId || "");
     renderParentLinkStatus();
     renderThreadSection(t);
+    renderPathSection(t);
 
     modal.classList.remove("hidden");
     setTimeout(function () { document.getElementById("fTitle").focus(); }, 30);
@@ -5842,6 +5895,134 @@
     return function () { unsubs.forEach(function (u) { u(); }); };
   }
 
+  // ---------- Цепочка шагов (5 окт. 2026) ----------
+  // Задача закончилась и породила следующую: у новой задачи prevId = id
+  // предыдущей. Путь виден в окне любой задачи цепочки (блок «Путь»).
+  function nextStepsOf(id) {
+    return tasks.filter(function (x) { return x.prevId === id && !x.deleted && !isPersonalHidden(x); })
+      .sort(function (a, b) { return (a.number || 0) - (b.number || 0); });
+  }
+  function chainOf(t) {
+    var back = [], seen = {}, cur = t;
+    seen[t.id] = true;
+    while (cur && cur.prevId && !seen[cur.prevId]) {
+      var p = findTask(cur.prevId);
+      if (!p || p.deleted || isPersonalHidden(p)) break;
+      back.unshift(p); seen[p.id] = true; cur = p;
+    }
+    var fwd = [];
+    cur = t;
+    for (var guard = 0; guard < 50; guard++) {
+      var n = nextStepsOf(cur.id).filter(function (x) { return !seen[x.id]; });
+      if (!n.length) break;
+      fwd.push(n); n.forEach(function (x) { seen[x.id] = true; });
+      cur = n[0];
+    }
+    return { back: back, fwd: fwd };
+  }
+  function renderPathSection(t) {
+    var field = document.getElementById("pathField");
+    var el = document.getElementById("pathChain");
+    if (!field || !el) return;
+    if (!t) { field.classList.add("hidden"); return; }
+    var ch = chainOf(t);
+    var step = function (x, isCur) {
+      var st = taskDone(x) ? "✓" : (isOverdue(x) ? "⚠️" : "⏳");
+      return '<button type="button" class="path-step' + (isCur ? ' current' : '') + '" data-id="' + x.id + '">' +
+        '<span class="path-state">' + st + '</span><span class="path-num">№' + (x.number || "?") + '</span>' +
+        '<span class="path-title">' + escapeHtml(x.title) + '</span></button>';
+    };
+    var arrow = '<div class="path-arrow">↓</div>';
+    var html = "";
+    ch.back.forEach(function (x) { html += step(x, false) + arrow; });
+    html += step(t, true);
+    ch.fwd.forEach(function (group) { html += arrow + group.map(function (x) { return step(x, false); }).join(""); });
+    html += '<div class="path-link-row">Это следующий шаг после задачи № <input type="number" min="1" id="pathPrevInput" placeholder="№"> <button type="button" class="btn-secondary" id="pathPrevLink">Связать</button>' +
+      (t.prevId ? ' <button type="button" class="btn-ghost" id="pathPrevUnlink">Отвязать</button>' : '') + '</div>';
+    el.innerHTML = html;
+    field.classList.remove("hidden");
+    Array.prototype.forEach.call(el.querySelectorAll(".path-step:not(.current)"), function (b) {
+      b.addEventListener("click", function () { openModal(b.getAttribute("data-id")); });
+    });
+    document.getElementById("pathPrevLink").addEventListener("click", function () {
+      var num = parseInt(document.getElementById("pathPrevInput").value, 10);
+      var prev = tasks.filter(function (x) { return x.number === num && !x.deleted && !isPersonalHidden(x); })[0];
+      if (!prev) { showToast("Задача №" + (num || "?") + " не найдена.", true); return; }
+      if (prev.id === t.id || chainOf(prev).back.some(function (x) { return x.id === t.id; })) { showToast("Так получится замкнутый круг.", true); return; }
+      persist({ prevId: prev.id }, t.id);
+      showToast("Связано: №" + (t.number || "?") + " — следующий шаг после №" + num + ".");
+      setTimeout(function () { renderPathSection(findTask(t.id)); }, 200);
+    });
+    var unlink = document.getElementById("pathPrevUnlink");
+    if (unlink) unlink.addEventListener("click", function () {
+      persist({ prevId: "" }, t.id);
+      setTimeout(function () { renderPathSection(findTask(t.id)); }, 200);
+    });
+  }
+  // Окно «✓ Закрыто. Что дальше?» — после закрытия задачи (в окне задачи и в
+  // «Разборе»). onFinish вызывается и при «Нет, это всё», и после создания.
+  var nextStepState = { prev: null, due: "", person: "", onFinish: null };
+  function openNextStepPrompt(prev, onFinish) {
+    nextStepState = { prev: prev, due: addDaysStr(todayStr(), 1), person: respIds(prev)[0] || getCurrentUser(), onFinish: onFinish || null };
+    document.getElementById("nextStepPrev").innerHTML = '✓ <b>' + taskTitleLabel(prev) + '</b> ' + escapeHtml(prev.title) + ' · ' + escapeHtml(prev.direction || "");
+    document.getElementById("nextStepTitle").value = "";
+    var dates = document.getElementById("nextStepDates");
+    dates.innerHTML = triageDateOptions().map(function (o) {
+      var dl = dateLabel(o.date);
+      return '<button type="button" class="triage-btn' + (o.date === nextStepState.due ? ' active' : '') + '" data-date="' + o.date + '">' + o.label + (dl !== o.label ? ' <span style="color:var(--ink-faint);font-weight:500">' + dl + '</span>' : '') + '</button>';
+    }).join("") + '<input type="date" class="triage-date" id="nextStepDateInput">';
+    var markDate = function () {
+      Array.prototype.forEach.call(dates.querySelectorAll("[data-date]"), function (b) { b.classList.toggle("active", b.getAttribute("data-date") === nextStepState.due); });
+    };
+    Array.prototype.forEach.call(dates.querySelectorAll("[data-date]"), function (b) {
+      b.addEventListener("click", function () { nextStepState.due = b.getAttribute("data-date"); markDate(); });
+    });
+    document.getElementById("nextStepDateInput").addEventListener("change", function (e) { if (e.target.value) { nextStepState.due = e.target.value; markDate(); } });
+    var peopleEl = document.getElementById("nextStepPeople");
+    var personal = prev.direction === "Личное";
+    peopleEl.parentElement.classList.toggle("hidden", personal);
+    peopleEl.innerHTML = RESPONSIBLE.map(function (r) {
+      return '<button type="button" class="triage-btn' + (r.id === nextStepState.person ? ' active' : '') + '" data-person="' + escapeHtml(r.id) + '">' + escapeHtml(r.label) + '</button>';
+    }).join("");
+    Array.prototype.forEach.call(peopleEl.querySelectorAll("[data-person]"), function (b) {
+      b.addEventListener("click", function () {
+        nextStepState.person = b.getAttribute("data-person");
+        Array.prototype.forEach.call(peopleEl.querySelectorAll("[data-person]"), function (x) { x.classList.toggle("active", x === b); });
+      });
+    });
+    document.getElementById("nextStepModal").classList.remove("hidden");
+    setTimeout(function () { document.getElementById("nextStepTitle").focus(); }, 30);
+  }
+  function closeNextStepPrompt() {
+    document.getElementById("nextStepModal").classList.add("hidden");
+    var cb = nextStepState.onFinish;
+    nextStepState = { prev: null, due: "", person: "", onFinish: null };
+    if (cb) cb();
+  }
+  function createNextStep() {
+    var prev = nextStepState.prev;
+    var title = document.getElementById("nextStepTitle").value.trim();
+    if (!prev) return;
+    if (!title) { showToast("Напишите, что дальше, — или нажмите «Нет, это всё».", true); document.getElementById("nextStepTitle").focus(); return; }
+    var personal = prev.direction === "Личное";
+    var data = {
+      title: title,
+      direction: prev.direction || DEFAULT_DIRECTION,
+      subproject: prev.subproject || "",
+      entity: prev.entity || (DIRECTION_ENTITY[prev.direction] || "Не применимо"),
+      dueDate: nextStepState.due || "",
+      startDate: "", time: "",
+      type: detectTypeFromTitle(title) || "task",
+      responsible: personal ? [getCurrentUser()] : [nextStepState.person || getCurrentUser()],
+      status: "open", completedAt: null, parentId: "", prevId: prev.id,
+      carriedOver: false, syncCalendar: false, repeat: "none", notes: ""
+    };
+    nextTaskNumber().then(function (n) { data.number = n; return saveFormData(data, null); }, function () { return saveFormData(data, null); })
+      .then(function () { showToast("Следующий шаг создан: «" + title + "»."); })
+      .catch(function (e) { console.error(e); showToast("Не удалось создать следующий шаг.", true); });
+    closeNextStepPrompt();
+  }
+
   // ---------- «Пульс» в Аналитике (5 окт. 2026) ----------
   function renderPulse() {
     var tilesEl = document.getElementById("pulseTiles");
@@ -6044,7 +6225,7 @@
     if (openKids.length) { showToast("Сначала закройте подзадачи (осталось " + openKids.length + ").", true); return; }
     persist({ status: "done", completedAt: t.completedAt || Date.now() }, t.id);
     triage.stats.done++;
-    triageNext();
+    openNextStepPrompt(t, triageNext);
   }
   function triageDelete() {
     var t = triageCurrent(); if (!t) return;
@@ -8908,6 +9089,9 @@
         if (openKids.length) { showToast("Сначала закройте все подзадачи (осталось " + openKids.length + ").", true); return; }
         persist({ status: "done", completedAt: t.completedAt || Date.now() }, editingId);
         showToast("Задача завершена.");
+        closeModal();
+        openNextStepPrompt(t);
+        return;
       } else {
         persist({ status: "open", completedAt: null }, editingId);
         showToast("Задача возвращена в работу.");
@@ -9009,11 +9193,19 @@
     refreshBoardLayoutBtn();
     refreshDensityBtn();
     document.getElementById("triageOpenBtn").addEventListener("click", function () { openTriage("mine"); });
+    document.getElementById("nextStepCreate").addEventListener("click", createNextStep);
+    document.getElementById("nextStepNone").addEventListener("click", closeNextStepPrompt);
+    document.getElementById("nextStepClose").addEventListener("click", closeNextStepPrompt);
+    document.getElementById("nextStepTitle").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); createNextStep(); }
+      else if (e.key === "Escape") { e.preventDefault(); closeNextStepPrompt(); }
+    });
     document.getElementById("triageClose").addEventListener("click", closeTriage);
     document.getElementById("triageScope").addEventListener("change", function (e) { openTriage(e.target.value); });
     document.addEventListener("keydown", function (e) {
       if (document.getElementById("triageModal").classList.contains("hidden")) return;
       if (!document.getElementById("taskModal").classList.contains("hidden")) return;
+      if (!document.getElementById("nextStepModal").classList.contains("hidden")) return;
       if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
       if (e.key === "Escape") { closeTriage(); return; }
       if (triage.i >= triage.ids.length) return;
