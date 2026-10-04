@@ -2787,7 +2787,9 @@
     if (isAdmin()) return null;
     var emp = currentEmployeeRecord();
     var allowed = emp ? (emp.allowedDirections || []).slice() : [];
-    if (allowed.indexOf("Личное") === -1) allowed.push("Личное");
+    // 5 окт. 2026: «Личное» — только у администраторов; у сотрудника этого
+    // проекта нет вовсе (ни в форме, ни в фильтрах).
+    allowed = allowed.filter(function (d) { return d !== "Личное"; });
     return allowed;
   }
   // Задачи/протоколы без указанного направления (пустая строка) считаются
@@ -2900,7 +2902,9 @@
     // прятать не от кого: иначе такая задача навсегда теряется для ОБОИХ
     // пользователей — баг, который Никита поймал 15 сент. на задаче от
     // 8 сентября в "Готово".
-    return t.direction === "Личное" && !!t.createdBy && t.createdBy !== getCurrentUser();
+    // 5 окт. 2026: строго — личную задачу видит только её автор (задача без
+    // автора тоже скрыта; у всех личных задач автор теперь записан).
+    return t.direction === "Личное" && t.createdBy !== getCurrentUser();
   }
   // По просьбе Никиты (15 сент.): название на карточке всегда начинается
   // одинаково — "Задача №N" или, для подзадачи, "Подзадача №N к Задаче №M".
@@ -3737,6 +3741,19 @@
   // всех остальных мест, которые результат не ждут.
   function saveFormData(data, id) {
     var prev = id ? findTask(id) : null;
+    // 5 окт. 2026: правила «Личного» (их же проверяет база): личная задача
+    // принадлежит только автору — ответственный всегда он сам; поле personal
+    // всегда соответствует проекту; у новой задачи всегда есть автор.
+    data = Object.assign({}, data);
+    if (!id && !data.createdBy) data.createdBy = getCurrentUser();
+    var dirNow = data.direction !== undefined ? data.direction : (prev ? prev.direction : "");
+    if (data.direction !== undefined || !id) data.personal = dirNow === "Личное";
+    if (dirNow === "Личное") {
+      if (!isAdmin()) { showToast("«Личное» доступно только администраторам.", true); return Promise.reject(new Error("personal-not-allowed")); }
+      var owner = (prev && prev.createdBy) || data.createdBy || getCurrentUser();
+      if (owner !== getCurrentUser()) { showToast("Личную задачу может менять только её автор.", true); return Promise.reject(new Error("personal-not-owner")); }
+      data.responsible = [owner];
+    }
     var histEntry = { at: Date.now(), by: getCurrentUser() || "", summary: diffSummary(prev, data).join("; ") };
     var prevHistory = (prev && Array.isArray(prev.history)) ? prev.history : [];
     var full = Object.assign({}, data, { history: prevHistory.concat([histEntry]).slice(-40) });
@@ -5703,9 +5720,17 @@
     var out = [];
     function inChunks(field, vals) { for (var i = 0; i < vals.length; i += 30) out.push(col.where(field, "in", vals.slice(i, i + 30))); }
     if (name === "tasks") {
-      inChunks("direction", dirs);
-      out.push(col.where("responsible", "array-contains", pid));
-      out.push(col.where("responsible", "==", pid));
+      // «Личное» видит только автор — и в базе, не только в интерфейсе: чужие
+      // личные задачи сюда не попадают вообще (personal == false), свои —
+      // через createdBy == я. Админ видит все НЕличные задачи.
+      var notPersonal = col.where("personal", "==", false);
+      if (isAdmin()) {
+        out.push(notPersonal);
+      } else {
+        for (var di = 0; di < dirs.length; di += 30) out.push(notPersonal.where("direction", "in", dirs.slice(di, di + 30)));
+        out.push(notPersonal.where("responsible", "array-contains", pid));
+        out.push(notPersonal.where("responsible", "==", pid));
+      }
       out.push(col.where("createdBy", "==", pid));
     } else if (name === "meetings") {
       inChunks("direction", dirs);
@@ -5723,7 +5748,7 @@
     return out;
   }
   function subscribeScoped(name, onDocs, onErr) {
-    if (isAdmin()) {
+    if (isAdmin() && name !== "tasks") {
       return db.collection(name).onSnapshot(function (snap) {
         onDocs(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
       }, onErr);
