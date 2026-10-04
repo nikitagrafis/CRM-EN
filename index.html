@@ -1223,6 +1223,38 @@
   .avatar.row-avatar { width: 24px; height: 24px; font-size: 10.5px; border: 1.5px solid var(--surface); }
   .row-icons { display: flex; gap: 8px; justify-content: flex-end; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
   @media (max-width: 720px) { .board-density-toggle { display: none; } }
+  /* ---------- «Разбор завалов» ---------- */
+  .triage-modal { max-width: 640px; gap: 12px; }
+  .triage-scope { border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface); padding: 6px 8px; font: inherit; font-size: 13px; color: var(--ink); }
+  .triage-progress { height: 4px; border-radius: 2px; background: var(--surface-2); overflow: hidden; }
+  .triage-progress-fill { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+  .triage-count { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+  .triage-card { border: 1px solid var(--line); border-left: 4px solid var(--u-overdue); border-radius: var(--radius-m); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); }
+  .triage-card.nodue { border-left-color: var(--ink-faint); }
+  .triage-num { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-soft); }
+  .triage-title { font-size: 18px; font-weight: 700; line-height: 1.3; }
+  .triage-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink-soft); }
+  .triage-overdue { color: var(--danger); font-weight: 700; }
+  .triage-notes { font-size: 13px; color: var(--ink-soft); background: var(--surface-2); border-radius: var(--radius-s); padding: 8px 10px; white-space: pre-wrap; max-height: 110px; overflow: auto; }
+  .triage-section { display: flex; flex-direction: column; gap: 6px; }
+  .triage-label { font-size: 11px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; }
+  .triage-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .triage-btn { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-s); padding: 8px 12px; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink); cursor: pointer; }
+  .triage-btn:hover { background: var(--surface-2); }
+  .triage-btn kbd { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); margin-left: 6px; }
+  .triage-btn.primary { background: var(--s-done); border-color: var(--s-done); color: #fff; }
+  .triage-btn.primary kbd { color: rgba(255,255,255,.75); }
+  .triage-btn.danger { color: var(--danger); }
+  .triage-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .triage-ai { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .triage-date { border: 1px solid var(--line); border-radius: var(--radius-s); padding: 7px 8px; font: inherit; font-size: 13px; }
+  .triage-done-box { text-align: center; padding: 18px 8px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .triage-done-box b { font-size: 20px; }
+  @media (max-width: 720px) {
+    .triage-title { font-size: 21px; }
+    .triage-btn { font-size: 16px; padding: 11px 14px; }
+    .triage-btn kbd { display: none; }
+  }
   .field-label-soft { font-weight: 500; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
   .meta-tag-sub { background: var(--accent-soft); color: var(--accent); }
   .ms-filter-group { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px 2px; }
@@ -1436,6 +1468,7 @@
          открытые задачи одним списком, новые сверху. Выбор запоминается в
          localStorage браузера (см. loadBoardLayout/saveBoardLayout) и виден
          только на самой доске — на Календаре кнопка прячется (см. setView). -->
+    <button type="button" class="chip-toggle triage-open-btn" id="triageOpenBtn">🧹 Разбор</button>
     <button type="button" class="chip-toggle board-density-toggle" id="boardDensityToggle">☰ Строки</button>
     <button type="button" class="chip-toggle" id="boardLayoutToggle">🕘 Хронология</button>
   </div>
@@ -1917,6 +1950,25 @@
      пароль для входа и разрешённые направления (проекты). Пароль в обычном
      текстовом поле (не type=password) — это внутренний инструмент только
      для Никиты/Жени, скрывать его от них самих смысла нет. -->
+<!-- 5 окт. 2026: «Разбор завалов» — просроченные и задачи без срока по одной,
+     на каждую одно действие (см. openTriage). -->
+<div class="modal-backdrop hidden" id="triageModal">
+  <div class="modal triage-modal">
+    <div class="modal-head">
+      <h2 id="triageTitle">Разбор завалов</h2>
+      <div class="modal-head-actions">
+        <select id="triageScope" class="triage-scope" aria-label="Чьи задачи">
+          <option value="mine">Мои</option>
+          <option value="all">Все</option>
+        </select>
+        <button type="button" class="btn-ghost" id="triageClose" aria-label="Закрыть">✕</button>
+      </div>
+    </div>
+    <div class="triage-progress"><div class="triage-progress-fill" id="triageProgressFill"></div></div>
+    <div id="triageBody"></div>
+  </div>
+</div>
+
 <div class="modal-backdrop hidden" id="employeeModal">
   <form class="modal" id="employeeForm">
     <div class="modal-head">
@@ -5769,6 +5821,193 @@
     return function () { unsubs.forEach(function (u) { u(); }); };
   }
 
+  // ---------- «Разбор завалов» (5 окт. 2026) ----------
+  // Просроченные задачи и задачи без срока — по одной; на каждую одно
+  // действие: сделано / новый срок / поручить / сменить проект / неактуально.
+  // Для задач из «Общее» сервер (ИИ) подсказывает проект.
+  var triage = { ids: [], i: 0, stats: { done: 0, moved: 0, deleted: 0, skipped: 0, reassigned: 0, project: 0 }, suggest: {}, total: 0 };
+  function triageCandidates(scope) {
+    var me = getCurrentUser();
+    var today = todayStr();
+    return tasks.filter(function (t) {
+      if (t.deleted || taskDone(t) || isPersonalHidden(t) || !canSeeTask(t)) return false;
+      if (scope !== "all" && respIds(t).indexOf(me) === -1) return false;
+      return !t.dueDate || t.dueDate < today;
+    }).sort(function (a, b) {
+      if (!a.dueDate !== !b.dueDate) return a.dueDate ? -1 : 1; // сначала просроченные, потом без срока
+      return (a.dueDate || "").localeCompare(b.dueDate || "") || (a.number || 0) - (b.number || 0);
+    }).map(function (t) { return t.id; });
+  }
+  function triageCount() { return triageCandidates("mine").length; }
+  function refreshTriageBtn() {
+    var b = document.getElementById("triageOpenBtn");
+    if (!b) return;
+    var n = triageCount();
+    b.textContent = "🧹 Разбор" + (n ? " (" + n + ")" : "");
+    b.classList.toggle("hidden", currentView !== "board" || !n);
+  }
+  function openTriage(scope) {
+    var sel = document.getElementById("triageScope");
+    sel.value = scope || "mine";
+    sel.classList.toggle("hidden", !isAdmin());
+    triage.ids = triageCandidates(sel.value);
+    triage.i = 0;
+    triage.total = triage.ids.length;
+    triage.stats = { done: 0, moved: 0, deleted: 0, skipped: 0, reassigned: 0, project: 0 };
+    document.getElementById("triageModal").classList.remove("hidden");
+    renderTriage();
+    loadTriageSuggestions();
+  }
+  function closeTriage() {
+    document.getElementById("triageModal").classList.add("hidden");
+    render();
+  }
+  function loadTriageSuggestions() {
+    var user = firebase.auth().currentUser;
+    var general = triage.ids.map(findTask).filter(function (t) { return t && t.direction === DEFAULT_DIRECTION && !triage.suggest[t.id]; });
+    if (!user || !general.length) return;
+    user.getIdToken().then(function (idt) {
+      return fetch(GOOGLE_AUTH_FN + "/suggest", {
+        method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + idt },
+        body: JSON.stringify({ items: general.map(function (t) { return { id: t.id, title: t.title, notes: t.notes || "" }; }), directions: scopedDirections() })
+      });
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      Object.assign(triage.suggest, (j && j.suggestions) || {});
+      if (!document.getElementById("triageModal").classList.contains("hidden")) renderTriage();
+    }).catch(function () {});
+  }
+  function triageCurrent() { return findTask(triage.ids[triage.i]); }
+  function nextFriday(iso) {
+    // Ближайшая пятница; если сегодня пятница — следующая.
+    var wd = new Date(iso + "T00:00:00").getDay(); // 0 вс … 5 пт
+    return addDaysStr(iso, ((5 - wd + 7) % 7) || 7);
+  }
+  function nextMonday(iso) { var d = new Date(iso + "T00:00:00"); var wd = d.getDay(); return addDaysStr(iso, ((8 - wd) % 7) || 7); }
+  function monthEnd(iso) { var d = new Date(iso + "T00:00:00"); var e = new Date(d.getFullYear(), d.getMonth() + 1, 0); return isoDate(e); }
+  function triageDateOptions() {
+    var t = todayStr();
+    return [
+      { key: "2", label: "Сегодня", date: t },
+      { key: "3", label: "Завтра", date: addDaysStr(t, 1) },
+      { key: "4", label: "Пятница", date: nextFriday(t) },
+      { key: "5", label: "След. неделя", date: nextMonday(t) },
+      { key: "6", label: "Конец месяца", date: monthEnd(t) }
+    ];
+  }
+  function renderTriage() {
+    var body = document.getElementById("triageBody");
+    var fill = document.getElementById("triageProgressFill");
+    var title = document.getElementById("triageTitle");
+    fill.style.width = (triage.total ? Math.round(triage.i / triage.total * 100) : 100) + "%";
+    // Пропускаем задачи, которые уже закрыли/удалили параллельно.
+    while (triage.i < triage.ids.length) {
+      var c = triageCurrent();
+      if (c && !c.deleted && !taskDone(c)) break;
+      triage.i++;
+    }
+    if (triage.i >= triage.ids.length) {
+      title.textContent = "Разбор завалов";
+      var st = triage.stats;
+      body.innerHTML = '<div class="triage-done-box"><b>' + (triage.total ? "Готово! 🎉" : "Разбирать нечего 🎉") + '</b>' +
+        (triage.total ? '<div>Сделано: ' + st.done + ' · новый срок: ' + st.moved + ' · неактуально: ' + st.deleted + ' · поручено: ' + st.reassigned + ' · проект: ' + st.project + ' · пропущено: ' + st.skipped + '</div>' : '<div>Нет просроченных задач и задач без срока.</div>') +
+        '<button type="button" class="triage-btn" id="triageFinish">Закрыть</button></div>';
+      document.getElementById("triageFinish").addEventListener("click", closeTriage);
+      return;
+    }
+    var t = triageCurrent();
+    title.textContent = "Разбор завалов · " + (triage.i + 1) + " из " + triage.total;
+    var overdue = t.dueDate ? '<span class="triage-overdue">просрочено на ' + ruDays(overdueDays(t)) + ' (срок ' + dateLabel(t.dueDate) + ')</span>' : '<span>без срока</span>';
+    var lastC = (Array.isArray(t.comments) ? t.comments : []).filter(function (c) { return c && !c.deletedAt && c.text; }).slice(-1)[0];
+    var sug = triage.suggest[t.id];
+    var isPersonal = t.direction === "Личное";
+    var dates = triageDateOptions().map(function (o) {
+      var dl = dateLabel(o.date);
+      return '<button type="button" class="triage-btn" data-date="' + o.date + '">' + o.label + (dl !== o.label ? ' <span style="color:var(--ink-faint);font-weight:500">' + dl + '</span>' : '') + '<kbd>' + o.key + '</kbd></button>';
+    }).join("") + '<input type="date" class="triage-date" id="triageDateInput" aria-label="Другая дата">';
+    var people = isPersonal ? "" : RESPONSIBLE.map(function (r) {
+      var on = respIds(t).indexOf(r.id) !== -1;
+      return '<button type="button" class="triage-btn' + (on ? ' active' : '') + '" data-person="' + escapeHtml(r.id) + '">' + escapeHtml(r.label) + '</button>';
+    }).join("");
+    var dirs = isPersonal ? "" : '<select class="triage-date" id="triageDir">' + scopedDirections().map(function (d) {
+      return '<option value="' + escapeHtml(d) + '"' + (d === t.direction ? ' selected' : '') + '>' + escapeHtml(d) + '</option>';
+    }).join("") + '</select>' + (sug && sug !== t.direction ? ' <button type="button" class="triage-btn triage-ai" id="triageApplySug">✨ ' + escapeHtml(sug) + ' — применить</button>' : '');
+    body.innerHTML =
+      '<div class="triage-card' + (t.dueDate ? '' : ' nodue') + '">' +
+        '<div class="triage-num">' + taskTitleLabel(t) + ' · создана ' + (t.createdAt ? new Date(t.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) : "—") + '</div>' +
+        '<div class="triage-title">' + escapeHtml(t.title) + '</div>' +
+        '<div class="triage-meta"><span>📁 ' + escapeHtml(t.direction || DEFAULT_DIRECTION) + (t.subproject ? " › " + escapeHtml(t.subproject) : "") + '</span>' +
+          '<span>👤 ' + escapeHtml(respIds(t).map(responsibleLabel).join(", ")) + '</span>' + overdue + '</div>' +
+        (t.notes ? '<div class="triage-notes">' + escapeHtml(String(t.notes).slice(0, 400)) + '</div>' : '') +
+        (lastC ? '<div class="triage-notes">💬 ' + escapeHtml(responsibleLabel(lastC.by)) + ': ' + escapeHtml(String(lastC.text).slice(0, 200)) + '</div>' : '') +
+      '</div>' +
+      '<div class="triage-section"><div class="triage-row">' +
+        '<button type="button" class="triage-btn primary" id="triageDone">✅ Сделано<kbd>1</kbd></button>' +
+        '<button type="button" class="triage-btn danger" id="triageDelete">🗑 Неактуально<kbd>Del</kbd></button>' +
+        '<button type="button" class="triage-btn" id="triageOpen">Открыть</button>' +
+        '<span style="flex:1"></span>' +
+        '<button type="button" class="triage-btn" id="triagePrev"' + (triage.i ? '' : ' disabled') + '>← Назад</button>' +
+        '<button type="button" class="triage-btn" id="triageSkip">Пропустить<kbd>→</kbd></button>' +
+      '</div></div>' +
+      '<div class="triage-section"><div class="triage-label">Новый срок</div><div class="triage-row">' + dates + '</div></div>' +
+      (people ? '<div class="triage-section"><div class="triage-label">Ответственный</div><div class="triage-row">' + people + '</div></div>' : '') +
+      (dirs ? '<div class="triage-section"><div class="triage-label">Проект</div><div class="triage-row">' + dirs + '</div></div>' : '');
+    document.getElementById("triageDone").addEventListener("click", triageMarkDone);
+    document.getElementById("triageDelete").addEventListener("click", triageDelete);
+    document.getElementById("triageSkip").addEventListener("click", function () { triage.stats.skipped++; triageNext(); });
+    document.getElementById("triagePrev").addEventListener("click", function () { if (triage.i) { triage.i--; renderTriage(); } });
+    document.getElementById("triageOpen").addEventListener("click", function () { openModal(t.id); });
+    Array.prototype.forEach.call(body.querySelectorAll("[data-date]"), function (b) {
+      b.addEventListener("click", function () { triageSetDate(b.getAttribute("data-date")); });
+    });
+    document.getElementById("triageDateInput").addEventListener("change", function (e) { if (e.target.value) triageSetDate(e.target.value); });
+    Array.prototype.forEach.call(body.querySelectorAll("[data-person]"), function (b) {
+      b.addEventListener("click", function () {
+        persist({ responsible: [b.getAttribute("data-person")] }, t.id);
+        triage.stats.reassigned++;
+        showToast("Поручено: " + responsibleLabel(b.getAttribute("data-person")) + " — теперь выберите срок.");
+        setTimeout(renderTriage, 150);
+      });
+    });
+    var dirSel = document.getElementById("triageDir");
+    if (dirSel) dirSel.addEventListener("change", function () { triageSetProject(dirSel.value); });
+    var ai = document.getElementById("triageApplySug");
+    if (ai) ai.addEventListener("click", function () { triageSetProject(sug); });
+  }
+  function triageNext() { triage.i++; renderTriage(); }
+  function triageMarkDone() {
+    var t = triageCurrent(); if (!t) return;
+    var openKids = visibleChildrenOf(t.id).filter(function (k) { return !taskDone(k); });
+    if (openKids.length) { showToast("Сначала закройте подзадачи (осталось " + openKids.length + ").", true); return; }
+    persist({ status: "done", completedAt: t.completedAt || Date.now() }, t.id);
+    triage.stats.done++;
+    triageNext();
+  }
+  function triageDelete() {
+    var t = triageCurrent(); if (!t) return;
+    softDeleteTask(t.id);
+    triage.stats.deleted++;
+    showToast("№" + (t.number || "?") + " — в «Удалённые» (можно восстановить).");
+    triageNext();
+  }
+  function triageSetDate(iso) {
+    var t = triageCurrent(); if (!t) return;
+    var data = { dueDate: iso };
+    if (t.startDate && t.dueDate && t.startDate <= t.dueDate) {
+      var len = Math.round((new Date(t.dueDate + "T00:00:00") - new Date(t.startDate + "T00:00:00")) / 86400000);
+      data.startDate = addDaysStr(iso, -len);
+    }
+    persist(data, t.id);
+    triage.stats.moved++;
+    triageNext();
+  }
+  function triageSetProject(dir) {
+    var t = triageCurrent(); if (!t || !dir || dir === t.direction) return;
+    persist({ direction: dir, entity: DIRECTION_ENTITY[dir] || "Не применимо", subproject: "" }, t.id);
+    triage.stats.project++;
+    showToast("Проект: " + dir);
+    setTimeout(renderTriage, 150);
+  }
+
   // ---------- «Мой день» (1 окт. 2026) ----------
   // Стартовый экран: мои задачи (просрочено / сегодня / 7 дней), что я
   // поручил другим, новые комментарии в моих задачах за 2 дня и — для
@@ -5895,6 +6134,7 @@
     updateFiltersToggleBadge();
     if (!document.getElementById("dayDetailModal").classList.contains("hidden")) renderDayDetailModal();
     if (!document.getElementById("taskModal").classList.contains("hidden") && editingId) { renderCommentsSection(findTask(editingId)); updateModalDoneBtn(findTask(editingId)); }
+    refreshTriageBtn();
     if (currentView === "board") renderBoard();
     else if (currentView === "myday") renderMyDay();
     else if (currentView === "calendar") renderCalendar();
@@ -8703,6 +8943,24 @@
 
     refreshBoardLayoutBtn();
     refreshDensityBtn();
+    document.getElementById("triageOpenBtn").addEventListener("click", function () { openTriage("mine"); });
+    document.getElementById("triageClose").addEventListener("click", closeTriage);
+    document.getElementById("triageScope").addEventListener("change", function (e) { openTriage(e.target.value); });
+    document.addEventListener("keydown", function (e) {
+      if (document.getElementById("triageModal").classList.contains("hidden")) return;
+      if (!document.getElementById("taskModal").classList.contains("hidden")) return;
+      if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+      if (e.key === "Escape") { closeTriage(); return; }
+      if (triage.i >= triage.ids.length) return;
+      if (e.key === "1") { e.preventDefault(); triageMarkDone(); }
+      else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); triageDelete(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); triage.stats.skipped++; triageNext(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); if (triage.i) { triage.i--; renderTriage(); } }
+      else {
+        var opt = triageDateOptions().filter(function (o) { return o.key === e.key; })[0];
+        if (opt) { e.preventDefault(); triageSetDate(opt.date); }
+      }
+    });
     document.getElementById("boardDensityToggle").addEventListener("click", function () {
       boardDensity = boardDensity === "rows" ? "cards" : "rows";
       try { localStorage.setItem("crmBoardDensity", boardDensity); } catch (e) {}
