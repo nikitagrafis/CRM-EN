@@ -1255,6 +1255,13 @@
     .triage-btn { font-size: 16px; padding: 11px 14px; }
     .triage-btn kbd { display: none; }
   }
+  .pulse-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .pulse-box { background: var(--surface); border-radius: var(--radius-m); padding: 12px 14px; box-shadow: var(--shadow-1); }
+  .pulse-box h3 { font-size: 13.5px; margin: 0 0 8px; }
+  .pulse-item { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 5px 0; font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; border-top: 1px solid var(--line); }
+  .pulse-item:first-of-type { border-top: 0; }
+  .pulse-item:hover { color: var(--accent); }
+  .pulse-item small { color: var(--ink-faint); }
   .field-label-soft { font-weight: 500; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
   .meta-tag-sub { background: var(--accent-soft); color: var(--accent); }
   .ms-filter-group { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px 2px; }
@@ -1612,6 +1619,18 @@
 
   <main class="analytics hidden" id="analyticsView">
     <div class="an-digest-row" id="anDigestRow"></div>
+
+    <!-- 5 окт. 2026: «Пульс» — несколько цифр, по которым видно, становится
+         ли работа управляемее: растёт завал или тает, сколько просрочено,
+         «зомби»-задачи, поручения, просроченные у других. -->
+    <div class="an-group">
+      <div class="an-group-header">
+        <h2>💓 Пульс</h2>
+        <span class="an-group-hint">управляемость: поток задач, завал, зависшее</span>
+      </div>
+      <div class="an-kpi-grid" id="pulseTiles"></div>
+      <div class="pulse-lists" id="pulseLists"></div>
+    </div>
 
     <!-- По просьбе Никиты и Жени (30 сент.): Аналитика — два явных раздела,
          чтобы не казалось, что "аналитика по задачам пропала". Сначала
@@ -5821,6 +5840,49 @@
     return function () { unsubs.forEach(function (u) { u(); }); };
   }
 
+  // ---------- «Пульс» в Аналитике (5 окт. 2026) ----------
+  function renderPulse() {
+    var tilesEl = document.getElementById("pulseTiles");
+    var listsEl = document.getElementById("pulseLists");
+    if (!tilesEl || !listsEl) return;
+    var me = getCurrentUser();
+    var today = todayStr();
+    var weekAgo = Date.now() - 7 * 86400000;
+    var live = tasks.filter(function (t) { return !t.deleted && !isPersonalHidden(t) && canSeeTask(t); });
+    var open = live.filter(function (t) { return !taskDone(t); });
+    var overdue = open.filter(isOverdue);
+    var created7 = live.filter(function (t) { return t.createdAt >= weekAgo; }).length;
+    var closed7 = live.filter(function (t) { return taskDone(t) && t.completedAt >= weekAgo; }).length;
+    var noDue = open.filter(function (t) { return !t.dueDate; }).length;
+    var ages = open.filter(function (t) { return t.createdAt; }).map(function (t) { return (Date.now() - t.createdAt) / 86400000; }).sort(function (a, b) { return a - b; });
+    var medAge = ages.length ? Math.round(ages[Math.floor(ages.length / 2)]) : 0;
+    var zombies = open.filter(function (t) { return dueDateChangeCount(t) >= 3; }).sort(function (a, b) { return dueDateChangeCount(b) - dueDateChangeCount(a); });
+    var delegated = open.filter(function (t) { return t.createdBy === me && respIds(t).indexOf(me) === -1 && isOverdue(t); });
+    var pct = open.length ? Math.round(overdue.length / open.length * 100) : 0;
+    var flow = closed7 - created7;
+    var tile = function (label, value, sub, cls) {
+      return '<div class="an-kpi-tile"><div class="an-kpi-label">' + label + '</div><div class="an-kpi-value' + (cls ? ' ' + cls : '') + '">' + value + '</div>' + (sub ? '<div class="an-kpi-sub">' + sub + '</div>' : '') + '</div>';
+    };
+    tilesEl.innerHTML =
+      tile("Открыто сейчас", open.length, flow >= 0 ? "завал тает: −" + flow + " за 7 дней" : "завал растёт: +" + (-flow) + " за 7 дней", flow >= 0 ? "good" : "bad") +
+      tile("Просрочено", overdue.length, pct + "% открытых", pct > 30 ? "bad" : "") +
+      tile("За 7 дней", created7 + " / " + closed7, "создано / закрыто") +
+      tile("Без срока", noDue, noDue ? "не попадают в «сегодня»" : "", noDue ? "bad" : "") +
+      tile("Возраст задач", medAge + " дн", "медиана открытых") +
+      tile("Зависшие", zombies.length, "срок переносили 3+ раз", zombies.length ? "bad" : "");
+    var item = function (t, extra) {
+      return '<button type="button" class="pulse-item" data-id="' + t.id + '"><b>' + taskTitleLabel(t) + '</b> ' + escapeHtml(t.title) + ' <small>' + extra + '</small></button>';
+    };
+    listsEl.innerHTML =
+      '<div class="pulse-box"><h3>🧟 Зависшие (переносили 3+ раз)</h3>' +
+        (zombies.length ? zombies.slice(0, 8).map(function (t) { return item(t, "· переносов: " + dueDateChangeCount(t)); }).join("") : '<div class="an-empty">Таких нет 👍</div>') + '</div>' +
+      '<div class="pulse-box"><h3>📌 Мои поручения, просроченные у других</h3>' +
+        (delegated.length ? delegated.slice(0, 8).map(function (t) { return item(t, "· 👤 " + escapeHtml(respIds(t).map(responsibleLabel).join(", ")) + " · −" + ruDays(overdueDays(t))); }).join("") : '<div class="an-empty">Все поручения в срок 👍</div>') + '</div>';
+    Array.prototype.forEach.call(listsEl.querySelectorAll("[data-id]"), function (b) {
+      b.addEventListener("click", function () { openModal(b.getAttribute("data-id")); });
+    });
+  }
+
   // ---------- «Разбор завалов» (5 окт. 2026) ----------
   // Просроченные задачи и задачи без срока — по одной; на каждую одно
   // действие: сделано / новый срок / поручить / сменить проект / неактуально.
@@ -6824,6 +6886,7 @@
   }
   function renderAnalytics() {
     var liveTasks = tasks.filter(function (t) { return !t.deleted; });
+    renderPulse();
     renderKpiTiles();
     renderTrendChart();
     renderAnalyticsDonut(liveTasks);
@@ -9217,10 +9280,17 @@
       Promise.resolve().then(function () {
       return ensureSeeded(); }).then(function () {
       return runOneTimeMigrations(); }).then(function () {
+        var triageFromLink = /[?&]triage=1/.test(location.search);
         unsub = subscribeScoped("tasks", function (docs) {
           tasks = docs;
           render();
           markDigestReady("tasks");
+          if (triageFromLink) {
+            triageFromLink = false;
+            try { history.replaceState(null, "", location.pathname); } catch (e) {}
+            setView("board");
+            openTriage("mine");
+          }
         }, function (err) {
           console.error("db subscribe error", err);
           showToast("Нет доступа к задачам — попробуйте обновить страницу или войти заново.", true);
