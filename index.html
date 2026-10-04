@@ -1430,7 +1430,9 @@
            другого без пароля), вместо него просто подпись, под кем он вошёл. -->
       <span id="whoAmILabel" class="who-select-label hidden"></span>
       <div class="tabs" role="tablist" aria-label="Вид">
-        <button class="tab" data-view="myday" role="tab" aria-selected="false">Мой день</button>
+        <!-- 5 окт. 2026: «Мой день» скрыт по просьбе Никиты (пока почти повторяет
+             доску). Вернуть — убрать класс hidden. -->
+        <button class="tab hidden" data-view="myday" role="tab" aria-selected="false">Мой день</button>
         <button class="tab active" data-view="board" role="tab" aria-selected="true">Доска Задач</button>
         <button id="addTaskBtn" class="btn-primary btn-add-compact" type="button" aria-label="Добавить задачу" title="Добавить задачу">+</button>
         <button class="tab" data-view="calendar" role="tab" aria-selected="false">Календарь</button>
