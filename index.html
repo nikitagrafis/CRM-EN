@@ -1679,6 +1679,7 @@
       <div class="pmap-metric" role="group" aria-label="Что считать">
         <button type="button" data-metric="open" class="active">Открытые</button>
         <button type="button" data-metric="overdue">Просроченные</button>
+        <button type="button" data-metric="done">Завершённые</button>
         <button type="button" data-metric="all">Все</button>
       </div>
       <div class="pmap-metric" role="group" aria-label="Цвет">
@@ -6671,6 +6672,7 @@
   function pmapTaskCounts(t) {
     if (pmapMetric === "all") return 1;
     if (pmapMetric === "overdue") return isOverdue(t) ? 1 : 0;
+    if (pmapMetric === "done") return taskDone(t) ? 1 : 0;
     return taskDone(t) ? 0 : 1;
   }
   function buildProjectTree() {
@@ -6731,7 +6733,7 @@
       "L" + pt(a1, r0) + "A" + r0 + "," + r0 + " 0 " + large + " 0 " + pt(a0, r0) + "Z";
   }
   function pmapMetricWord(n) {
-    var w = pmapMetric === "overdue" ? "просрочено" : pmapMetric === "all" ? "всего задач" : "открытых задач";
+    var w = pmapMetric === "overdue" ? "просрочено" : pmapMetric === "done" ? "завершено" : pmapMetric === "all" ? "всего задач" : "открытых задач";
     return n + " · " + w;
   }
   function renderProjectMap() {
@@ -6881,7 +6883,7 @@
       rows.push('<button type="button" class="pmap-row" data-k="' + escapeHtml(n.key) + '"><span class="dot" style="background:' + (n._col || pmapColor(n)) + '"></span>' + num +
         '<span class="name">' + rel + escapeHtml(n.name) + '</span><span class="val">' + n.value + '</span></button>');
     });
-    list.innerHTML = rows.length ? rows.join("") : '<div class="pmap-empty">' + (pmapMetric === "overdue" ? "Просроченных задач нет 🎉" : "Задач нет") + '</div>';
+    list.innerHTML = rows.length ? rows.join("") : '<div class="pmap-empty">' + (pmapMetric === "overdue" ? "Просроченных задач нет 🎉" : pmapMetric === "done" ? "Завершённых задач пока нет" : "Задач нет") + '</div>';
     Array.prototype.forEach.call(list.querySelectorAll(".pmap-row"), function (b) {
       b.addEventListener("click", function () {
         var id = b.getAttribute("data-open"); if (id) { openModal(id); return; }
