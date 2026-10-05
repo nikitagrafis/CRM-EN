@@ -1684,6 +1684,7 @@
       <div class="pmap-metric" role="group" aria-label="Цвет">
         <button type="button" data-color="branch" class="active">Цвет: ветки</button>
         <button type="button" data-color="urgency">Цвет: сроки</button>
+        <button type="button" data-color="people">Цвет: люди</button>
       </div>
     </div>
     <div class="pmap-body">
@@ -6650,7 +6651,20 @@
   // рисуются. Клик по куску — приблизить; клик по задаче без веток или по
   // строке задачи в списке — открыть карточку; клик в центр — на уровень выше.
   var pmapMetric = "open", pmapFocusKey = "root", pmapBound = false, pmapColorMode = "branch";
-  try { pmapColorMode = localStorage.getItem("crmMapColor") === "urgency" ? "urgency" : "branch"; } catch (e) {}
+  try { var pmc = localStorage.getItem("crmMapColor"); if (pmc === "urgency" || pmc === "people") pmapColorMode = pmc; } catch (e) {}
+  // «Цвет: люди» — цвет задачи = цвет аватарки ответственного (как на
+  // карточках); если ответственных несколько — отдельный цвет «Вместе».
+  var PMAP_TOGETHER = "#64748B", PMAP_NOBODY = "#A3ABB8";
+  function pmapPersonColor(t) {
+    var ids = respIds(t);
+    if (!ids.length) return PMAP_NOBODY;
+    if (ids.length > 1) return PMAP_TOGETHER;
+    return pmapPersonColorById(ids[0]);
+  }
+  function pmapPersonColorById(id) {
+    var r = RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
+    return (r && r.color) || PMAP_NOBODY;
+  }
   var PMAP_RINGS = 4, PMAP_R0 = 78, PMAP_RW = 52;
   var PMAP_PALETTE = ["#1F8A87", "#8B5E34", "#4A5A73", "#6E7D1F", "#B5527A", "#146C78", "#9A7B2F", "#7A5A6E", "#3D6B4F", "#5C6F8A"];
   var PMAP_URG = { overdue: "--u-overdue", today: "--u-today", week: "--u-week", month: "--u-month", later: "--u-later", done: "--s-done" };
@@ -6760,7 +6774,7 @@
           // вся ветка одного цвета, а глубже кольца светлее.
           var col = pmapColorMode === "branch"
             ? "hsl(" + Math.round((135 + (a + b) / 2 / (Math.PI * 2) * 300) % 360) + ", 78%, " + Math.min(46 + depth * 7, 74) + "%)"
-            : pmapColor(c);
+            : pmapColorMode === "people" ? (c.kind === "task" ? pmapPersonColor(c.task) : (c.kind === "project" ? "#5B6474" : "#7D8796")) : pmapColor(c);
           c._col = col;
           parts.push('<path d="' + pmapArc(a, b, r0, r1) + '" fill="' + col + '" data-k="' + escapeHtml(c.key) + '"' + (pmapColorMode === "urgency" && c.kind === "sub" ? ' fill-opacity="0.72"' : "") + '></path>');
           hits[c.key] = c;
@@ -6822,7 +6836,25 @@
     });
     // Легенда и список текущего уровня
     var leg = [["--u-overdue", "Просрочено"], ["--u-today", "Сегодня"], ["--u-week", "Неделя"], ["--u-month", "Месяц"], ["--u-later", "Позже / без срока"], ["--s-done", "Готово"]];
-    document.getElementById("pmapLegend").innerHTML = pmapColorMode === "branch"
+    var peopleLeg = "";
+    if (pmapColorMode === "people") {
+      var cnt = {};
+      (function walk(n) {
+        if (n.kind === "task" && n.own) {
+          var ids = respIds(n.task), k = !ids.length ? "__none" : ids.length > 1 ? "__many" : ids[0];
+          cnt[k] = (cnt[k] || 0) + 1;
+        }
+        n.children.forEach(walk);
+      })(focus);
+      peopleLeg = Object.keys(cnt).sort(function (x, y) { return cnt[y] - cnt[x]; }).map(function (k) {
+        var col = k === "__none" ? PMAP_NOBODY : k === "__many" ? PMAP_TOGETHER : pmapPersonColorById(k);
+        var nm = k === "__none" ? "Без ответственного" : k === "__many" ? "Вместе (несколько)" : responsibleLabel(k);
+        return '<span><i style="background:' + col + '"></i>' + escapeHtml(nm) + ' · ' + cnt[k] + '</span>';
+      }).join("");
+    }
+    document.getElementById("pmapLegend").innerHTML = pmapColorMode === "people"
+      ? '<span style="width:100%">Задачи окрашены по ответственному (цвет как у аватарки):</span>' + peopleLeg
+      : pmapColorMode === "branch"
       ? '<span style="width:100%">Кольца от центра: проект → подпроект → задача → подзадачи и следующие шаги. Цвет — ветка, чем дальше от центра, тем светлее.</span>'
       : '<span style="width:100%">Внутренние кольца — проекты и подпроекты, дальше задачи по срочности:</span>' +
         leg.map(function (l) { return '<span><i style="background:var(' + l[0] + ')"></i>' + l[1] + '</span>'; }).join("");
