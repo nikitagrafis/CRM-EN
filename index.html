@@ -1392,6 +1392,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <!-- Часть 24: Google Identity Services — для подключения личного Google
      Calendar каждого человека (см. GCAL_* константы и gcal*-функции в
      скрипте ниже). Грузится асинхронно; если сеть недоступна/скрипт
@@ -1920,7 +1921,7 @@
         <textarea id="commentInput" placeholder="Написать комментарий…" rows="2"></textarea>
         <div class="comment-add-actions">
           <input type="file" id="commentFileInput" class="hidden">
-          <button type="button" class="btn-secondary comment-attach-btn" id="commentAttachBtn" title="Прикрепить файл (загрузится в ваш Google Drive)">📎</button>
+          <button type="button" class="btn-secondary comment-attach-btn" id="commentAttachBtn" title="Прикрепить файл (до 25 МБ, хранится в CRM)">📎</button>
           <button type="button" class="btn-secondary" id="commentAddBtn">Отправить</button>
         </div>
       </div>
@@ -5157,6 +5158,10 @@
       // неудалённых комментариев; ссылки открываются в новой вкладке.
       var attachmentsHtml = (!e.system && !isDeleted && Array.isArray(e.attachments) && e.attachments.length)
         ? '<div class="comment-attachments">' + e.attachments.map(function (a) {
+            // Новые вложения — в хранилище компании (path), старые — ссылки
+            // на Google Диск (url). Ссылку на файл из хранилища получаем в
+            // момент клика: база проверит, видна ли вам задача.
+            if (a.path) return '<a class="comment-attachment-link" href="#" data-storage-path="' + escapeHtml(a.path) + '">📎 ' + escapeHtml(a.name || "файл") + '</a>';
             return '<a class="comment-attachment-link" href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener">📎 ' + escapeHtml(a.name || "файл") + '</a>';
           }).join("") + '</div>'
         : '';
@@ -5614,19 +5619,16 @@
         inp.value = "";
         return;
       }
-      if (!gdriveReady()) {
-        showToast("Чтобы прикреплять файлы, сначала подключите Google (кнопка в шапке сайта).", true);
-        return;
-      }
+      if (file.size > 25 * 1024 * 1024) { showToast("Файл больше 25 МБ — так не получится.", true); return; }
       var btn = document.getElementById("commentAddBtn");
       if (btn) { btn.disabled = true; btn.textContent = "Загрузка…"; }
-      gdriveUploadFile(file).then(function (att) {
+      crmUploadFile(id, file).then(function (att) {
         postComment(id, text, [att]);
         inp.value = "";
         clearPendingCommentFile();
       }).catch(function (e) {
-        console.error("gdrive attach upload failed", e);
-        showToast("Не удалось загрузить файл на Google Drive. Попробуйте переподключить Google.", true);
+        console.error("attach upload failed", e);
+        showToast("Не удалось загрузить файл. Попробуйте ещё раз.", true);
       }).then(function () {
         if (btn) { btn.disabled = false; btn.textContent = "Отправить"; }
       });
@@ -8520,6 +8522,31 @@
   // просмотр". Без этого шага ссылку смог бы открыть только владелец файла
   // (тот, кто его загрузил) — а вложение в комментарии должно быть видно
   // и партнёру/сотруднику, у которого свой отдельный Google-аккаунт.
+  // ---------- Файлы в хранилище компании (5 окт. 2026) ----------
+  // Вложения к комментариям — в Firebase Storage проекта, а не на личный
+  // Google Диск: не пропадут вместе с сотрудником и работают без подключения
+  // Google. Доступ — правилами storage.rules (видна задача → виден файл).
+  function crmUploadFile(taskId, file) {
+    var safe = String(file.name || "file").replace(/[\/#?\[\]*]/g, "_").slice(-120);
+    var path = "attachments/" + taskId + "/" + Date.now() + "_" + safe;
+    var ref = firebase.storage().ref(path);
+    return ref.put(file, { contentType: file.type || "application/octet-stream" }).then(function () {
+      return { id: "a" + Date.now().toString(36), name: file.name || "файл", path: path, size: file.size, type: file.type || "" };
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("[data-storage-path]");
+    if (!a) return;
+    e.preventDefault();
+    var w = window.open("", "_blank");
+    firebase.storage().ref(a.getAttribute("data-storage-path")).getDownloadURL().then(function (url) {
+      if (w) w.location.href = url; else location.href = url;
+    }).catch(function (err) {
+      if (w) w.close();
+      console.error(err);
+      showToast("Нет доступа к файлу или он удалён.", true);
+    });
+  });
   function gdriveUploadFile(file) {
     return gdriveEnsureFolder().then(function (folderId) {
       var metadata = { name: file.name, parents: [folderId] };
