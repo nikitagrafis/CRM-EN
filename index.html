@@ -6800,7 +6800,7 @@
             else if (arcLen > tw(label, f) + 8) { txt = label; tr = tangRot; }
             else if (isNum) {
               var bare = String(c.task.number);
-              for (f = fs; f >= 6.5 && !txt; f -= 0.5) {
+              for (f = fs; f >= 10 && !txt; f -= 0.5) { // мельче 10 — уже не читается, не пишем
                 if (tw(label, f) <= ringW && arcLen >= f * 0.95) { txt = label; tr = radialRot; }
                 else if (tw(bare, f) <= ringW && arcLen >= f * 0.95) { txt = bare; tr = radialRot; }
               }
