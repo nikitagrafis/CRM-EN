@@ -802,6 +802,14 @@
   .pmap-tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; font-weight: 600; padding: 6px 9px; border-radius: 8px; max-width: 260px; line-height: 1.35; z-index: 3; }
   .pmap-side { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 12px; max-height: calc(100vh - 170px); overflow: auto; }
   .pmap-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; padding-bottom: 10px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .pmap-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; align-items: center; }
+  .pmap-chips-h { font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; min-width: 38px; }
+  .pmap-chip { border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .pmap-chip i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
+  .pmap-chip:hover { border-color: var(--line-strong); }
+  .pmap-chip.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+  .pmap-chip.dim { opacity: .5; }
+  .pmap-reset { color: var(--danger); border-color: var(--danger-soft); }
   .pmap-legend span i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
   .pmap-row { display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: none; text-align: left; font: inherit; font-size: 13px; padding: 7px 6px; border-radius: 8px; cursor: pointer; color: var(--ink); }
   .pmap-row:hover { background: var(--surface-2, var(--bg)); }
@@ -6669,12 +6677,26 @@
   var PMAP_RINGS = 4, PMAP_R0 = 66, PMAP_RW = 52;
   var PMAP_PALETTE = ["#1F8A87", "#8B5E34", "#4A5A73", "#6E7D1F", "#B5527A", "#146C78", "#9A7B2F", "#7A5A6E", "#3D6B4F", "#5C6F8A"];
   var PMAP_URG = { overdue: "--u-overdue", today: "--u-today", week: "--u-week", month: "--u-month", later: "--u-later", done: "--s-done" };
-  function pmapTaskCounts(t) {
+  // Фильтры карты: клик по человеку или по сроку в легенде оставляет на
+  // карте только такие задачи (можно выбрать несколько; повторный клик снимает).
+  var pmapSel = { people: [], urg: [] };
+  function pmapUrgKey(t) { return taskDone(t) ? "done" : computeUrgencyId(t); }
+  function pmapPeopleMatch(t, sel) {
+    var ids = respIds(t);
+    return sel.some(function (k) { return k === "__many" ? ids.length > 1 : ids.indexOf(k) !== -1; });
+  }
+  function pmapBaseCounts(t) {
     if (pmapMetric === "all") return 1;
     if (pmapMetric === "overdue") return isOverdue(t) ? 1 : 0;
     if (pmapMetric === "done") return taskDone(t) ? 1 : 0;
     return taskDone(t) ? 0 : 1;
   }
+  function pmapPass(t, skip) {
+    if (skip !== "people" && pmapSel.people.length && !pmapPeopleMatch(t, pmapSel.people)) return false;
+    if (skip !== "urg" && pmapSel.urg.length && pmapSel.urg.indexOf(pmapUrgKey(t)) === -1) return false;
+    return true;
+  }
+  function pmapTaskCounts(t) { return pmapPass(t) ? pmapBaseCounts(t) : 0; }
   function buildProjectTree() {
     var vis = tasks.filter(function (t) { return !t.deleted && !isPersonalHidden(t) && canSeeTask(t); });
     var byId = {}; vis.forEach(function (t) { byId[t.id] = t; });
@@ -6709,7 +6731,6 @@
     (function weigh(n) {
       var w = n.kind === "task" ? pmapTaskCounts(n.task) : 0;
       n.children.forEach(function (c) { w += weigh(c); });
-      n.children = n.children.filter(function (c) { return c.value > 0; });
       n.children.sort(function (a, b) { return b.value - a.value || String(a.name).localeCompare(String(b.name), "ru"); });
       n.value = w; n.own = n.kind === "task" ? pmapTaskCounts(n.task) : 0;
       return w;
@@ -6762,7 +6783,7 @@
     var svg = document.getElementById("pmapSvg"), tip = document.getElementById("pmapTip");
     var parts = [], hits = {};
     // Толщина колец — по глубине видимой ветки, чтобы круг всегда занимал всё поле.
-    var maxDepth = (function md(n, d) { if (d >= PMAP_RINGS || !n.children.length) return d; var m = d; n.children.forEach(function (c) { m = Math.max(m, md(c, d + 1)); }); return m; })(focus, 0) || 1;
+    var maxDepth = (function md(n, d) { var live = n.children.filter(function (c) { return c.value > 0; }); if (d >= PMAP_RINGS || !live.length) return d; var m = d; live.forEach(function (c) { m = Math.max(m, md(c, d + 1)); }); return m; })(focus, 0) || 1;
     PMAP_RW = Math.min(90, Math.floor((292 - PMAP_R0) / maxDepth));
     function draw(n, a0, a1, depth) {
       if (depth > PMAP_RINGS) return;
@@ -6825,7 +6846,7 @@
       if (!k) return;
       if (k === "__up") { if (focus.parent) { pmapFocusKey = focus.parent.key; renderProjectMap(); } return; }
       var n = hits[k]; if (!n) return;
-      if (n.kind === "task" && !n.children.length) { openModal(n.task.id); return; }
+      if (n.kind === "task" && !n.children.some(function (c) { return c.value > 0; })) { openModal(n.task.id); return; }
       pmapFocusKey = n.key; renderProjectMap();
     };
     svg.onmousemove = function (e) {
@@ -6852,43 +6873,69 @@
     });
     // Легенда и список текущего уровня
     var leg = [["--u-overdue", "Просрочено"], ["--u-today", "Сегодня"], ["--u-week", "Неделя"], ["--u-month", "Месяц"], ["--u-later", "Позже / без срока"], ["--s-done", "Готово"]];
-    var peopleLeg = "";
-    if (pmapColorMode === "people") {
-      var cnt = {};
-      (function walk(n) {
-        if (n.kind === "task" && n.own) {
-          var ids = respIds(n.task), k = !ids.length ? "__none" : ids.length > 1 ? "__many" : ids[0];
-          cnt[k] = (cnt[k] || 0) + 1;
+    // Кнопки-фильтры: «Кто» и «Срок». Число на кнопке — сколько задач будет,
+    // если её выбрать (с учётом счёта и второго фильтра).
+    var pCnt = {}, uCnt = {};
+    (function walk(n) {
+      if (n.kind === "task" && pmapBaseCounts(n.task)) {
+        var t = n.task;
+        if (pmapPass(t, "people")) {
+          var ids = respIds(t);
+          ids.forEach(function (id) { pCnt[id] = (pCnt[id] || 0) + 1; });
+          if (ids.length > 1) pCnt.__many = (pCnt.__many || 0) + 1;
         }
-        n.children.forEach(walk);
-      })(focus);
-      peopleLeg = Object.keys(cnt).sort(function (x, y) { return cnt[y] - cnt[x]; }).map(function (k) {
-        var col = k === "__none" ? PMAP_NOBODY : k === "__many" ? PMAP_TOGETHER : pmapPersonColorById(k);
-        var nm = k === "__none" ? "Без ответственного" : k === "__many" ? "Вместе (несколько)" : responsibleLabel(k);
-        return '<span><i style="background:' + col + '"></i>' + escapeHtml(nm) + ' · ' + cnt[k] + '</span>';
-      }).join("");
+        if (pmapPass(t, "urg")) { var u = pmapUrgKey(t); uCnt[u] = (uCnt[u] || 0) + 1; }
+      }
+      n.children.forEach(walk);
+    })(focus);
+    function chip(group, key, col, label, n) {
+      var on = pmapSel[group].indexOf(key) !== -1, dim = pmapSel[group].length && !on;
+      return '<button type="button" class="pmap-chip' + (on ? ' on' : '') + (dim ? ' dim' : '') + '" data-g="' + group + '" data-v="' + escapeHtml(key) + '"><i style="background:' + col + '"></i>' + escapeHtml(label) + ' · ' + (n || 0) + '</button>';
     }
-    document.getElementById("pmapLegend").innerHTML = pmapColorMode === "people"
-      ? '<span style="width:100%">Задачи окрашены по ответственному (цвет как у аватарки):</span>' + peopleLeg
-      : pmapColorMode === "branch"
-      ? '<span style="width:100%">Кольца от центра: проект → подпроект → задача → подзадачи и следующие шаги. Цвет — ветка, чем дальше от центра, тем светлее.</span>'
-      : '<span style="width:100%">Внутренние кольца — проекты и подпроекты, дальше задачи по срочности:</span>' +
-        leg.map(function (l) { return '<span><i style="background:var(' + l[0] + ')"></i>' + l[1] + '</span>'; }).join("");
+    var pKeys = Object.keys(pCnt).filter(function (k) { return k !== "__many"; }).sort(function (x, y) { return pCnt[y] - pCnt[x]; });
+    pmapSel.people.forEach(function (k) { if (k !== "__many" && pKeys.indexOf(k) === -1) pKeys.push(k); });
+    var peopleChips = pKeys.map(function (k) { return chip("people", k, pmapPersonColorById(k), responsibleLabel(k), pCnt[k]); }).join("") +
+      ((pCnt.__many || pmapSel.people.indexOf("__many") !== -1) ? chip("people", "__many", PMAP_TOGETHER, "Вместе", pCnt.__many) : "");
+    var urgChips = leg.map(function (l, i) {
+      var key = ["overdue", "today", "week", "month", "later", "done"][i];
+      if (!uCnt[key] && pmapSel.urg.indexOf(key) === -1) return "";
+      return chip("urg", key, "var(" + l[0] + ")", l[1], uCnt[key]);
+    }).join("");
+    var anySel = pmapSel.people.length || pmapSel.urg.length;
+    var modeHint = pmapColorMode === "people" ? "Цвет — ответственный (как аватарка), «Вместе» — несколько человек."
+      : pmapColorMode === "branch" ? "Кольца: проект → подпроект → задача → подзадачи и шаги. Цвет — ветка."
+      : "Цвет задач — срочность.";
+    document.getElementById("pmapLegend").innerHTML =
+      '<span style="width:100%">' + modeHint + ' Нажми на кнопку ниже — останутся только такие задачи.</span>' +
+      '<div class="pmap-chips"><span class="pmap-chips-h">Кто</span>' + peopleChips + '</div>' +
+      '<div class="pmap-chips"><span class="pmap-chips-h">Срок</span>' + urgChips + '</div>' +
+      (anySel ? '<button type="button" class="pmap-chip pmap-reset" data-g="reset">✕ Сбросить фильтр</button>' : "");
+    Array.prototype.forEach.call(document.querySelectorAll("#pmapLegend .pmap-chip"), function (b) {
+      b.addEventListener("click", function () {
+        var g = b.getAttribute("data-g");
+        if (g === "reset") { pmapSel.people = []; pmapSel.urg = []; }
+        else {
+          var v = b.getAttribute("data-v"), arr = pmapSel[g], i = arr.indexOf(v);
+          if (i === -1) arr.push(v); else arr.splice(i, 1);
+        }
+        renderProjectMap();
+      });
+    });
     var list = document.getElementById("pmapList");
     var rows = [];
     if (focus.kind === "task") rows.push('<button type="button" class="pmap-row" data-open="' + escapeHtml(focus.task.id) + '"><span class="dot" style="background:' + pmapColor(focus) + '"></span><span class="name"><b>Открыть карточку</b> — ' + escapeHtml(focus.name) + '</span></button>');
-    focus.children.forEach(function (n) {
+    focus.children.filter(function (c) { return c.value > 0; }).forEach(function (n) {
       var num = n.kind === "task" && n.task.number ? '<span class="num">№' + n.task.number + '</span>' : "";
       var rel = n.kind === "task" && n.task.prevId && n.parent && n.parent.kind === "task" && n.task.parentId !== n.parent.task.id ? "→ " : "";
       rows.push('<button type="button" class="pmap-row" data-k="' + escapeHtml(n.key) + '"><span class="dot" style="background:' + (n._col || pmapColor(n)) + '"></span>' + num +
         '<span class="name">' + rel + escapeHtml(n.name) + '</span><span class="val">' + n.value + '</span></button>');
     });
-    list.innerHTML = rows.length ? rows.join("") : '<div class="pmap-empty">' + (pmapMetric === "overdue" ? "Просроченных задач нет 🎉" : pmapMetric === "done" ? "Завершённых задач пока нет" : "Задач нет") + '</div>';
+    list.innerHTML = rows.length ? rows.join("") : '<div class="pmap-empty">' + ((pmapSel.people.length || pmapSel.urg.length) ? "Под фильтр ничего не попало" : pmapMetric === "overdue" ? "Просроченных задач нет 🎉" : pmapMetric === "done" ? "Завершённых задач пока нет" : "Задач нет") + '</div>';
     Array.prototype.forEach.call(list.querySelectorAll(".pmap-row"), function (b) {
       b.addEventListener("click", function () {
         var id = b.getAttribute("data-open"); if (id) { openModal(id); return; }
         var n = tree.index[b.getAttribute("data-k")]; if (!n) return;
-        if (n.kind === "task" && !n.children.length) { openModal(n.task.id); return; }
+        if (n.kind === "task" && !n.children.some(function (c) { return c.value > 0; })) { openModal(n.task.id); return; }
         pmapFocusKey = n.key; renderProjectMap();
       });
     });
