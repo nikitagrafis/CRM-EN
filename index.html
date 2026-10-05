@@ -1264,6 +1264,9 @@
   .pulse-item small { color: var(--ink-faint); }
   /* ---------- Цепочка шагов ---------- */
   .path-chain { display: flex; flex-direction: column; gap: 2px; }
+  .relation-hint { display: block; font-size: 11.5px; color: var(--ink-faint); margin: -2px 0 6px; }
+  .path-link-toggle { margin-top: -6px; }
+  .path-link-toggle-btn { font-size: 12.5px; padding: 4px 0; color: var(--ink-soft); }
   .path-step { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; background: none; padding: 5px 6px; border-radius: var(--radius-s); font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
   .path-step:hover { background: var(--surface-2); }
   .path-step.current { background: var(--accent-soft); font-weight: 700; cursor: default; }
@@ -1890,12 +1893,14 @@
          числом линковать любые две задачи, включая ещё не сохранённую
          новую (см. openLinkParentModal/pendingParentId). -->
     <div class="field" id="parentLinkField">
-      <span class="field-label">Родительская задача</span>
+      <span class="field-label">Входит в задачу</span>
+      <span class="field-hint relation-hint">Если это часть большой задачи</span>
       <div class="parent-link-status" id="parentLinkStatus"></div>
     </div>
 
     <div class="field">
       <span class="field-label">Подзадачи</span>
+      <span class="field-hint relation-hint">Части этой задачи — делаются параллельно</span>
       <div class="thread-children hidden" id="threadChildren">
         <div class="history-list" id="threadChildrenList"></div>
       </div>
@@ -1905,8 +1910,13 @@
     <!-- 5 окт. 2026: цепочка шагов — задача закончилась и породила следующую
          (встреча → КП → договор). Не подзадача: шаги идут друг за другом. -->
     <div class="field hidden" id="pathField">
-      <span class="field-label">Путь</span>
+      <span class="field-label">Цепочка шагов</span>
+      <span class="field-hint relation-hint">Что было до этой задачи и что из неё вышло</span>
       <div class="path-chain" id="pathChain"></div>
+    </div>
+    <div class="path-link-toggle hidden" id="pathLinkToggleWrap">
+      <button type="button" class="btn-ghost path-link-toggle-btn" id="pathLinkToggle">🔗 Это продолжение другой задачи</button>
+      <div class="path-link-row hidden" id="pathLinkRow">Предыдущий шаг — задача № <input type="number" min="1" id="pathPrevInput2" placeholder="№"> <button type="button" class="btn-secondary" id="pathPrevLink2">Связать</button></div>
     </div>
 
     <!-- Часть 5, п.7: раньше это поле скрывалось целиком, пока задача не
@@ -5926,8 +5936,18 @@
     var field = document.getElementById("pathField");
     var el = document.getElementById("pathChain");
     if (!field || !el) return;
-    if (!t) { field.classList.add("hidden"); return; }
+    if (!t) { field.classList.add("hidden"); document.getElementById("pathLinkToggleWrap").classList.add("hidden"); return; }
     var ch = chainOf(t);
+    var toggleWrap = document.getElementById("pathLinkToggleWrap");
+    var hasChain = ch.back.length || ch.fwd.length;
+    if (!hasChain) {
+      field.classList.add("hidden");
+      toggleWrap.classList.remove("hidden");
+      document.getElementById("pathLinkRow").classList.add("hidden");
+      document.getElementById("pathPrevInput2").value = "";
+      return;
+    }
+    toggleWrap.classList.add("hidden");
     var step = function (x, isCur) {
       var st = taskDone(x) ? "✓" : (isOverdue(x) ? "⚠️" : "⏳");
       return '<button type="button" class="path-step' + (isCur ? ' current' : '') + '" data-id="' + x.id + '">' +
@@ -5939,27 +5959,26 @@
     ch.back.forEach(function (x) { html += step(x, false) + arrow; });
     html += step(t, true);
     ch.fwd.forEach(function (group) { html += arrow + group.map(function (x) { return step(x, false); }).join(""); });
-    html += '<div class="path-link-row">Это следующий шаг после задачи № <input type="number" min="1" id="pathPrevInput" placeholder="№"> <button type="button" class="btn-secondary" id="pathPrevLink">Связать</button>' +
-      (t.prevId ? ' <button type="button" class="btn-ghost" id="pathPrevUnlink">Отвязать</button>' : '') + '</div>';
+    html += t.prevId ? '<div class="path-link-row"><button type="button" class="btn-ghost" id="pathPrevUnlink">Отвязать от предыдущего шага</button></div>' : '';
     el.innerHTML = html;
     field.classList.remove("hidden");
     Array.prototype.forEach.call(el.querySelectorAll(".path-step:not(.current)"), function (b) {
       b.addEventListener("click", function () { openModal(b.getAttribute("data-id")); });
-    });
-    document.getElementById("pathPrevLink").addEventListener("click", function () {
-      var num = parseInt(document.getElementById("pathPrevInput").value, 10);
-      var prev = tasks.filter(function (x) { return x.number === num && !x.deleted && !isPersonalHidden(x); })[0];
-      if (!prev) { showToast("Задача №" + (num || "?") + " не найдена.", true); return; }
-      if (prev.id === t.id || chainOf(prev).back.some(function (x) { return x.id === t.id; })) { showToast("Так получится замкнутый круг.", true); return; }
-      persist({ prevId: prev.id }, t.id);
-      showToast("Связано: №" + (t.number || "?") + " — следующий шаг после №" + num + ".");
-      setTimeout(function () { renderPathSection(findTask(t.id)); }, 200);
     });
     var unlink = document.getElementById("pathPrevUnlink");
     if (unlink) unlink.addEventListener("click", function () {
       persist({ prevId: "" }, t.id);
       setTimeout(function () { renderPathSection(findTask(t.id)); }, 200);
     });
+  }
+  // «🔗 Это продолжение другой задачи» — связать задним числом.
+  function linkPrevByNumber(t, num) {
+    var prev = tasks.filter(function (x) { return x.number === num && !x.deleted && !isPersonalHidden(x); })[0];
+    if (!prev) { showToast("Задача №" + (num || "?") + " не найдена.", true); return; }
+    if (prev.id === t.id || chainOf(prev).back.some(function (x) { return x.id === t.id; })) { showToast("Так получится замкнутый круг.", true); return; }
+    persist({ prevId: prev.id }, t.id);
+    showToast("Связано: №" + (t.number || "?") + " — продолжение №" + num + ".");
+    setTimeout(function () { renderPathSection(findTask(t.id)); }, 200);
   }
   // Окно «✓ Закрыто. Что дальше?» — после закрытия задачи (в окне задачи и в
   // «Разборе»). onFinish вызывается и при «Нет, это всё», и после создания.
@@ -9221,6 +9240,14 @@
     refreshDensityBtn();
     document.getElementById("triageOpenBtn").addEventListener("click", function () { openTriage("mine"); });
     document.getElementById("nextStepCreate").addEventListener("click", createNextStep);
+    document.getElementById("pathLinkToggle").addEventListener("click", function () {
+      document.getElementById("pathLinkRow").classList.toggle("hidden");
+      document.getElementById("pathPrevInput2").focus();
+    });
+    document.getElementById("pathPrevLink2").addEventListener("click", function () {
+      var t = editingId ? findTask(editingId) : null;
+      if (t) linkPrevByNumber(t, parseInt(document.getElementById("pathPrevInput2").value, 10));
+    });
     document.getElementById("nextStepNone").addEventListener("click", closeNextStepPrompt);
     document.getElementById("nextStepClose").addEventListener("click", closeNextStepPrompt);
     document.getElementById("nextStepTitle").addEventListener("keydown", function (e) {
