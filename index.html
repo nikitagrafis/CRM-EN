@@ -5565,6 +5565,11 @@
       return;
     }
     clearPendingCommentFile();
+    // 7 окт. 2026 (баг от Жени): поле комментария одно на все задачи и не
+    // очищалось — неотправленный текст «переезжал» в каждую следующую
+    // открытую задачу. Теперь у каждой задачи свой черновик.
+    stashCommentDraft();
+    document.getElementById("commentInput").value = (id && commentDrafts[id]) || "";
     var t = id ? findTask(id) : null;
     // CRM v2 п.1: страховка на случай, если что-то попытается открыть чужую
     // личную задачу в обход UI-фильтров выше — прямого пути к деталям нет.
@@ -5668,7 +5673,16 @@
     modal.classList.remove("hidden");
     setTimeout(function () { document.getElementById("fTitle").focus(); }, 30);
   }
-  function closeModal() { document.getElementById("taskModal").classList.add("hidden"); editingId = null; resetDeleteBtn(); clearPendingCommentFile(); }
+  var commentDrafts = {};
+  function stashCommentDraft() {
+    var inp = document.getElementById("commentInput");
+    if (!inp) return;
+    if (editingId) {
+      if (inp.value.trim()) commentDrafts[editingId] = inp.value; else delete commentDrafts[editingId];
+    }
+    inp.value = "";
+  }
+  function closeModal() { stashCommentDraft(); document.getElementById("taskModal").classList.add("hidden"); editingId = null; resetDeleteBtn(); clearPendingCommentFile(); }
   // "Удалить" needs its own confirmation, but window.confirm() is silently
   // blocked inside the artifact sandbox — the same reason prompt() had to be
   // replaced earlier. Instead the button arms itself in place: first click
@@ -5707,6 +5721,7 @@
       if (!file) {
         postComment(id, text);
         inp.value = "";
+        delete commentDrafts[id];
         return;
       }
       if (file.size > 25 * 1024 * 1024) { showToast("Файл больше 25 МБ — так не получится.", true); return; }
@@ -5715,6 +5730,7 @@
       crmUploadFile(id, file).then(function (att) {
         postComment(id, text, [att]);
         inp.value = "";
+        delete commentDrafts[id];
         clearPendingCommentFile();
       }).catch(function (e) {
         console.error("attach upload failed", e);
