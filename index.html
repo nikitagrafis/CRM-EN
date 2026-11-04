@@ -237,6 +237,33 @@
     transition: background .15s, color .15s;
   }
   .tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
+  .tab-more { position: relative; display: inline-flex; }
+  .tab-more-btn { border: none; background: transparent; font: inherit; font-weight: 600; color: var(--ink-soft); padding: 7px 12px; border-radius: var(--radius-s); cursor: pointer; font-size: inherit; }
+  .tab-more-btn.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
+  .tab-more-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; min-width: 170px; display: flex; flex-direction: column; gap: 2px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); box-shadow: var(--shadow-1); }
+  .tab-more-pop.hidden { display: none; }
+  .tab-more-pop .tab { text-align: left; }
+  .chip-toggle.is-paused-on { background: var(--accent); color: var(--accent-ink); }
+  .row-hist.paused, .meta-tag-paused { color: var(--ink-soft); background: var(--surface-2); border-radius: 4px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; }
+  /* ---------- Контрагенты (4 нояб. 2026) ---------- */
+  .partners { flex: 1; padding: 16px 20px 40px; max-width: 900px; width: 100%; margin: 0 auto; }
+  .partners-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .partners-bar p { flex: 1; min-width: 220px; margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+  .partner { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); margin-bottom: 8px; overflow: hidden; }
+  .partner-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; width: 100%; border: none; background: none; font: inherit; color: var(--ink); text-align: left; padding: 11px 14px; cursor: pointer; }
+  .partner-name { font-weight: 700; font-size: 14.5px; }
+  .partner-stats { font-size: 12px; color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
+  .partner-stats b { color: var(--danger); }
+  .partner-next { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .partner-next.warn { color: var(--danger); font-weight: 600; }
+  .partner-tasks { border-top: 1px solid var(--line); padding: 6px 8px 8px; }
+  .partner-task { display: flex; gap: 8px; width: 100%; border: none; background: none; font: inherit; font-size: 13px; color: var(--ink); text-align: left; padding: 6px; border-radius: 6px; cursor: pointer; }
+  .partner-task:hover { background: var(--surface-2); }
+  .partner-task .num { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); flex: none; }
+  .partner-task .ttl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .partner-task .due { font-size: 11.5px; color: var(--ink-soft); flex: none; }
+  .partner-task.done .ttl { text-decoration: line-through; color: var(--ink-soft); }
+  .partner-actions { display: flex; gap: 8px; padding: 6px; }
   .tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 2px;
   }
@@ -1505,14 +1532,22 @@
         <button id="addTaskBtn" class="btn-primary btn-add-compact" type="button" aria-label="Добавить задачу" title="Добавить задачу">+</button>
         <button class="tab" data-view="analytics" role="tab" aria-selected="false">Аналитика</button>
         <button class="tab" data-view="calendar" role="tab" aria-selected="false">Календарь</button>
-        <button class="tab" data-view="finance" role="tab" aria-selected="false">Финансы</button>
-        <button class="tab" data-view="meetings" role="tab" aria-selected="false">Протоколы</button>
-        <button class="tab" data-view="samples" role="tab" aria-selected="false">Образцы</button>
-        <!-- Часть 23: «Заказы» — рядом с «Образцы», см. ниже #ordersView. -->
-        <button class="tab" data-view="orders" role="tab" aria-selected="false">Заказы</button>
-        <!-- Часть 22: видна только администраторам (Никита/Женя) — см.
-             updateAdminNav(), вызывается при каждом обновлении "Кто вы". -->
-        <button class="tab hidden" data-view="employees" role="tab" aria-selected="false" id="employeesTabBtn">Сотрудники</button>
+        <button class="tab" data-view="partners" role="tab" aria-selected="false">Контрагенты</button>
+        <!-- 4 нояб. 2026: редко используемые разделы — в меню «Ещё», чтобы
+             каждый день видеть только рабочее. Ничего не удалено. -->
+        <div class="tab-more" id="tabMore">
+          <button type="button" class="tab-more-btn" id="tabMoreBtn" aria-haspopup="true" aria-expanded="false">Ещё ▾</button>
+          <div class="tab-more-pop hidden" id="tabMorePop">
+            <button class="tab" data-view="finance" role="tab" aria-selected="false">Финансы</button>
+            <button class="tab" data-view="meetings" role="tab" aria-selected="false">Протоколы</button>
+            <button class="tab" data-view="samples" role="tab" aria-selected="false">Образцы</button>
+            <!-- Часть 23: «Заказы» — рядом с «Образцы», см. ниже #ordersView. -->
+            <button class="tab" data-view="orders" role="tab" aria-selected="false">Заказы</button>
+            <!-- Часть 22: видна только администраторам (Никита/Женя) — см.
+                 updateAdminNav(), вызывается при каждом обновлении "Кто вы". -->
+            <button class="tab hidden" data-view="employees" role="tab" aria-selected="false" id="employeesTabBtn">Сотрудники</button>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Часть 24: подключение личного Google Calendar — см. connectGcal()/
@@ -1548,6 +1583,7 @@
     <button type="button" class="chip-toggle triage-open-btn" id="triageOpenBtn">🧹 Разбор</button>
     <button type="button" class="chip-toggle board-density-toggle" id="boardDensityToggle">☰ Строки</button>
     <button type="button" class="chip-toggle" id="boardLayoutToggle">🕘 Хронология</button>
+    <button type="button" class="chip-toggle hidden" id="pausedToggle">⏸ На паузе</button>
   </div>
   <!-- Everything here still works exactly like the row above — it's just
        tucked behind "Фильтры" on a phone screen so the bar above doesn't
@@ -1715,6 +1751,18 @@
         <div class="pmap-list" id="pmapList"></div>
       </div>
     </div>
+  </main>
+
+  <!-- 4 нояб. 2026: «Контрагенты» — кто такой контрагент, берём только
+       название и варианты написания (без персональных данных: 152-ФЗ). Задачи
+       находятся сами — по упоминанию в названии или заметках. Главное здесь —
+       у кого нет следующего шага. -->
+  <main class="partners hidden" id="partnersView">
+    <div class="partners-bar">
+      <p>Задачи подбираются сами — по названию контрагента в задаче. Сверху те, где нет следующего шага или есть просрочка.</p>
+      <button type="button" class="btn-primary hidden" id="partnerAddBtn">+ Контрагент</button>
+    </div>
+    <div id="partnersList"></div>
   </main>
 
   <main class="analytics hidden" id="analyticsView">
@@ -2038,6 +2086,7 @@
          действия. Доступна только для уже существующей задачи — для новой,
          ещё не сохранённой формы, скрыта целиком (см. updateModalDoneBtn). -->
     <button type="button" class="btn-secondary modal-done-btn modal-done-btn-bottom hidden" id="modalDoneBtn">✓ Задача завершена</button>
+    <button type="button" class="btn-secondary modal-done-btn modal-done-btn-bottom hidden" id="modalPauseBtn">⏸ На паузу</button>
   </form>
 </div>
 
@@ -2859,6 +2908,8 @@
 
   // ---------- State ----------
   var tasks = [];
+  var pausedTasks = [];
+  var pausedMode = false;
   var currentView = "board";
   var editingId = null;
   // Подзадачи (п.16, по выбору Никиты): не встроенный чек-лист, а обычные
@@ -3960,6 +4011,8 @@
     // всегда соответствует проекту; у новой задачи всегда есть автор.
     data = Object.assign({}, data);
     if (!id && !data.createdBy) data.createdBy = getCurrentUser();
+    // Новый срок у задачи с паузы — значит, она снова в работе.
+    if (prev && prev.paused && data.dueDate && data.dueDate !== prev.dueDate) data.paused = false;
     var dirNow = data.direction !== undefined ? data.direction : (prev ? prev.direction : "");
     if (data.direction !== undefined || !id) data.personal = dirNow === "Личное";
     if (dirNow === "Личное") {
@@ -4054,7 +4107,12 @@
     return tasks.filter(function (t) { return t.deleted; }).sort(function (a, b) { return (b.deletedAt||0) - (a.deletedAt||0); });
   }
   function findIndex(id) { for (var i=0;i<tasks.length;i++) if (tasks[i].id===id) return i; return -1; }
-  function findTask(id) { var i = findIndex(id); return i>-1 ? tasks[i] : null; }
+  function findTask(id) {
+    var i = findIndex(id);
+    if (i > -1) return tasks[i];
+    for (var p = 0; p < pausedTasks.length; p++) if (pausedTasks[p].id === id) return pausedTasks[p];
+    return null;
+  }
   // CRM v2 (п.7, 15): a task no longer gets silently rolled forward to next
   // week once its deadline passes — overdue tasks now stay overdue, with a
   // running day count, until someone actually resolves or reschedules them
@@ -4259,18 +4317,20 @@
   var addItemState = { kind: null, onDone: null, sel: null, cancelValue: "" };
   var addItemSubDirection = "";   // проект, в который добавляется подпроект
   var ADD_ITEM_LABELS = {
+    "counterparty": { title: "Новый контрагент", name: "Название компании" },
+    "counterparty-aliases": { title: "Варианты написания", name: "Через запятую, с падежами: Верном, Верного, сеть Верный" },
     direction:   { title: "Новый проект",         name: "Название проекта" },
     entity:      { title: "Новое юрлицо",         name: "Название юрлица" },
     responsible: { title: "Новый ответственный",  name: "Имя ответственного" },
     subproject:  { title: "Новый подпроект",      name: "Название подпроекта" }
   };
-  function openAddItemModal(kind, onDone, sel, cancelValue) {
+  function openAddItemModal(kind, onDone, sel, cancelValue, prefill) {
     addItemState = { kind: kind, onDone: onDone, sel: sel || null, cancelValue: cancelValue || "" };
     var labels = ADD_ITEM_LABELS[kind];
     document.getElementById("addItemTitle").textContent = labels.title + (kind === "subproject" && addItemSubDirection ? " в «" + addItemSubDirection + "»" : "");
     document.getElementById("addItemNameLabel").textContent = labels.name;
     var nameInput = document.getElementById("addItemName");
-    nameInput.value = "";
+    nameInput.value = prefill || "";
     var entField = document.getElementById("addItemEntityField");
     entField.classList.toggle("hidden", kind !== "direction");
     if (kind === "direction") {
@@ -4289,7 +4349,8 @@
     var name = document.getElementById("addItemName").value.trim();
     if (!name) { showToast("Введите название.", true); return; }
     var kind = addItemState.kind, onDone = addItemState.onDone, result;
-    if (kind === "direction") result = addCustomDirection(name, document.getElementById("addItemEntitySel").value);
+    if (kind === "counterparty" || kind === "counterparty-aliases") result = name;
+    else if (kind === "direction") result = addCustomDirection(name, document.getElementById("addItemEntitySel").value);
     else if (kind === "entity") result = addCustomEntity(name);
     else if (kind === "responsible") result = addCustomResponsible(name);
     else if (kind === "subproject") result = addSubproject(addItemSubDirection, name);
@@ -4725,6 +4786,7 @@
     if (boardLayout === "flat") {
       if (t.deleted) histTag = '<span class="row-hist del">удалена</span>';
       else if (isDone) histTag = '<span class="row-hist done">выполнена</span>';
+      else if (t.paused) histTag = '<span class="row-hist paused">на паузе</span>';
     }
     return (
       '<button type="button" class="card task-row' + (isSub ? ' task-row-sub' : '') + (!isSub && parent ? ' task-row-sub-out' : '') + (!isSub && !parent && kids.length ? ' task-row-parent' : '') + (selected ? ' selected' : '') + (isDone ? ' task-row-done' : '') + (t.deleted ? ' card-deleted' : '') +
@@ -4897,7 +4959,11 @@
       doneTasks = doneTasks.filter(function (t) { return t.id !== pinnedExactMatch.id; });
       delete overdueIds[pinnedExactMatch.id];
     }
-    if (isSearching) {
+    if (pausedMode) {
+      html += columnSectionHtml({ label: "На паузе — задачи ждут. Откройте любую и нажмите «▶️ Вернуть в работу»", varc: "--u-today" },
+        pausedTasks.filter(function (t) { return !t.deleted && taskDone(t) === false && matchesBaseFilters(t); })
+          .sort(function (a, b) { return (a.number || 0) - (b.number || 0); }));
+    } else if (isSearching) {
       var searchResults = openTasks.filter(function (t) {
         var id = overdueIds[t.id] ? "overdue" : computeUrgencyId(t);
         return showSection(id);
@@ -4916,7 +4982,7 @@
       // выполненные и удалённые (с пометкой на карточке). Фильтры проекта/
       // юрлица/ответственного/типа/поиска работают как обычно; «Срок»
       // понимает и «Готово»/«Удалённые».
-      var historyList = tasks.filter(matchesBaseFilters).filter(function (t) {
+      var historyList = tasks.concat(pausedTasks).filter(matchesBaseFilters).filter(function (t) {
         var id = t.deleted ? "deleted" : (taskDone(t) ? "done" : (isOverdue(t) ? "overdue" : computeUrgencyId(t)));
         return showSection(id);
       }).sort(function (a, b) {
@@ -4934,7 +5000,7 @@
         html += columnSectionHtml(u, col);
       });
     }
-    if (showSection("done") && (boardLayout !== "flat" || isSearching)) {
+    if (!pausedMode && showSection("done") && (boardLayout !== "flat" || isSearching)) {
       // Готово: недавно завершённые — сверху блока (а не по срочности, это
       // уже не имеет смысла для закрытой задачи).
       doneTasks.sort(function (a, b) {
@@ -4943,7 +5009,7 @@
       });
       html += doneColumnSectionHtml(doneTasks);
     }
-    if (showSection("deleted") && (boardLayout !== "flat" || isSearching)) {
+    if (!pausedMode && showSection("deleted") && (boardLayout !== "flat" || isSearching)) {
       html += deletedSectionHtml(deletedList);
     }
     el.innerHTML = html;
@@ -5767,6 +5833,28 @@
     var isDone = taskDone(t);
     btn.textContent = isDone ? "↺ Вернуть в работу" : "✓ Задача завершена";
     btn.classList.toggle("is-done", isDone);
+    var pb = document.getElementById("modalPauseBtn");
+    pb.classList.toggle("hidden", isDone);
+    pb.textContent = t.paused ? "▶️ Вернуть в работу" : "⏸ На паузу";
+  }
+  // Пауза: задача не удалена и не сделана, просто убрана с доски, сводок и
+  // напоминаний. Вернуть — в «⏸ На паузе», в Хронологии или в боте.
+  function setTaskPaused(id, on) {
+    var t = findTask(id);
+    if (!t || !db) return;
+    var hist = (Array.isArray(t.history) ? t.history : []).concat([{ at: Date.now(), by: getCurrentUser() || "", summary: on ? "Поставлена на паузу" : "Возвращена с паузы" }]).slice(-40);
+    db.collection("tasks").doc(id).update({ paused: !!on, pausedAt: on ? Date.now() : null, history: hist })
+      .then(function () { showToast(on ? "Задача на паузе." : "Задача снова в работе."); })
+      .catch(function (e) { console.error("pause failed", e); showToast("Не удалось сохранить. Попробуйте ещё раз.", true); });
+  }
+  function refreshPausedBtn() {
+    var b = document.getElementById("pausedToggle");
+    if (!b) return;
+    var n = pausedTasks.filter(function (t) { return !t.deleted && !taskDone(t) && !isPersonalHidden(t); }).length;
+    if (!n) pausedMode = false;
+    b.textContent = "⏸ На паузе (" + n + ")";
+    b.classList.toggle("hidden", currentView !== "board" || !n);
+    b.classList.toggle("is-paused-on", pausedMode);
   }
 
   // Собирает данные текущей формы задачи и прогоняет их через ту же
@@ -5919,6 +6007,12 @@
     document.getElementById("financeView").classList.toggle("hidden", v !== "finance");
     document.getElementById("analyticsView").classList.toggle("hidden", v !== "analytics");
     document.getElementById("mapView").classList.toggle("hidden", v !== "map");
+    document.getElementById("partnersView").classList.toggle("hidden", v !== "partners");
+    var moreBtn = document.getElementById("tabMoreBtn");
+    var moreTab = document.querySelector('#tabMorePop .tab[data-view="' + v + '"]');
+    moreBtn.textContent = (moreTab ? moreTab.textContent.trim() : "Ещё") + " ▾";
+    moreBtn.classList.toggle("active", !!moreTab);
+    document.getElementById("tabMorePop").classList.add("hidden");
     document.getElementById("meetingsView").classList.toggle("hidden", v !== "meetings");
     document.getElementById("samplesView").classList.toggle("hidden", v !== "samples");
     document.getElementById("ordersView").classList.toggle("hidden", v !== "orders");
@@ -5930,7 +6024,7 @@
     // второй (filtersExtra) на широком экране виден всегда по умолчанию
     // (.filters-extra{display: flex}), поэтому ряд селектов "протекал"
     // поверх этих разделов; здесь заодно и это поправлено.
-    var hideTaskFilters = v === "myday" || v === "finance" || v === "analytics" || v === "map" || v === "meetings" || v === "samples" || v === "orders" || v === "employees";
+    var hideTaskFilters = v === "myday" || v === "finance" || v === "analytics" || v === "map" || v === "partners" || v === "meetings" || v === "samples" || v === "orders" || v === "employees";
     document.getElementById("filters").classList.toggle("hidden", hideTaskFilters);
     document.getElementById("filtersExtra").classList.toggle("hidden", hideTaskFilters);
     // Переключатель "По срокам"/"Списком" имеет смысл только на самой доске —
@@ -6498,11 +6592,13 @@
     if (!document.getElementById("dayDetailModal").classList.contains("hidden")) renderDayDetailModal();
     if (!document.getElementById("taskModal").classList.contains("hidden") && editingId) { renderCommentsSection(findTask(editingId)); updateModalDoneBtn(findTask(editingId)); }
     refreshTriageBtn();
+    refreshPausedBtn();
     if (currentView === "board") renderBoard();
     else if (currentView === "myday") renderMyDay();
     else if (currentView === "calendar") renderCalendar();
     else if (currentView === "analytics") renderAnalytics();
     else if (currentView === "map") renderProjectMap();
+    else if (currentView === "partners") renderPartners();
     else if (currentView === "meetings") renderMeetings();
     else if (currentView === "samples") renderSamples();
     else if (currentView === "orders") renderOrders();
@@ -6679,6 +6775,105 @@
     { id: "later",   label: "Позже",                 varc: "--u-later" },
     { id: "done",    label: "Готово",                varc: "--s-done" }
   ];
+  // ---------- 4 нояб. 2026: «Контрагенты» ----------
+  // Документ counterparties: { name, aliases[], archived }. Связи с задачами не
+  // хранятся: задача относится к контрагенту, если в названии или заметках есть
+  // его название или вариант написания (падежи — в aliases). Поэтому старые
+  // задачи подхватываются сами. Персональных данных здесь нет (152-ФЗ).
+  var partners = [];
+  var partnerOpenId = "";
+  function partnerNeedles(p) {
+    return [p.name].concat(Array.isArray(p.aliases) ? p.aliases : []).map(function (x) { return String(x || "").toLowerCase().trim(); }).filter(Boolean);
+  }
+  function partnerTasks(p) {
+    var needles = partnerNeedles(p);
+    return tasks.concat(pausedTasks).filter(function (t) {
+      if (t.deleted || isPersonalHidden(t) || !canSeeTask(t)) return false;
+      var hay = (String(t.title || "") + " " + String(t.notes || "")).toLowerCase();
+      return needles.some(function (n) { return hay.indexOf(n) !== -1; });
+    });
+  }
+  function partnerSummary(p) {
+    var list = partnerTasks(p), today = todayStr();
+    var open = list.filter(function (t) { return !taskDone(t) && !t.paused; });
+    var overdue = open.filter(isOverdue);
+    var future = open.filter(function (t) { return t.dueDate && t.dueDate >= today; })
+      .sort(function (a, b) { return a.dueDate.localeCompare(b.dueDate); });
+    var last = 0;
+    list.forEach(function (t) {
+      last = Math.max(last, t.completedAt || 0, t.createdAt && t.createdAt < Date.now() ? t.createdAt : 0);
+      (Array.isArray(t.comments) ? t.comments : []).forEach(function (c) { if (c && !c.deletedAt) last = Math.max(last, c.at || 0); });
+    });
+    return { list: list, open: open, overdue: overdue, next: future[0] || null, last: last };
+  }
+  function ddmmOf(iso) { var p = String(iso || "").split("-"); return p.length === 3 ? p[2] + "." + p[1] : ""; }
+  function renderPartners() {
+    var box = document.getElementById("partnersList");
+    document.getElementById("partnerAddBtn").classList.toggle("hidden", !isAdmin());
+    var rows = partners.filter(function (p) { return !p.archived; }).map(function (p) { return { p: p, s: partnerSummary(p) }; });
+    if (!rows.length) { box.innerHTML = '<div class="column-empty">Контрагентов пока нет.</div>'; return; }
+    var rank = function (r) { return r.s.next ? (r.s.overdue.length ? 1 : 2) : (r.s.list.length ? 0 : 3); };
+    rows.sort(function (a, b) { return rank(a) - rank(b) || b.s.overdue.length - a.s.overdue.length || String(a.p.name).localeCompare(String(b.p.name), "ru"); });
+    box.innerHTML = rows.map(function (r) {
+      var s = r.s, opened = partnerOpenId === r.p.id;
+      var nextHtml = s.next
+        ? '<span class="partner-next">Следующий шаг: №' + (s.next.number || "?") + " " + escapeHtml(s.next.title) + " · " + ddmmOf(s.next.dueDate) + "</span>"
+        : '<span class="partner-next warn">⚠️ Нет следующего шага</span>';
+      var stats = "открыто " + s.open.length + (s.overdue.length ? " · <b>просрочено " + s.overdue.length + "</b>" : "") +
+        (s.last ? " · " + new Date(s.last).toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) : "");
+      var body = "";
+      if (opened) {
+        var sorted = s.list.slice().sort(function (a, b) {
+          if (taskDone(a) !== taskDone(b)) return taskDone(a) ? 1 : -1;
+          return (a.dueDate || "9999").localeCompare(b.dueDate || "9999");
+        });
+        body = '<div class="partner-tasks">' + (sorted.map(function (t) {
+          return '<button type="button" class="partner-task' + (taskDone(t) ? " done" : "") + '" data-open="' + escapeHtml(t.id) + '"><span class="num">№' + (t.number || "?") + '</span><span class="ttl">' + escapeHtml(t.title) + '</span><span class="due">' + (t.paused ? "⏸" : ddmmOf(t.dueDate)) + "</span></button>";
+        }).join("") || '<div class="column-empty">Задач с этим названием нет.</div>') +
+          (isAdmin() ? '<div class="partner-actions"><button type="button" class="btn-secondary" data-edit="' + escapeHtml(r.p.id) + '">Варианты написания</button><button type="button" class="btn-danger" data-hide="' + escapeHtml(r.p.id) + '">Убрать</button></div>' : "") + "</div>";
+      }
+      return '<div class="partner"><button type="button" class="partner-head" data-partner="' + escapeHtml(r.p.id) + '"><span class="partner-name">' + escapeHtml(r.p.name) + '</span><span class="partner-stats">' + stats + "</span>" + nextHtml + "</button>" + body + "</div>";
+    }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll("[data-partner]"), function (b) {
+      b.addEventListener("click", function () { var id = b.getAttribute("data-partner"); partnerOpenId = partnerOpenId === id ? "" : id; renderPartners(); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("[data-open]"), function (b) {
+      b.addEventListener("click", function () { openModal(b.getAttribute("data-open")); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("[data-edit]"), function (b) {
+      b.addEventListener("click", function () { editPartnerAliases(b.getAttribute("data-edit")); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("[data-hide]"), function (b) {
+      b.addEventListener("click", function () {
+        db.collection("counterparties").doc(b.getAttribute("data-hide")).update({ archived: true }).catch(function (e) { console.error(e); showToast("Не удалось сохранить.", true); });
+      });
+    });
+  }
+  function addPartner() {
+    openAddItemModal("counterparty", function (name) {
+      name = String(name || "").trim();
+      if (!name) return;
+      db.collection("counterparties").add({ name: name, aliases: [], createdAt: Date.now(), createdBy: getCurrentUser() || "" })
+        .catch(function (e) { console.error(e); showToast("Не удалось сохранить.", true); });
+    });
+  }
+  function editPartnerAliases(id) {
+    var p = partners.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    openAddItemModal("counterparty-aliases", function (text) {
+      if (text === null || text === undefined) return;
+      var aliases = String(text).split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+      db.collection("counterparties").doc(id).update({ aliases: aliases }).catch(function (e) { console.error(e); showToast("Не удалось сохранить.", true); });
+    }, null, null, (p.aliases || []).join(", "));
+  }
+  function subscribePartners() {
+    if (!db) return;
+    db.collection("counterparties").onSnapshot(function (snap) {
+      partners = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      if (currentView === "partners") renderPartners();
+    }, function (err) { console.warn("counterparties subscribe", err && err.code); });
+  }
+
   // ---------- 5 окт. 2026: «Карта» — дерево проектов (как DaisyDisk) ----------
   // Кольца от центра: проект → подпроект → задача → подзадачи и следующие
   // шаги (prevId) → … Вес узла = сколько задач в его ветке подходит под
@@ -9517,6 +9712,23 @@
     // внизу формы, видна только для уже существующей задачи (см.
     // updateModalDoneBtn), поэтому автосохранение здесь больше не нужно —
     // editingId к этому моменту всегда уже есть.
+    document.getElementById("modalPauseBtn").addEventListener("click", function () {
+      if (!editingId) return;
+      var t = findTask(editingId);
+      if (!t) return;
+      var id = editingId;
+      closeModal();
+      setTaskPaused(id, !t.paused);
+    });
+    document.getElementById("pausedToggle").addEventListener("click", function () { pausedMode = !pausedMode; render(); });
+    document.getElementById("tabMoreBtn").addEventListener("click", function (e) {
+      e.stopPropagation();
+      var pop = document.getElementById("tabMorePop");
+      pop.classList.toggle("hidden");
+      this.setAttribute("aria-expanded", pop.classList.contains("hidden") ? "false" : "true");
+    });
+    document.addEventListener("click", function () { document.getElementById("tabMorePop").classList.add("hidden"); });
+    document.getElementById("partnerAddBtn").addEventListener("click", addPartner);
     document.getElementById("modalDoneBtn").addEventListener("click", function () {
       if (!editingId) return;
       var t = findTask(editingId);
@@ -9920,13 +10132,18 @@
       initAuthGate(function () {
       renderWhoAmI();
       subscribeStaff();
+      subscribePartners();
       fetchServerGoogleToken().catch(function () {});
       Promise.resolve().then(function () {
       return ensureSeeded(); }).then(function () {
       return runOneTimeMigrations(); }).then(function () {
         var triageFromLink = /[?&]triage=1/.test(location.search);
         unsub = subscribeScoped("tasks", function (docs) {
-          tasks = docs;
+          // 4 нояб. 2026: задачи на паузе живут отдельно — поэтому доска, карта,
+          // разбор и аналитика сами их не видят. Показываем их в «⏸ На паузе»
+          // и в Хронологии.
+          tasks = docs.filter(function (t) { return !t.paused; });
+          pausedTasks = docs.filter(function (t) { return t.paused; });
           render();
           markDigestReady("tasks");
           if (triageFromLink) {
