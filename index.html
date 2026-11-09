@@ -662,6 +662,64 @@
   .fin-total-figures { display: flex; gap: 22px; font-family: var(--font-mono); font-size: 13px; }
   .fin-total-figures b { font-family: var(--font-body); font-weight: 700; font-size: 11px; color: var(--ink-soft); display: block; margin-bottom: 2px; }
 
+  /* ---------- Инструменты VIC (9 нояб. 2026) ---------- */
+  .ins { flex: 1; padding: 16px 20px 40px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .ins-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ins-curs { display: flex; gap: 4px; }
+  .ins-curs .chip-toggle { padding: 6px 11px; }
+  .ins-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-m); overflow: hidden; }
+  .ins-sum > div { background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ins-k { font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
+  .ins-v { font-family: var(--font-mono); font-size: 19px; font-weight: 600; color: var(--ink); }
+  .ins-acc .ins-v { color: var(--accent); }
+  .ins-s { font-size: 12px; color: var(--ink-faint); font-weight: 500; }
+  .ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .ins-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 13px 14px; box-shadow: var(--shadow-1); cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 9px; color: var(--ink); font: inherit; min-width: 0; }
+  .ins-card:hover { border-color: var(--accent); }
+  .ins-card.consign { border-style: dashed; }
+  .ins-top { display: flex; gap: 10px; align-items: flex-start; }
+  .ins-ico { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--u-month-soft); color: var(--chart-coffee); }
+  .ins-ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .ins-ttl b { font-size: 14.5px; }
+  .ins-pills { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+  .ins-pill { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .ins-pill.s { background: var(--accent-soft); color: var(--accent); }
+  .ins-pill.t { background: var(--u-month-soft); color: var(--chart-coffee); }
+  .ins-pill.d { background: var(--s-done-soft); color: var(--s-done); }
+  .ins-pill.r { background: var(--surface-2); color: var(--ink-soft); }
+  .ins-pill.c { background: var(--u-later-soft); color: var(--u-later); }
+  .ins-rows { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+  .ins-row { display: flex; justify-content: space-between; gap: 10px; }
+  .ins-row > span:first-child { color: var(--ink-soft); }
+  .ins-txt { text-align: right; font-size: 13px; }
+  .ins-num { font-family: var(--font-mono); font-size: 12.5px; text-align: right; }
+  .ins-foot { display: flex; justify-content: space-between; gap: 8px; border-top: 1px dashed var(--line); padding-top: 7px; font-size: 13px; }
+  .ins-foot b { font-family: var(--font-mono); color: var(--accent); }
+  .ins-more { font-size: 12.5px; color: var(--accent); font-weight: 600; align-self: flex-end; }
+  .ins-fx { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--ink-soft); }
+  .ins-fx label { display: flex; gap: 5px; align-items: center; }
+  .ins-fx input { width: 92px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 6px 8px; font-family: var(--font-mono); }
+  .ins-note { font-size: 12.5px; color: var(--ink-soft); margin: 0; max-width: 80ch; }
+  .ins-modal { max-width: 560px; }
+  .ins-h3 { font-family: var(--font-display); font-size: 14px; font-weight: 600; margin: 4px 0 0; color: var(--accent); }
+  .ins-dl { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; font-size: 13px; }
+  .ins-dl dt { color: var(--ink-soft); }
+  .ins-dl dd { margin: 0; text-align: right; min-width: 0; }
+  .ins-tw { overflow-x: auto; }
+  .ins-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ins-tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  .ins-tbl td { padding: 6px; border-bottom: 1px dashed var(--line); vertical-align: top; }
+  .ins-tbl .r { text-align: right; font-family: var(--font-mono); white-space: nowrap; }
+  .ins-tbl tr.sub td { color: var(--ink-soft); font-size: 12px; border-bottom: 0; padding-top: 10px; }
+  .ins-tbl tr.tot td { font-weight: 700; border-bottom: 0; }
+  .ins-acts { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .ins-acts > span { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ins-ppl { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ins-ppl label { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+  .ins-prev { background: var(--accent-soft); border-radius: var(--radius-s); padding: 10px 12px; font-size: 13px; }
+  .ins-err { color: var(--danger); font-size: 12.5px; min-height: 1em; }
+  @media (max-width: 640px) { .ins { padding: 12px 12px 32px; } .ins-sum { grid-template-columns: 1fr 1fr; } .ins-grid { grid-template-columns: 1fr; } }
+
   /* ---------- Образцы (CRM v2 Часть 3) ---------- */
   .samples { flex: 1; padding: 16px 20px 40px; }
   .samples-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -1543,6 +1601,7 @@
             <button class="tab" data-view="samples" role="tab" aria-selected="false">Образцы</button>
             <!-- Часть 23: «Заказы» — рядом с «Образцы», см. ниже #ordersView. -->
             <button class="tab" data-view="orders" role="tab" aria-selected="false">Заказы</button>
+            <button class="tab hidden" data-view="instruments" role="tab" aria-selected="false" id="instrumentsTabBtn">Инструменты</button>
             <!-- Часть 22: видна только администраторам (Никита/Женя) — см.
                  updateAdminNav(), вызывается при каждом обновлении "Кто вы". -->
             <button class="tab hidden" data-view="employees" role="tab" aria-selected="false" id="employeesTabBtn">Сотрудники</button>
@@ -1882,6 +1941,10 @@
     </div>
     <div class="meeting-list" id="meetingList"></div>
   </main>
+
+  <!-- Инструменты VIC (9 нояб. 2026): скрипки и смычки по отделам Китай / Старые / Андрей Шюдтц. -->
+  <main class="ins hidden" id="instrumentsView"></main>
+  <div class="modal-backdrop hidden" id="insModal"><div class="modal ins-modal" id="insModalBody" role="dialog" aria-modal="true"></div></div>
 
   <!-- CRM v2 Часть 3: «Образцы» — реестр образцов по трём направлениям
        (Рубинтрейд/Капсо/Биржа33, согласовано с Никитой), с остатком,
@@ -3096,6 +3159,8 @@
     if (tab) tab.classList.toggle("hidden", !isAdmin());
     var finTab = document.querySelector('.tab[data-view="finance"]');
     if (finTab) finTab.classList.toggle("hidden", !canSeeFinance());
+    var insTab = document.getElementById("instrumentsTabBtn");
+    if (insTab) insTab.classList.toggle("hidden", !canSeeInstruments());
   }
   function responsibleLabel(id) {
     var r = RESPONSIBLE.filter(function (x) { return x.id === id; })[0];
@@ -5989,12 +6054,319 @@
     }
   }
 
+  // ---------- Инструменты VIC (9 нояб. 2026) ----------
+  // Учёт скрипок и смычков проекта «Скрипки VIC» по трём отделам: Китай,
+  // Старые инструменты, Скрипки Андрея Шюдтца. Коллекции: instruments
+  // (по документу на инструмент) и instrumentsMeta/fx (курс ЦБ для пересчёта).
+  // Видят администратор и сотрудники, у которых отмечен проект «Скрипки VIC»;
+  // то же проверяет firestore.rules (canSeeInstruments).
+  // Деньги: при продаже сначала возвращаются затраты тому, кто платил (или
+  // владельцу — для инструментов на реализации), остаток делится по долям.
+  // Китай: цель продажи ×4–×6 себестоимости, комплект скрипка+смычок −10…20 %.
+  var INS_DIR = "Скрипки VIC";
+  var INS_DEPTS = [{ id: "china", label: "Китай" }, { id: "old", label: "Старые инструменты" }, { id: "andrey", label: "Скрипки Андрея Шюдтца" }];
+  var INS_KIND = { violin: "Скрипка", bow: "Смычок", viola: "Альт", cello: "Виолончель" };
+  var INS_ST = { transit: ["В пути", "t"], stock: ["В продаже", "s"], sold: ["Продан", "d"], returned: ["Возвращён владельцу", "r"] };
+  var INS_CURS = ["EUR", "RUB", "USD", "CNY"], INS_SYM = { EUR: "€", USD: "$", CNY: "¥", RUB: "₽" };
+  // Партнёры — из самих инструментов в базе, а не из кода страницы (он публичный).
+  function insPeople() {
+    var out = ["Никита", "Чак"];
+    insItems.forEach(function (i) { (i.partners || []).forEach(function (p) { if (p && out.indexOf(p) < 0) out.push(p); }); });
+    return out;
+  }
+  var INS_PR = { min: 4, max: 6, bundle: [10, 20] };
+  var insItems = [], insLoaded = false, insUnsub = null, insDept = "china", insView = "EUR", insOpenId = null;
+  var insFx = { EUR: 92.1924, USD: 82.1386, CNY: 12.2651, asOf: "08.11.2026" };
+  try { insView = localStorage.getItem("insView") || "EUR"; insDept = localStorage.getItem("insDept") || "china"; } catch (e) {}
+
+  function canSeeInstruments() {
+    return isAdmin() || !!(currentStaff && (currentStaff.allowedDirections || []).indexOf(INS_DIR) > -1);
+  }
+  function subscribeInstruments() {
+    if (insUnsub || !db) return;
+    insUnsub = db.collection("instruments").onSnapshot(function (snap) {
+      insItems = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      insLoaded = true;
+      if (currentView === "instruments") renderInstruments();
+    }, function (e) { console.error("instruments", e); insLoaded = true; if (currentView === "instruments") renderInstruments(); });
+    db.collection("instrumentsMeta").doc("fx").onSnapshot(function (d) {
+      if (d && d.exists) { insFx = Object.assign({}, insFx, d.data()); if (currentView === "instruments") renderInstruments(); }
+    }, function () {});
+  }
+
+  function insFmt(v, dg) { return v == null || isNaN(v) ? "—" : Number(v).toLocaleString("ru-RU", { minimumFractionDigits: dg || 0, maximumFractionDigits: dg || 0 }); }
+  function insMoney(a, c) { return a == null || isNaN(a) ? "—" : (c === "EUR" ? "€ " + insFmt(a) : insFmt(a) + " " + (INS_SYM[c] || c)); }
+  function insRate(c) { return c === "RUB" ? 1 : insFx[c]; }
+  function insEur(a, c) { if (a == null || a === "") return null; var r = insRate(c); return r && insFx.EUR ? Number(a) * r / insFx.EUR : null; }
+  function insVm(e) { var r = insRate(insView); return e == null || !r ? "—" : insMoney(e * insFx.EUR / r, insView); }
+  function insSec(e) { return e == null ? "—" : (insView === "RUB" ? insMoney(e, "EUR") : insFmt(e * insFx.EUR) + " ₽"); }
+  function insAll(e) { return e == null ? "—" : INS_CURS.filter(function (c) { return insRate(c); }).map(function (c) { return insMoney(e * insFx.EUR / insRate(c), c); }).join(" · "); }
+  function insDate(s) { return s ? s.slice(8, 10) + "." + s.slice(5, 7) + "." + s.slice(0, 4) : "—"; }
+  function insParts(it) {
+    if (it.shares && Object.keys(it.shares).length) return Object.keys(it.shares).map(function (k) { return { name: k, pct: Number(it.shares[k]) || 0 }; });
+    var p = (it.partners && it.partners.length) ? it.partners : insPeople();
+    return p.map(function (n) { return { name: n, pct: 100 / p.length }; });
+  }
+  function insBase(it) { return it.own === "consign" ? it.ownerPrice : it.cost; }
+  function insEcon(it, price) {
+    var base = insBase(it), baseE = base ? insEur(base.amt, base.cur) : null;
+    var p = price || (it.status === "sold" && it.sale ? it.sale : (it.listPrice && it.listPrice.amt != null ? it.listPrice : null));
+    if (!p) return { baseE: baseE };
+    var pE = insEur(p.amt, p.cur);
+    if (pE == null || baseE == null) return { baseE: baseE, unknown: true, price: p };
+    var profit = pE - baseE;
+    return { baseE: baseE, pE: pE, profit: profit, price: p, real: !price && it.status === "sold",
+      parts: insParts(it).map(function (x) { return { name: x.name, pct: x.pct, amt: profit * x.pct / 100 }; }) };
+  }
+  function insTarget(it) {
+    if ((it.dept || "china") !== "china" || it.status === "sold" || it.status === "returned" || it.own === "consign" || !it.cost) return null;
+    var c = insEur(it.cost.amt, it.cost.cur); if (c == null) return null;
+    var share = insParts(it)[0] ? insParts(it)[0].pct / 100 : 0.25;
+    function sc(m, d) { var price = c * m * (1 - (d || 0) / 100); return { m: m, d: d || 0, price: price, profit: price - c, each: (price - c) * share }; }
+    return { c: c, lo: sc(INS_PR.min), mid: sc((INS_PR.min + INS_PR.max) / 2), hi: sc(INS_PR.max), blo: sc(INS_PR.min, INS_PR.bundle[1]), bhi: sc(INS_PR.max, INS_PR.bundle[0]) };
+  }
+  function insIcon(k) {
+    return k === "bow"
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 21 21 3M5 21l-2-2M19 3l2 2M7 17c3-1 7-5 9-9"/></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 3l3 3-2 2-3-3zM13 5 8.5 9.5"/><path d="M9 9c-3 0-5 2-4.5 4.5.3 1.4-.8 2-1.2 3.4C2.7 19 5 21.3 7.1 20.7c1.4-.4 2-1.5 3.4-1.2C13 20 15 18 15 15c0-2-1-3-2-3.5"/></svg>';
+  }
+
+  function renderInstruments() {
+    var el = document.getElementById("instrumentsView");
+    if (!el) return;
+    if (!canSeeInstruments()) { el.innerHTML = '<div class="subtask-empty">Нет доступа к проекту «Скрипки VIC».</div>'; return; }
+    subscribeInstruments();
+    if (!db) { el.innerHTML = '<div class="subtask-empty">Инструменты доступны после входа.</div>'; return; }
+    if (!insLoaded) { el.innerHTML = '<div class="subtask-empty">Загружаю инструменты…</div>'; return; }
+    var all = insItems.filter(function (i) { return !i.deleted; });
+    var its = all.filter(function (i) { return (i.dept || "china") === insDept; });
+    var live = its.filter(function (i) { return i.status === "stock" || i.status === "transit"; });
+    var sold = its.filter(function (i) { return i.status === "sold"; });
+    var invested = its.filter(function (i) { return i.own !== "consign" && i.status !== "sold" && i.status !== "returned"; })
+      .reduce(function (s, i) { return s + (insEur(i.cost && i.cost.amt, i.cost && i.cost.cur) || 0); }, 0);
+    var soldRev = sold.reduce(function (s, i) { return s + (insEcon(i).pE || 0); }, 0);
+    var soldProfit = sold.reduce(function (s, i) { return s + (insEcon(i).profit || 0); }, 0);
+    var expLo = 0, expHi = 0;
+    live.forEach(function (i) {
+      var t = insTarget(i);
+      if (t) { expLo += t.lo.profit; expHi += t.hi.profit; return; }
+      var e = insEcon(i); if (e.profit != null) { expLo += e.profit; expHi += e.profit; }
+    });
+    var counts = {}; all.forEach(function (i) { var d = i.dept || "china"; counts[d] = (counts[d] || 0) + 1; });
+    var h = '<div class="ins-toolbar"><div class="pill-row">' + INS_DEPTS.map(function (d) {
+      return '<button type="button" class="pill-btn' + (d.id === insDept ? " selected" : "") + '" data-ins-dept="' + d.id + '">' + escapeHtml(d.label) + ' · ' + (counts[d.id] || 0) + '</button>';
+    }).join("") + '</div><div class="samples-toolbar-spacer"></div><div class="ins-curs" role="group" aria-label="Валюта показа">' + INS_CURS.map(function (c) {
+      return '<button type="button" class="chip-toggle' + (c === insView ? " active" : "") + '" data-ins-cur="' + c + '">' + INS_SYM[c] + '</button>';
+    }).join("") + '</div><button type="button" class="btn-primary" data-ins-add="1"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>Инструмент</button></div>';
+    h += '<div class="ins-sum">' +
+      '<div><span class="ins-k">В продаже</span><span class="ins-v">' + live.length + '</span><span class="ins-s">' + live.filter(function (i) { return i.kind !== "bow"; }).length + ' инстр. · ' + live.filter(function (i) { return i.kind === "bow"; }).length + ' смыч.</span></div>' +
+      '<div><span class="ins-k">Вложено в непроданное</span><span class="ins-v">' + insVm(invested) + '</span><span class="ins-s">' + insSec(invested) + ' · без чужих на реализации</span></div>' +
+      '<div><span class="ins-k">Продано</span><span class="ins-v">' + sold.length + '</span><span class="ins-s">выручка ' + insVm(soldRev) + ' · прибыль ' + insVm(soldProfit) + '</span></div>' +
+      '<div class="ins-acc"><span class="ins-k">Ожидаемая прибыль</span><span class="ins-v">' + (expHi ? insVm(expLo) + (Math.round(expHi) !== Math.round(expLo) ? ' – ' + insVm(expHi) : "") : "—") + '</span><span class="ins-s">' + (insDept === "china" ? "при продаже ×" + INS_PR.min + "–×" + INS_PR.max : "по назначенным ценам") + ', до раздела</span></div></div>';
+    if (!all.length) {
+      // 9 нояб. 2026: начальный список загружен в базу отдельно — данные о ценах
+      // и вложениях не храним в коде страницы, он публичный.
+      h += '<div class="subtask-empty">Инструментов пока нет.</div>';
+    } else if (!its.length) {
+      h += '<div class="subtask-empty">В отделе «' + escapeHtml((INS_DEPTS.filter(function (d) { return d.id === insDept; })[0] || {}).label || "") + '» пока ничего нет.</div>';
+    } else {
+      its.sort(function (a, b) { return (a.status === "sold") - (b.status === "sold") || (a.arrived || "9").localeCompare(b.arrived || "9") || String(a.name).localeCompare(String(b.name)); });
+      h += '<div class="ins-grid">' + its.map(insCard).join("") + '</div>';
+    }
+    h += '<div class="ins-fx"><span>Курс ЦБ на ' + escapeHtml(insFx.asOf || "—") + ':</span>' + ["EUR", "USD", "CNY"].map(function (c) {
+      return '<label>' + INS_SYM[c] + ' <input type="number" step="0.0001" id="insFx' + c + '" value="' + (insFx[c] == null ? "" : insFx[c]) + '"></label>';
+    }).join("") + '<button type="button" class="chip-toggle" data-ins-fxsave="1">Сохранить курс</button></div>' +
+      '<p class="ins-note">Прибыль = цена продажи − затраты (для чужих инструментов на реализации — минус цена владельца). Затраты возвращаются тому, кто платил, остаток делится по долям. Китай: цель — в ' + INS_PR.min + '–' + INS_PR.max + ' раз дороже себестоимости, за комплект скрипка + смычок скидка ' + INS_PR.bundle[0] + '–' + INS_PR.bundle[1] + ' %. Нажмите на карточку — откроется вся детализация.</p>';
+    el.innerHTML = h;
+    if (insOpenId) { var still = insItems.filter(function (i) { return i.id === insOpenId; })[0]; if (still && !document.getElementById("insModal").classList.contains("hidden") && document.getElementById("insModalBody").getAttribute("data-mode") === "view") insOpenView(still); }
+  }
+
+  function insCard(it) {
+    var st = INS_ST[it.status] || INS_ST.stock, con = it.own === "consign", e = insEcon(it), t = insTarget(it), base = insBase(it);
+    var rows = [];
+    if (con) rows.push(["Владельцу" + (it.ownerName ? " (" + escapeHtml(it.ownerName) + ")" : ""), base && base.amt != null ? insMoney(base.amt, base.cur) + (base.cur !== insView ? ' <span class="ins-s">≈ ' + insVm(e.baseE) + '</span>' : "") : '<span class="ins-s">цена не указана</span>']);
+    else rows.push(["Закупка", insMoney(base && base.amt, base && base.cur) + (base && base.cur !== insView ? ' <span class="ins-s">≈ ' + insVm(e.baseE) + '</span>' : "")], ["Платил", escapeHtml(it.paidBy || "—"), 1]);
+    if (it.status === "sold" && it.sale) rows.push(["Продан", insMoney(it.sale.amt, it.sale.cur) + " · " + insDate(it.sale.date)]);
+    else if (it.listPrice && it.listPrice.amt != null) rows.push(["Цена продажи", insMoney(it.listPrice.amt, it.listPrice.cur)]);
+    else if (t) rows.push(["Цель ×" + INS_PR.min + "–×" + INS_PR.max, insVm(t.lo.price) + " – " + insVm(t.hi.price)]);
+    var foot = "";
+    if (e.parts) foot = '<div class="ins-foot"><span>' + (e.real ? "Прибыль" : "Прибыль при этой цене") + '</span><b>' + insVm(e.profit) + '</b></div>';
+    else if (t) foot = '<div class="ins-foot"><span>Каждому при ×' + INS_PR.min + '–×' + INS_PR.max + '</span><b>' + insVm(t.lo.each) + ' – ' + insVm(t.hi.each) + '</b></div>';
+    else if (e.unknown) foot = '<div class="ins-foot ins-s">Задайте курс ' + escapeHtml((base || {}).cur || "") + ' внизу страницы</div>';
+    return '<button type="button" class="ins-card' + (con ? " consign" : "") + '" data-ins-open="' + escapeHtml(it.id) + '">' +
+      '<span class="ins-top"><span class="ins-ico">' + insIcon(it.kind) + '</span><span class="ins-ttl"><b>' + escapeHtml(it.name || "Без названия") + '</b><span class="ins-s">' + (INS_KIND[it.kind] || "Инструмент") + (it.batch ? " · " + escapeHtml(it.batch) : "") + '</span></span>' +
+      '<span class="ins-pills"><span class="ins-pill ' + st[1] + '">' + st[0] + '</span>' + (con ? '<span class="ins-pill c">на реализации</span>' : "") + '</span></span>' +
+      '<span class="ins-rows">' + rows.map(function (r) { return '<span class="ins-row"><span>' + r[0] + '</span><span class="' + (r[2] ? "ins-txt" : "ins-num") + '">' + r[1] + '</span></span>'; }).join("") + '</span>' + foot +
+      '<span class="ins-more">Подробнее →</span></button>';
+  }
+
+  // ---- модальное окно: детали / правка / продажа
+  function insShowModal(html, mode, id) {
+    var m = document.getElementById("insModal"), b = document.getElementById("insModalBody");
+    b.innerHTML = html; b.setAttribute("data-mode", mode); insOpenId = id || null;
+    m.classList.remove("hidden");
+  }
+  function insCloseModal() { document.getElementById("insModal").classList.add("hidden"); insOpenId = null; }
+  function insTable(head, rows, totRow) {
+    return '<div class="ins-tw"><table class="ins-tbl"><thead><tr>' + head.map(function (x, i) { return '<th' + (i ? ' class="r"' : "") + '>' + x + '</th>'; }).join("") + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr' + (r.cls ? ' class="' + r.cls + '"' : "") + '>' + r.c.map(function (x, i) { return '<td' + (i ? ' class="r"' : "") + '>' + x + '</td>'; }).join("") + '</tr>'; }).join("") +
+      (totRow ? '<tr class="tot">' + totRow.map(function (x, i) { return '<td' + (i ? ' class="r"' : "") + '>' + x + '</td>'; }).join("") + '</tr>' : "") + '</tbody></table></div>';
+  }
+  function insOpenView(it) {
+    var st = INS_ST[it.status] || INS_ST.stock, con = it.own === "consign", e = insEcon(it), t = insTarget(it), base = insBase(it), parts = insParts(it);
+    var dept = (INS_DEPTS.filter(function (d) { return d.id === (it.dept || "china"); })[0] || {}).label || "";
+    var h = '<div class="modal-head"><h2>' + escapeHtml(it.name || "") + '</h2><button type="button" class="btn-ghost" data-ins-close="1" aria-label="Закрыть">✕</button></div>' +
+      '<div class="ins-s">' + (INS_KIND[it.kind] || "Инструмент") + ' · ' + escapeHtml(dept) + (it.batch ? " · " + escapeHtml(it.batch) : "") + ' · <span class="ins-pill ' + st[1] + '">' + st[0] + '</span>' + (con ? ' <span class="ins-pill c">на реализации</span>' : "") + '</div>';
+    h += '<h3 class="ins-h3">' + (con ? "Условия реализации" : "Покупка") + '</h3><dl class="ins-dl">';
+    if (con) {
+      h += '<dt>Владелец</dt><dd>' + escapeHtml(it.ownerName || "—") + '</dd><dt>Владельцу при продаже</dt><dd class="ins-num">' + (base && base.amt != null ? insMoney(base.amt, base.cur) + '<br><span class="ins-s">' + insAll(e.baseE) + '</span>' : "цена не указана") + '</dd><dt>Наше</dt><dd>всё, что выше цены владельца</dd><dt>Мы вложили</dt><dd>0 — инструмент чужой</dd>';
+    } else {
+      h += '<dt>Заплатили</dt><dd class="ins-num">' + insMoney(base && base.amt, base && base.cur) + (base && base.cur !== "RUB" && insRate(base.cur) ? '<br><span class="ins-s">курс ЦБ ' + insFmt(insRate(base.cur), 4) + ' ₽ за 1 ' + INS_SYM[base.cur] + '</span>' : "") + '</dd><dt>В других валютах</dt><dd class="ins-num">' + insAll(e.baseE) + '</dd><dt>Кто платил</dt><dd>' + escapeHtml(it.paidBy || "—") + '</dd><dt>Затраты при продаже</dt><dd>' + escapeHtml(it.costGoes || ("вернуть: " + (it.paidBy || "—"))) + '</dd>';
+    }
+    if (it.arrived) h += '<dt>Пришёл в Россию</dt><dd>' + insDate(it.arrived) + '</dd>';
+    h += '<dt>Доли в прибыли</dt><dd>' + parts.map(function (p) { return escapeHtml(p.name) + " " + insFmt(p.pct, p.pct % 1 ? 1 : 0) + " %"; }).join(", ") + '</dd></dl>';
+    if (it.note) h += '<p class="ins-note">' + escapeHtml(it.note) + '</p>';
+    var cur2 = insView === "RUB" ? "€" : "₽";
+    if (it.status === "sold" && it.sale && e.parts) {
+      h += '<h3 class="ins-h3">Продажа</h3><dl class="ins-dl"><dt>Цена</dt><dd class="ins-num">' + insMoney(it.sale.amt, it.sale.cur) + '<br><span class="ins-s">' + insAll(e.pE) + '</span></dd><dt>Дата</dt><dd>' + insDate(it.sale.date) + '</dd>' + (it.sale.buyer ? '<dt>Покупатель</dt><dd>' + escapeHtml(it.sale.buyer) + '</dd>' : "") + (e.baseE ? '<dt>Наценка</dt><dd>×' + insFmt(e.pE / e.baseE, 1) + '</dd>' : "") + '</dl>';
+      h += '<h3 class="ins-h3">Куда ушли деньги</h3>' + insTable(["Кому", INS_SYM[insView], cur2],
+        [{ c: [escapeHtml(con ? (it.ownerName || "Владелец") + " — цена владельца" : (it.costGoes || it.paidBy || "—") + " — возврат затрат"), insVm(e.baseE), insSec(e.baseE)] }].concat(e.parts.map(function (p) { return { c: [escapeHtml(p.name) + " — прибыль " + insFmt(p.pct, p.pct % 1 ? 1 : 0) + " %", insVm(p.amt), insSec(p.amt)] }; })),
+        ["Итого выручка", insVm(e.pE), insSec(e.pE)]);
+    } else if (t) {
+      var row = function (lbl, x) { return { c: [lbl, insVm(x.price), insVm(x.profit), insVm(x.each)] }; };
+      var rows = [row("×" + t.lo.m, t.lo), row("×" + t.mid.m, t.mid), row("×" + t.hi.m, t.hi)];
+      if (it.kind !== "bow") rows.push({ cls: "sub", c: ["Со смычком −" + INS_PR.bundle[0] + "…" + INS_PR.bundle[1] + " %:", "", "", ""] }, row("×" + t.lo.m + " −" + t.blo.d + " %", t.blo), row("×" + t.hi.m + " −" + t.bhi.d + " %", t.bhi));
+      h += '<h3 class="ins-h3">Сколько можем заработать</h3><p class="ins-note">Цель — продать в ' + INS_PR.min + '–' + INS_PR.max + ' раз дороже себестоимости. «Каждому» — доля ' + escapeHtml(parts[0] ? insFmt(parts[0].pct) + " %" : "") + '.</p>' + insTable(["Вариант", "Цена", "Прибыль", "Каждому"], rows);
+      if (e.parts) h += '<p class="ins-note">Назначена цена ' + insMoney(it.listPrice.amt, it.listPrice.cur) + ' → прибыль ' + insVm(e.profit) + '.</p>';
+    } else if (e.parts) {
+      h += '<h3 class="ins-h3">При цене ' + insMoney(e.price.amt, e.price.cur) + '</h3>' + insTable(["Кому", INS_SYM[insView], cur2],
+        [{ c: [escapeHtml(con ? (it.ownerName || "Владелец") : (it.costGoes || it.paidBy || "—")), insVm(e.baseE), insSec(e.baseE)] }].concat(e.parts.map(function (p) { return { c: [escapeHtml(p.name) + " " + insFmt(p.pct, p.pct % 1 ? 1 : 0) + " %", insVm(p.amt), insSec(p.amt)] }; })),
+        ["Итого", insVm(e.pE), insSec(e.pE)]);
+    } else if (con && e.baseE) {
+      h += '<p class="ins-note">Наш заработок — всё сверх ' + insMoney(base.amt, base.cur) + '. Например, продали за ' + insVm(e.baseE * 1.25) + ' → нам ' + insVm(e.baseE * 0.25) + '.</p>';
+    }
+    h += '<div class="modal-actions ins-acts"><span>' + (it.status !== "sold" ? '<button type="button" class="btn-primary" data-ins-sell="' + escapeHtml(it.id) + '">Продан…</button>' : "") +
+      '<button type="button" class="btn-secondary" data-ins-edit="' + escapeHtml(it.id) + '">Изменить</button></span><button type="button" class="btn-ghost" data-ins-close="1">Закрыть</button></div>';
+    insShowModal(h, "view", it.id);
+  }
+  function insSel(id, opts, v) { return '<select class="full" id="' + id + '">' + opts.map(function (o) { return '<option value="' + escapeHtml(o[0]) + '"' + (o[0] === v ? " selected" : "") + '>' + escapeHtml(o[1]) + '</option>'; }).join("") + '</select>'; }
+  function insCurSel(id, v) { return insSel(id, INS_CURS.map(function (c) { return [c, INS_SYM[c] + " " + c]; }), v || "EUR"); }
+  function insNumIn(id, v) { return '<input type="text" inputmode="decimal" id="' + id + '" value="' + (v == null ? "" : v) + '">'; }
+  function insOpenEdit(it) {
+    var isNew = !it;
+    it = it || { dept: insDept, kind: "violin", own: "ours", status: "stock", cost: { cur: "EUR" }, partners: insPeople() };
+    var shares = it.shares ? Object.keys(it.shares).map(function (k) { return k + " " + it.shares[k]; }).join("; ") : "";
+    var ppl = insPeople().concat((it.partners || []).filter(function (p) { return insPeople().indexOf(p) < 0; }));
+    var parts = it.partners || insPeople();
+    var h = '<div class="modal-head"><h2>' + (isNew ? "Новый инструмент" : "Изменить · " + escapeHtml(it.name || "")) + '</h2><button type="button" class="btn-ghost" data-ins-close="1" aria-label="Закрыть">✕</button></div>' +
+      '<div class="grid-2"><div class="field"><label class="field-label">Отдел</label>' + insSel("insFDept", INS_DEPTS.map(function (d) { return [d.id, d.label]; }), it.dept || "china") + '</div><div class="field"><label class="field-label">Что</label>' + insSel("insFKind", Object.keys(INS_KIND).map(function (k) { return [k, INS_KIND[k]]; }), it.kind) + '</div></div>' +
+      '<div class="field"><label class="field-label">Название</label><input type="text" id="insFName" value="' + escapeHtml(it.name || "") + '" placeholder="например, Скрипка №7"></div>' +
+      '<div class="grid-2"><div class="field"><label class="field-label">Чей</label>' + insSel("insFOwn", [["ours", "Наш (купили)"], ["consign", "Чужой, на реализации"]], it.own) + '</div><div class="field"><label class="field-label">Статус</label>' + insSel("insFStatus", Object.keys(INS_ST).map(function (k) { return [k, INS_ST[k][0]]; }), it.status) + '</div></div>' +
+      '<div id="insGOurs"><div class="grid-2"><div class="field"><label class="field-label">Закупка с доставкой</label>' + insNumIn("insFCost", it.cost && it.cost.amt) + '</div><div class="field"><label class="field-label">Валюта</label>' + insCurSel("insFCostCur", it.cost && it.cost.cur) + '</div></div>' +
+      '<div class="grid-2"><div class="field"><label class="field-label">Кто платил</label><input type="text" id="insFPaid" list="insPeople" value="' + escapeHtml(it.paidBy || "") + '"></div><div class="field"><label class="field-label">Затраты при продаже</label><input type="text" id="insFGoes" value="' + escapeHtml(it.costGoes || "") + '" placeholder="вернуть тому, кто платил"></div></div></div>' +
+      '<div id="insGCon"><div class="grid-2"><div class="field"><label class="field-label">Владелец</label><input type="text" id="insFOwner" value="' + escapeHtml(it.ownerName || "") + '"></div><div class="field"><label class="field-label">Цена владельца</label>' + insNumIn("insFOwnerPrice", it.ownerPrice && it.ownerPrice.amt) + '</div></div><div class="field"><label class="field-label">Валюта цены владельца</label>' + insCurSel("insFOwnerCur", it.ownerPrice && it.ownerPrice.cur) + '</div></div>' +
+      '<div class="grid-2"><div class="field"><label class="field-label">Цена продажи (план)</label>' + insNumIn("insFList", it.listPrice && it.listPrice.amt) + '</div><div class="field"><label class="field-label">Валюта</label>' + insCurSel("insFListCur", it.listPrice && it.listPrice.cur) + '</div></div>' +
+      '<div class="grid-2"><div class="field"><label class="field-label">Пришёл в Россию</label><input type="date" id="insFArr" value="' + escapeHtml(it.arrived || "") + '"></div><div class="field"><label class="field-label">Партия</label><input type="text" id="insFBatch" value="' + escapeHtml(it.batch || "") + '"></div></div>' +
+      '<div class="field"><label class="field-label">Прибыль делится поровну между</label><div class="ins-ppl">' + ppl.map(function (p) { return '<label><input type="checkbox" class="insFPP" value="' + escapeHtml(p) + '"' + (parts.indexOf(p) > -1 ? " checked" : "") + '> ' + escapeHtml(p) + '</label>'; }).join("") + '</div></div>' +
+      '<div class="field"><label class="field-label">Или неравные доли, %</label><input type="text" id="insFShares" value="' + escapeHtml(shares) + '" placeholder="например: Никита 40; Остальные партнёры 60"></div>' +
+      '<div class="field"><label class="field-label">Заметка</label><textarea id="insFNote">' + escapeHtml(it.note || "") + '</textarea></div>' +
+      '<datalist id="insPeople">' + insPeople().map(function (p) { return '<option value="' + escapeHtml(p) + '">'; }).join("") + '</datalist>' +
+      '<div class="ins-err" id="insErr"></div>' +
+      '<div class="modal-actions ins-acts"><span>' + (!isNew && isAdmin() ? '<button type="button" class="btn-danger" data-ins-del="' + escapeHtml(it.id) + '">Удалить</button>' : "") + '</span><span><button type="button" class="btn-ghost" data-ins-close="1">Отмена</button><button type="button" class="btn-primary" data-ins-save="' + (isNew ? "" : escapeHtml(it.id)) + '">Сохранить</button></span></div>';
+    insShowModal(h, "edit", it.id);
+    var sync = function () { var c = document.getElementById("insFOwn").value === "consign"; document.getElementById("insGOurs").classList.toggle("hidden", c); document.getElementById("insGCon").classList.toggle("hidden", !c); };
+    document.getElementById("insFOwn").addEventListener("change", sync); sync();
+  }
+  function insNum(id) { var v = String(document.getElementById(id).value || "").replace(/\s/g, "").replace(",", "."); if (v === "") return null; var n = parseFloat(v); return isNaN(n) ? null : n; }
+  function insSaveEdit(id) {
+    var g = function (x) { return document.getElementById(x); }, err = g("insErr");
+    var name = g("insFName").value.trim(); if (!name) { err.textContent = "Назовите инструмент."; return; }
+    var parts = Array.prototype.map.call(document.querySelectorAll(".insFPP:checked"), function (x) { return x.value; });
+    var shares = null, st = g("insFShares").value.trim();
+    if (st) {
+      shares = {}; var sum = 0, bad = false;
+      st.split(/[;\n]/).forEach(function (chunk) { var m = chunk.trim().match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*%?$/); if (!chunk.trim()) return; if (!m) { bad = true; return; } var v = parseFloat(m[2].replace(",", ".")); shares[m[1].trim()] = v; sum += v; });
+      if (bad || Math.abs(sum - 100) > 0.5) { err.textContent = "Доли: пишите «Имя число» через точку с запятой, в сумме 100 %."; return; }
+    } else if (!parts.length) { err.textContent = "Отметьте хотя бы одного участника."; return; }
+    var own = g("insFOwn").value, old = insItems.filter(function (i) { return i.id === id; })[0] || {};
+    var data = Object.assign({}, old, {
+      dept: g("insFDept").value, kind: g("insFKind").value, name: name, own: own, status: g("insFStatus").value,
+      batch: g("insFBatch").value.trim(), arrived: g("insFArr").value || null, note: g("insFNote").value.trim(),
+      partners: parts, shares: shares,
+      listPrice: insNum("insFList") != null ? { amt: insNum("insFList"), cur: g("insFListCur").value } : null,
+      updatedAt: new Date().toISOString(), updatedBy: getCurrentUser()
+    });
+    if (own === "consign") { data.ownerName = g("insFOwner").value.trim(); data.ownerPrice = { amt: insNum("insFOwnerPrice"), cur: g("insFOwnerCur").value }; data.cost = null; data.paidBy = null; data.costGoes = null; }
+    else { data.cost = { amt: insNum("insFCost"), cur: g("insFCostCur").value }; data.paidBy = g("insFPaid").value.trim(); data.costGoes = g("insFGoes").value.trim() || null; data.ownerPrice = null; data.ownerName = null; }
+    if (data.status !== "sold") data.sale = null;
+    delete data.id;
+    var newId = id || ("ins" + Date.now().toString(36));
+    if (!id) { data.createdAt = new Date().toISOString(); data.createdBy = getCurrentUser(); }
+    db.collection("instruments").doc(newId).set(data).then(function () { insCloseModal(); showToast("Сохранено"); })
+      .catch(function (e) { console.error("instrument save", e); err.textContent = "Не сохранилось. Попробуйте ещё раз."; });
+  }
+  function insOpenSell(it) {
+    var today = new Date(); var iso = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+    var h = '<div class="modal-head"><h2>Продан · ' + escapeHtml(it.name || "") + '</h2><button type="button" class="btn-ghost" data-ins-close="1" aria-label="Закрыть">✕</button></div>' +
+      '<div class="grid-2"><div class="field"><label class="field-label">Цена продажи</label>' + insNumIn("insSAmt", it.listPrice && it.listPrice.amt) + '</div><div class="field"><label class="field-label">Валюта</label>' + insCurSel("insSCur", (it.listPrice && it.listPrice.cur) || "RUB") + '</div></div>' +
+      '<div class="grid-2"><div class="field"><label class="field-label">Дата</label><input type="date" id="insSDate" value="' + iso + '"></div><div class="field"><label class="field-label">Покупатель</label><input type="text" id="insSBuyer"></div></div>' +
+      '<div class="ins-prev" id="insSPrev">Введите цену — покажу, кому сколько.</div><div class="ins-err" id="insErr"></div>' +
+      '<div class="modal-actions ins-acts"><span></span><span><button type="button" class="btn-ghost" data-ins-close="1">Отмена</button><button type="button" class="btn-primary" data-ins-sold="' + escapeHtml(it.id) + '">Отметить проданным</button></span></div>';
+    insShowModal(h, "sell", it.id);
+    var prev = function () {
+      var a = insNum("insSAmt"), box = document.getElementById("insSPrev"); if (!(a > 0)) return;
+      var e = insEcon(it, { amt: a, cur: document.getElementById("insSCur").value });
+      if (e.unknown || !e.parts) { box.textContent = "Не хватает курса или цены владельца — проверьте карточку."; return; }
+      var back = it.own === "consign" ? "владельцу " + insMoney(it.ownerPrice.amt, it.ownerPrice.cur) : "затраты " + insMoney(it.cost.amt, it.cost.cur) + " → " + (it.costGoes || it.paidBy || "—");
+      box.innerHTML = "Сначала " + escapeHtml(back) + ". Прибыль <b>" + insVm(e.profit) + "</b> (" + insSec(e.profit) + "): " + e.parts.map(function (p) { return escapeHtml(p.name) + " " + insVm(p.amt); }).join(", ") + "." + (e.profit < 0 ? " <b>Продажа в минус.</b>" : "");
+    };
+    document.getElementById("insSAmt").addEventListener("input", prev); document.getElementById("insSCur").addEventListener("change", prev); prev();
+  }
+  function insSaveSold(id) {
+    var a = insNum("insSAmt"); if (!(a > 0)) { document.getElementById("insErr").textContent = "Укажите цену продажи."; return; }
+    db.collection("instruments").doc(id).update({ status: "sold", sale: { amt: a, cur: document.getElementById("insSCur").value, date: document.getElementById("insSDate").value, buyer: document.getElementById("insSBuyer").value.trim() }, updatedAt: new Date().toISOString(), updatedBy: getCurrentUser() })
+      .then(function () { insCloseModal(); showToast("Отмечено проданным"); })
+      .catch(function (e) { console.error(e); document.getElementById("insErr").textContent = "Не сохранилось. Попробуйте ещё раз."; });
+  }
+  function initInstruments() {
+    var view = document.getElementById("instrumentsView"), modal = document.getElementById("insModal");
+    if (!view || !modal) return;
+    view.addEventListener("click", function (ev) {
+      var t = ev.target.closest("[data-ins-dept],[data-ins-cur],[data-ins-add],[data-ins-open],[data-ins-fxsave]"); if (!t) return;
+      if (t.hasAttribute("data-ins-dept")) { insDept = t.getAttribute("data-ins-dept"); try { localStorage.setItem("insDept", insDept); } catch (e) {} renderInstruments(); }
+      else if (t.hasAttribute("data-ins-cur")) { insView = t.getAttribute("data-ins-cur"); try { localStorage.setItem("insView", insView); } catch (e) {} renderInstruments(); }
+      else if (t.hasAttribute("data-ins-add")) insOpenEdit(null);
+      else if (t.hasAttribute("data-ins-open")) { var it = insItems.filter(function (i) { return i.id === t.getAttribute("data-ins-open"); })[0]; if (it) insOpenView(it); }
+      else if (t.hasAttribute("data-ins-fxsave")) {
+        var v = function (c) { var x = parseFloat(String(document.getElementById("insFx" + c).value).replace(",", ".")); return isNaN(x) ? null : x; };
+        var d = new Date(); var fx = { EUR: v("EUR"), USD: v("USD"), CNY: v("CNY"), asOf: String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear() };
+        db.collection("instrumentsMeta").doc("fx").set(fx).then(function () { showToast("Курс сохранён"); }).catch(function () { showToast("Курс не сохранился", true); });
+      }
+    });
+    modal.addEventListener("click", function (ev) {
+      if (ev.target === modal) { insCloseModal(); return; }
+      var t = ev.target.closest("[data-ins-close],[data-ins-sell],[data-ins-edit],[data-ins-save],[data-ins-sold],[data-ins-del]"); if (!t) return;
+      var find = function (a) { var id = t.getAttribute(a); return insItems.filter(function (i) { return i.id === id; })[0]; };
+      if (t.hasAttribute("data-ins-close")) insCloseModal();
+      else if (t.hasAttribute("data-ins-sell")) insOpenSell(find("data-ins-sell"));
+      else if (t.hasAttribute("data-ins-edit")) insOpenEdit(find("data-ins-edit"));
+      else if (t.hasAttribute("data-ins-save")) insSaveEdit(t.getAttribute("data-ins-save"));
+      else if (t.hasAttribute("data-ins-sold")) insSaveSold(t.getAttribute("data-ins-sold"));
+      else if (t.hasAttribute("data-ins-del")) {
+        if (t.getAttribute("data-sure")) { db.collection("instruments").doc(t.getAttribute("data-ins-del")).update({ deleted: true, updatedAt: new Date().toISOString(), updatedBy: getCurrentUser() }).then(function () { insCloseModal(); showToast("Удалено"); }); }
+        else { t.setAttribute("data-sure", "1"); t.textContent = "Точно удалить?"; }
+      }
+    });
+    document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && !modal.classList.contains("hidden")) insCloseModal(); });
+  }
+
   // ---------- View switching ----------
   function setView(v) {
     // Часть 22: раздел "Сотрудники" — только для администратора; случайный
     // (или намеренный) переход туда у сотрудника просто возвращает на доску.
     if (v === "employees" && !isAdmin()) v = "board";
     if (v === "finance" && !canSeeFinance()) v = "board";
+    if (v === "instruments" && !canSeeInstruments()) v = "board";
     currentView = v;
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
       var active = b.getAttribute("data-view") === v;
@@ -6017,6 +6389,7 @@
     document.getElementById("samplesView").classList.toggle("hidden", v !== "samples");
     document.getElementById("ordersView").classList.toggle("hidden", v !== "orders");
     document.getElementById("employeesView").classList.toggle("hidden", v !== "employees");
+    document.getElementById("instrumentsView").classList.toggle("hidden", v !== "instruments");
     // Задачные фильтры (строка поиска + "Фильтры" и сам развёрнутый ряд
     // селектов под ней — это два разных div'а, filters/filtersExtra) не
     // относятся ни к Финансам, ни к Аналитике, ни к Протоколам, ни к
@@ -6024,7 +6397,7 @@
     // второй (filtersExtra) на широком экране виден всегда по умолчанию
     // (.filters-extra{display: flex}), поэтому ряд селектов "протекал"
     // поверх этих разделов; здесь заодно и это поправлено.
-    var hideTaskFilters = v === "myday" || v === "finance" || v === "analytics" || v === "map" || v === "partners" || v === "meetings" || v === "samples" || v === "orders" || v === "employees";
+    var hideTaskFilters = v === "myday" || v === "finance" || v === "analytics" || v === "map" || v === "partners" || v === "meetings" || v === "samples" || v === "orders" || v === "employees" || v === "instruments";
     document.getElementById("filters").classList.toggle("hidden", hideTaskFilters);
     document.getElementById("filtersExtra").classList.toggle("hidden", hideTaskFilters);
     // Переключатель "По срокам"/"Списком" имеет смысл только на самой доске —
@@ -6601,6 +6974,7 @@
     else if (currentView === "partners") renderPartners();
     else if (currentView === "meetings") renderMeetings();
     else if (currentView === "samples") renderSamples();
+    else if (currentView === "instruments") renderInstruments();
     else if (currentView === "orders") renderOrders();
     else if (currentView === "employees") renderEmployees();
   }
@@ -9952,6 +10326,7 @@
 
     // CRM v2 Часть 3: «Образцы».
     refreshSamplesDirFilter();
+    initInstruments();
     document.getElementById("samplesShowDeletedBtn").addEventListener("click", function (e) {
       samplesShowDeleted = !samplesShowDeleted;
       e.target.classList.toggle("active", samplesShowDeleted);
