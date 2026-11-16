@@ -10139,6 +10139,10 @@
       var t = findTask(editingId);
       if (!t) return;
       var id = editingId;
+      // 16 нояб. 2026: правки в форме (название, срок…) сохраняются вместе с паузой.
+      var built = buildTaskFormData();
+      if (showFormError(built)) return;
+      persist(built.data, id);
       closeModal();
       setTaskPaused(id, !t.paused);
     });
@@ -10163,7 +10167,10 @@
         // невозможно завершить из-за чужой скрытой "Личное"-подзадачи.
         var openKids = visibleChildrenOf(editingId).filter(function (k) { return !taskDone(k); });
         if (openKids.length) { showToast("Сначала закройте все подзадачи (осталось " + openKids.length + ").", true); return; }
-        persist({ status: "done", completedAt: t.completedAt || Date.now() }, editingId);
+        // 16 нояб. 2026: несохранённые правки формы не теряются при закрытии.
+        var built = buildTaskFormData();
+        if (showFormError(built)) return;
+        persist(Object.assign({}, built.data, { status: "done", completedAt: t.completedAt || Date.now() }), editingId);
         showToast("Задача завершена.");
         closeModal();
         openNextStepPrompt(t);
