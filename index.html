@@ -3666,11 +3666,12 @@
   // из-за этого выделялись и уже прошедшие дни. Теперь период всегда
   // начинается с СЕГОДНЯ и идёт до воскресенья текущей недели включительно
   // (а не до пятницы, как было раньше).
+  // 16 нояб. 2026: «на этой неделе» — с сегодня до пятницы (в выходные — до
+  // следующей пятницы); с субботы невыполненное становится просроченным.
   function currentWeekRange() {
     var today = new Date(); today.setHours(0, 0, 0, 0);
-    var mon = mondayOfWeek(today);
-    var sun = new Date(mon); sun.setDate(sun.getDate() + 6);
-    return { start: isoDate(today), end: isoDate(sun) };
+    var fri = new Date(today); fri.setDate(fri.getDate() + (5 - today.getDay() + 7) % 7);
+    return { start: isoDate(today), end: isoDate(fri) };
   }
   // Standard ISO-8601 week number (Monday-start weeks, week 1 contains the
   // year's first Thursday) — used for the "На неделю" column header and for
