@@ -6743,15 +6743,20 @@
     var wd = new Date(iso + "T00:00:00").getDay(); // 0 вс … 5 пт
     return addDaysStr(iso, ((5 - wd + 7) % 7) || 7);
   }
+  // Пятница этой недели (в пятницу — сегодня; в субботу/воскресенье — следующая).
+  function thisFriday(iso) { var wd = new Date(iso + "T00:00:00").getDay(); return addDaysStr(iso, (5 - wd + 7) % 7); }
   function nextMonday(iso) { var d = new Date(iso + "T00:00:00"); var wd = d.getDay(); return addDaysStr(iso, ((8 - wd) % 7) || 7); }
   function monthEnd(iso) { var d = new Date(iso + "T00:00:00"); var e = new Date(d.getFullYear(), d.getMonth() + 1, 0); return isoDate(e); }
   function triageDateOptions() {
     var t = todayStr();
     return [
+      // 16 нояб. 2026: «На этой неделе» — период с сегодня до пятницы: задача
+      // каждый день в «Сделать сегодня», с субботы — просрочена.
+      { key: "w", label: "На этой неделе", date: thisFriday(t), start: t },
       { key: "2", label: "Сегодня", date: t },
       { key: "3", label: "Завтра", date: addDaysStr(t, 1) },
       { key: "4", label: "Пятница", date: nextFriday(t) },
-      { key: "5", label: "След. неделя", date: nextMonday(t) },
+      { key: "5", label: "След. неделя", date: addDaysStr(nextMonday(t), 4), start: nextMonday(t) },
       { key: "6", label: "Конец месяца", date: monthEnd(t) }
     ];
   }
@@ -6783,7 +6788,8 @@
     var isPersonal = t.direction === "Личное";
     var dates = triageDateOptions().map(function (o) {
       var dl = dateLabel(o.date);
-      return '<button type="button" class="triage-btn" data-date="' + o.date + '">' + o.label + (dl !== o.label ? ' <span style="color:var(--ink-faint);font-weight:500">' + dl + '</span>' : '') + '<kbd>' + o.key + '</kbd></button>';
+      var dl2 = o.start ? dateLabel(o.start) + "–" + dl : dl;
+      return '<button type="button" class="triage-btn' + (o.start && o.start === todayStr() ? ' primary' : '') + '" data-date="' + o.date + '"' + (o.start ? ' data-start="' + o.start + '"' : '') + '>' + o.label + (dl2 !== o.label ? ' <span style="color:' + (o.start === todayStr() ? 'inherit;opacity:.8' : 'var(--ink-faint)') + ';font-weight:500">' + dl2 + '</span>' : '') + '<kbd>' + o.key.toUpperCase() + '</kbd></button>';
     }).join("") + '<input type="date" class="triage-date" id="triageDateInput" aria-label="Другая дата">';
     var people = isPersonal ? "" : RESPONSIBLE.map(function (r) {
       var on = respIds(t).indexOf(r.id) !== -1;
@@ -6820,7 +6826,7 @@
     document.getElementById("triageOpen").addEventListener("click", function () { triageEditInFull(t.id); });
     document.getElementById("triageNew").addEventListener("click", function () { triageEditInFull(null); });
     Array.prototype.forEach.call(body.querySelectorAll("[data-date]"), function (b) {
-      b.addEventListener("click", function () { triageSetDate(b.getAttribute("data-date")); });
+      b.addEventListener("click", function () { triageSetDate(b.getAttribute("data-date"), b.getAttribute("data-start")); });
     });
     document.getElementById("triageDateInput").addEventListener("change", function (e) { if (e.target.value) triageSetDate(e.target.value); });
     Array.prototype.forEach.call(body.querySelectorAll("[data-person]"), function (b) {
@@ -6860,10 +6866,11 @@
     showToast("№" + (t.number || "?") + " — в «Удалённые» (можно восстановить).");
     triageNext();
   }
-  function triageSetDate(iso) {
+  function triageSetDate(iso, start) {
     var t = triageCurrent(); if (!t) return;
     var data = { dueDate: iso };
-    if (t.startDate && t.dueDate && t.startDate <= t.dueDate) {
+    if (start) data.startDate = start;
+    else if (t.startDate && t.dueDate && t.startDate <= t.dueDate) {
       var len = Math.round((new Date(t.dueDate + "T00:00:00") - new Date(t.startDate + "T00:00:00")) / 86400000);
       data.startDate = addDaysStr(iso, -len);
     }
@@ -10292,8 +10299,9 @@
       else if (e.key === "ArrowRight") { e.preventDefault(); triage.stats.skipped++; triageNext(); }
       else if (e.key === "ArrowLeft") { e.preventDefault(); if (triage.i) { triage.i--; renderTriage(); } }
       else {
-        var opt = triageDateOptions().filter(function (o) { return o.key === e.key; })[0];
-        if (opt) { e.preventDefault(); triageSetDate(opt.date); }
+        var k = e.key === "ц" || e.key === "Ц" || e.key === "W" ? "w" : e.key;
+        var opt = triageDateOptions().filter(function (o) { return o.key === k; })[0];
+        if (opt) { e.preventDefault(); triageSetDate(opt.date, opt.start); }
       }
     });
     document.getElementById("boardDensityToggle").addEventListener("click", function () {
