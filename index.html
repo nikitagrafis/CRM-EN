@@ -2011,13 +2011,13 @@
     </div>
 
     <div class="field">
-      <span class="field-label">Тип задачи</span>
-      <div class="pill-row" id="typeRow"></div>
+      <label class="field-label" for="fTitle">Название задачи</label>
+      <input type="text" id="fTitle" required>
     </div>
 
     <div class="field">
-      <label class="field-label" for="fTitle">Название задачи</label>
-      <input type="text" id="fTitle" required>
+      <span class="field-label">Тип задачи <span class="field-hint" style="display:inline;font-weight:500;text-transform:none;letter-spacing:0">— сам по словам в названии: письмо, сообщение, звонок, встреча, документ, командировка</span></span>
+      <div class="pill-row" id="typeRow"></div>
     </div>
 
     <div class="grid-2">
@@ -2641,23 +2641,26 @@
   // type by hand is only needed when the guess is wrong. First match wins;
   // checked in this order so more specific words aren't shadowed by vaguer
   // ones.
+  // 16 нояб. 2026: слова в любой форме («встречу», «письма», «звонки»), только
+  // с начала слова («контакт» ≠ «акт»); если слов несколько — побеждает то,
+  // что стоит в названии раньше («Звонок по договору» → Звонок).
   var TYPE_KEYWORDS = [
-    { type: "call", words: ["звонок", "позвонить", "созвониться"] },
-    { type: "meeting", words: ["встреча", "совещание", "митинг"] },
-    { type: "trip", words: ["командировка", "поездка"] },
-    { type: "document", words: ["договор", "документ", "счёт", "счет", "акт"] },
-    { type: "message", words: ["сообщение", "написать в", "чат", "мессендж"] },
-    { type: "letter", words: ["письмо", "email", "имейл"] }
+    { type: "call", re: /(^|[^а-яёa-z])(звон|позвон|созвон|перезвон)/ },
+    { type: "meeting", re: /(^|[^а-яёa-z])(встреч|совещани|митинг|переговор)/ },
+    { type: "trip", re: /(^|[^а-яёa-z])(командиров|поездк|съездить|слетать)/ },
+    { type: "document", re: /(^|[^а-яёa-z])(документ|договор(а|ы|у|ом|е|ов)?(?![а-яё])|сч[её]т(а|ы|у|ом|ов)?(?![а-яё])|акт(а|ы|у|ом|ов)?(?![а-яё])|кп(?![а-яё])|допсоглашени|соглашени|спецификаци)/ },
+    { type: "message", re: /(^|[^а-яёa-z])(сообщени|смс|sms|whatsapp|вотсап|ватсап|в чат|в телеграм)/ },
+    { type: "letter", re: /(^|[^а-яёa-z])(письм|email|e-mail|имейл|емейл)/ },
+    { type: "task", re: /(^|[^а-яёa-z])задач/ }
   ];
   function detectTypeFromTitle(title) {
     var lower = (title || "").toLowerCase();
+    var best = null, bestAt = Infinity;
     for (var i = 0; i < TYPE_KEYWORDS.length; i++) {
-      var words = TYPE_KEYWORDS[i].words;
-      for (var j = 0; j < words.length; j++) {
-        if (lower.indexOf(words[j]) !== -1) return TYPE_KEYWORDS[i].type;
-      }
+      var m = TYPE_KEYWORDS[i].re.exec(lower);
+      if (m && m.index < bestAt) { best = TYPE_KEYWORDS[i].type; bestAt = m.index; }
     }
-    return null;
+    return best;
   }
   // По просьбе Никиты (15 сент.): раньше поле времени показывалось само по
   // себе для типов "Звонок"/"Встреча", даже если кнопку "Выбрать время" не
@@ -5777,7 +5780,8 @@
     renderCommentsSection(t);
     updateModalDoneBtn(t);
 
-    typeManuallySet = !!t;
+    // Тип выбран руками раньше — не трогаем; иначе он подстраивается под название.
+    typeManuallySet = !!(t && t.type && t.type !== "task" && t.type !== detectTypeFromTitle(t.title));
     buildPillRow(document.getElementById("typeRow"), TYPES, t ? t.type : "task", function (pickedType) {
       typeManuallySet = true;
       updateTimeFieldVisibility(pickedType);
@@ -10076,8 +10080,7 @@
     document.getElementById("taskForm").addEventListener("submit", onSubmit);
     document.getElementById("fTitle").addEventListener("input", function (e) {
       if (typeManuallySet) return;
-      var detected = detectTypeFromTitle(e.target.value);
-      if (!detected) return;
+      var detected = detectTypeFromTitle(e.target.value) || "task";
       var typeRow = document.getElementById("typeRow");
       if (typeRow.getAttribute("data-value") === detected) return;
       typeRow.setAttribute("data-value", detected);
