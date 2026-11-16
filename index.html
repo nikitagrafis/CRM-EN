@@ -10215,11 +10215,17 @@
     // валидация и та же нумерация, что у обычного "Сохранить"), затем сразу
     // открывается форма подзадачи уже для только что созданной задачи.
     document.getElementById("addRelatedBtn").addEventListener("click", function () {
+      // 16 нояб. 2026: правки самой задачи не теряются при переходе к подзадаче.
+      if (editingId) { var built = buildTaskFormData(); if (showFormError(built)) return; persist(built.data, editingId); }
       ensureSavedAndGetId().then(function (id) {
         if (!id) return;
         var parent = findTask(id);
         if (!parent) return;
+        // Из разбора: форма подзадачи открывается поверх, разбор вернётся после неё.
+        var fromTriage = triageAwaitEdit;
+        triageAwaitEdit = false;
         closeModal();
+        triageAwaitEdit = fromTriage;
         openSubtaskFormFor(parent);
       }).catch(function (e) {
         console.error("autosave before subtask failed", e);
