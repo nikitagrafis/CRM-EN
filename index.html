@@ -2040,7 +2040,7 @@
     </div>
 
     <div class="field">
-      <span class="field-label">Ответственный</span>
+      <span class="field-label">Ответственные <span style="font-weight:500;text-transform:none;letter-spacing:0">— можно несколько</span></span>
       <div class="pill-row" id="respRow"></div>
       <!-- Часть 27: "подсказка ответственного" — только для новой задачи,
            см. applyResponsibleSuggestion(). Пусто, если истории по проекту
@@ -2231,7 +2231,7 @@
       <div class="triage-row" id="nextStepDates"></div>
     </div>
     <div class="field">
-      <span class="field-label">Ответственный</span>
+      <span class="field-label">Ответственные <span style="font-weight:500;text-transform:none;letter-spacing:0">— можно несколько</span></span>
       <div class="triage-row" id="nextStepPeople"></div>
     </div>
     <div class="modal-actions">
@@ -6552,33 +6552,38 @@
   }
   // Окно «✓ Закрыто. Что дальше?» — после закрытия задачи (в окне задачи и в
   // «Разборе»). onFinish вызывается и при «Нет, это всё», и после создания.
-  var nextStepState = { prev: null, due: "", person: "", onFinish: null };
+  var nextStepState = { prev: null, due: "", start: "", people: [], onFinish: null };
   function openNextStepPrompt(prev, onFinish) {
-    nextStepState = { prev: prev, due: addDaysStr(todayStr(), 1), person: respIds(prev)[0] || getCurrentUser(), onFinish: onFinish || null };
+    // 17 нояб. 2026: ответственных может быть несколько (по умолчанию — как у закрытой задачи).
+    nextStepState = { prev: prev, due: addDaysStr(todayStr(), 1), start: "", people: respIds(prev).length ? respIds(prev).slice() : [getCurrentUser()], onFinish: onFinish || null };
     document.getElementById("nextStepPrev").innerHTML = '✓ <b>' + taskTitleLabel(prev) + '</b> ' + escapeHtml(prev.title) + ' · ' + escapeHtml(prev.direction || "");
     document.getElementById("nextStepTitle").value = "";
     var dates = document.getElementById("nextStepDates");
     dates.innerHTML = triageDateOptions().map(function (o) {
       var dl = dateLabel(o.date);
-      return '<button type="button" class="triage-btn' + (o.date === nextStepState.due ? ' active' : '') + '" data-date="' + o.date + '">' + o.label + (dl !== o.label ? ' <span style="color:var(--ink-faint);font-weight:500">' + dl + '</span>' : '') + '</button>';
+      return '<button type="button" class="triage-btn' + (o.date === nextStepState.due ? ' active' : '') + '" data-date="' + o.date + '"' + (o.start ? ' data-start="' + o.start + '"' : '') + '>' + o.label + (dl !== o.label ? ' <span style="color:var(--ink-faint);font-weight:500">' + dl + '</span>' : '') + '</button>';
     }).join("") + '<input type="date" class="triage-date" id="nextStepDateInput">';
     var markDate = function () {
       Array.prototype.forEach.call(dates.querySelectorAll("[data-date]"), function (b) { b.classList.toggle("active", b.getAttribute("data-date") === nextStepState.due); });
     };
     Array.prototype.forEach.call(dates.querySelectorAll("[data-date]"), function (b) {
-      b.addEventListener("click", function () { nextStepState.due = b.getAttribute("data-date"); markDate(); });
+      b.addEventListener("click", function () { nextStepState.due = b.getAttribute("data-date"); nextStepState.start = b.getAttribute("data-start") || ""; markDate(); });
     });
-    document.getElementById("nextStepDateInput").addEventListener("change", function (e) { if (e.target.value) { nextStepState.due = e.target.value; markDate(); } });
+    document.getElementById("nextStepDateInput").addEventListener("change", function (e) { if (e.target.value) { nextStepState.due = e.target.value; nextStepState.start = ""; markDate(); } });
     var peopleEl = document.getElementById("nextStepPeople");
     var personal = prev.direction === "Личное";
     peopleEl.parentElement.classList.toggle("hidden", personal);
     peopleEl.innerHTML = RESPONSIBLE.map(function (r) {
-      return '<button type="button" class="triage-btn' + (r.id === nextStepState.person ? ' active' : '') + '" data-person="' + escapeHtml(r.id) + '">' + escapeHtml(r.label) + '</button>';
+      return '<button type="button" class="triage-btn' + (nextStepState.people.indexOf(r.id) !== -1 ? ' active' : '') + '" data-person="' + escapeHtml(r.id) + '">' + escapeHtml(r.label) + '</button>';
     }).join("");
     Array.prototype.forEach.call(peopleEl.querySelectorAll("[data-person]"), function (b) {
       b.addEventListener("click", function () {
-        nextStepState.person = b.getAttribute("data-person");
-        Array.prototype.forEach.call(peopleEl.querySelectorAll("[data-person]"), function (x) { x.classList.toggle("active", x === b); });
+        var pid = b.getAttribute("data-person"), at = nextStepState.people.indexOf(pid);
+        if (at !== -1) {
+          if (nextStepState.people.length === 1) { showToast("Хотя бы один ответственный должен остаться."); return; }
+          nextStepState.people.splice(at, 1);
+        } else nextStepState.people.push(pid);
+        b.classList.toggle("active", at === -1);
       });
     });
     document.getElementById("nextStepModal").classList.remove("hidden");
@@ -6587,7 +6592,7 @@
   function closeNextStepPrompt() {
     document.getElementById("nextStepModal").classList.add("hidden");
     var cb = nextStepState.onFinish;
-    nextStepState = { prev: null, due: "", person: "", onFinish: null };
+    nextStepState = { prev: null, due: "", start: "", people: [], onFinish: null };
     if (cb) cb();
   }
   function createNextStep() {
@@ -6602,9 +6607,9 @@
       subproject: prev.subproject || "",
       entity: prev.entity || (DIRECTION_ENTITY[prev.direction] || "Не применимо"),
       dueDate: nextStepState.due || "",
-      startDate: "", time: "",
+      startDate: nextStepState.start || "", time: "",
       type: detectTypeFromTitle(title) || "task",
-      responsible: personal ? [getCurrentUser()] : [nextStepState.person || getCurrentUser()],
+      responsible: personal ? [getCurrentUser()] : (nextStepState.people.length ? nextStepState.people.slice() : [getCurrentUser()]),
       status: "open", completedAt: null, parentId: "", prevId: prev.id,
       carriedOver: false, syncCalendar: false, repeat: "none", notes: ""
     };
