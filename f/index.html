@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Вход</title>
+<!--
+  Загрузчик закрытого раздела (17 нояб. 2026).
+  Здесь НЕТ никаких данных и кода раздела — только вход через Google.
+  Код раздела лежит в базе (nf_app/main), данные — в коллекциях nf_*;
+  правила базы отдают их только Google-аккаунту владельца
+  (firestore.rules → isNikita). Проверка почты ниже — лишь чтобы не
+  делать лишних запросов: настоящая защита — правила базы.
+-->
+<style id="gateStyle">
+  html, body { margin: 0; background: #f6f5f2; color: #22201d; font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  @media (prefers-color-scheme: dark) { html, body { background: #191714; color: #ece7df; } #gate button { background: #ece7df; color: #191714; } }
+  #gate { min-height: 100vh; display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+  #gate .box { max-width: 340px; width: 100%; text-align: center; display: grid; gap: 14px; }
+  #gate button { font: inherit; padding: 12px 18px; border: 0; border-radius: 10px; background: #22201d; color: #fff; cursor: pointer; }
+  #gate button.link { background: none; color: inherit; text-decoration: underline; padding: 4px; }
+  #gate .hidden { display: none; }
+  #gate .msg { color: #6c675f; }
+</style>
+</head>
+<body>
+<div id="gate">
+  <div class="box">
+    <div class="msg" id="gateMsg">Загрузка…</div>
+    <button id="gateLogin" class="hidden">Войти через Google</button>
+    <button id="gateOut" class="link hidden">Войти другим аккаунтом</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+(function () {
+  "use strict";
+  var OWNER = "nikitagrafis@gmail.com";
+  firebase.initializeApp({
+    apiKey: "AIzaSyC6Hv19DnDLQJwD1D_nFMNueFNtI9xHnJM",
+    authDomain: "crm-en-56646.firebaseapp.com",
+    projectId: "crm-en-56646",
+    storageBucket: "crm-en-56646.firebasestorage.app",
+    messagingSenderId: "487269026021",
+    appId: "1:487269026021:web:7a8ff174aca42c7ae96c0c"
+  });
+  var fs = firebase.firestore();
+  fs.settings({ ignoreUndefinedProperties: true });
+  var auth = firebase.auth();
+
+  var msg = document.getElementById("gateMsg");
+  var loginBtn = document.getElementById("gateLogin");
+  var outBtn = document.getElementById("gateOut");
+  function show(text, login, out) {
+    msg.textContent = text;
+    loginBtn.classList.toggle("hidden", !login);
+    outBtn.classList.toggle("hidden", !out);
+  }
+
+  loginBtn.addEventListener("click", function () {
+    var p = new firebase.auth.GoogleAuthProvider();
+    p.setCustomParameters({ prompt: "select_account" });
+    loginBtn.disabled = true;
+    auth.signInWithPopup(p).catch(function (e) {
+      loginBtn.disabled = false;
+      var c = e && e.code;
+      if (c === "auth/popup-blocked" || c === "auth/operation-not-supported-in-this-environment") { auth.signInWithRedirect(p); return; }
+      if (c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request") return;
+      show("Не удалось войти: " + ((e && e.message) || c), true, false);
+    });
+  });
+  outBtn.addEventListener("click", function () { auth.signOut(); });
+
+  function isOwner(u) {
+    return !!u && !u.isAnonymous && u.emailVerified !== false
+      && String(u.email || "").toLowerCase() === OWNER
+      && (u.providerData || [{ providerId: "google.com" }]).some(function (p) { return p && p.providerId === "google.com"; });
+  }
+
+  // Приложение работает с базой через claude.use("db") — тот же compat API
+  // Firestore, только коллекции с префиксом nf_.
+  var adapter = { collection: function (n) { return fs.collection("nf_" + n); } };
+
+  function mount(html) {
+    window.claude = { use: function (n) { return Promise.resolve(n === "db" ? adapter : null); } };
+    var box = document.createElement("div");
+    box.innerHTML = html;
+    var t = box.querySelector("title");
+    if (t) { document.title = t.textContent; t.remove(); }
+    var gs = document.getElementById("gateStyle"); if (gs) gs.remove();
+    document.getElementById("gate").remove();
+    var scripts = [];
+    while (box.firstChild) {
+      var n = box.firstChild;
+      document.body.appendChild(n);
+      if (n.nodeType === 1) {
+        if (n.tagName === "SCRIPT") scripts.push(n);
+        else n.querySelectorAll("script").forEach(function (s) { scripts.push(s); });
+      }
+    }
+    // Скрипты, вставленные через innerHTML, сами не выполняются — пересоздаём.
+    scripts.forEach(function (old) {
+      var s = document.createElement("script");
+      for (var i = 0; i < old.attributes.length; i++) s.setAttribute(old.attributes[i].name, old.attributes[i].value);
+      s.textContent = old.textContent;
+      old.replaceWith(s);
+    });
+  }
+
+  var started = false;
+  auth.onAuthStateChanged(function (u) {
+    if (started) { if (!isOwner(u)) location.reload(); return; }
+    if (!u) { show("Закрытый раздел. Войдите через Google.", true, false); return; }
+    if (!isOwner(u)) { show("Нет доступа для " + (u.email || "этого аккаунта") + ".", false, true); return; }
+    started = true;
+    show("Загрузка…", false, false);
+    fs.collection("nf_app").doc("main").get().then(function (d) {
+      var html = d.exists && d.data().html;
+      if (!html) { started = false; show("Раздел ещё не загружен в базу.", false, true); return; }
+      mount(html);
+    }).catch(function (e) {
+      started = false;
+      show("Нет доступа: " + ((e && e.code) || "ошибка") + ".", false, true);
+    });
+  });
+})();
+</script>
+</body>
+</html>
